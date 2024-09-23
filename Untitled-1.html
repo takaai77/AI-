@@ -25,12 +25,11 @@
             document.body.appendChild(renderer.domElement);
 
             const loader = new THREE.VRMLoader();
-            loader.load("https://takaai77.github.io/AI-/", function (loadedVrm) {
-    vrm = loadedVrm;
-    scene.add(vrm.scene);
-    animate();
-});
-
+            loader.load("https://takaai77.github.io/AI-/avatar.vrm", function (loadedVrm) {
+                vrm = loadedVrm;
+                scene.add(vrm.scene);
+                animate();
+            });
 
             camera.position.z = 5;
         }
