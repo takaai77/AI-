@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>メール下書き作成エージェント</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 900px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.9em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        input[type="text"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-generate {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-copy {
+            background: #4caf50;
+            color: white;
+            display: none;
+        }
+
+        .btn-copy:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .btn-copy.show {
+            display: block;
+        }
+
+        .btn-clear {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-clear:hover {
+            background: #da190b;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(244, 67, 54, 0.4);
+        }
+
+        .output-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .output-section.show {
+            display: block;
+        }
+
+        .output-label {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        #emailOutput {
+            width: 100%;
+            min-height: 300px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: #4caf50;
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            display: none;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .notification.show {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📧 メール下書き作成エージェント</h1>
+        <p class="subtitle">AIがあなたのメール作成をサポートします</p>
+
+        <form id="emailForm">
+            <div class="grid-2">
+                <div class="form-group">
+                    <label for="recipient">宛先 <span style="color: red;">*</span></label>
+                    <input type="text" id="recipient" placeholder="例: 山田太郎様" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="tone">トーン <span style="color: red;">*</span></label>
+                    <select id="tone" required>
+                        <option value="">選択してください</option>
+                        <option value="formal">フォーマル（ビジネス）</option>
+                        <option value="semi-formal">セミフォーマル</option>
+                        <option value="casual">カジュアル</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="subject">件名 <span style="color: red;">*</span></label>
+                <input type="text" id="subject" placeholder="例: 会議の日程調整について" required>
+            </div>
+
+            <div class="form-group">
+                <label for="purpose">メールの目的 <span style="color: red;">*</span></label>
+                <select id="purpose" required>
+                    <option value="">選択してください</option>
+                    <option value="request">依頼</option>
+                    <option value="inquiry">問い合わせ</option>
+                    <option value="report">報告</option>
+                    <option value="apology">謝罪</option>
+                    <option value="thanks">感謝</option>
+                    <option value="invitation">招待</option>
+                    <option value="reminder">リマインド</option>
+                    <option value="other">その他</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="keyPoints">主要なポイント <span style="color: red;">*</span></label>
+                <textarea id="keyPoints" placeholder="メールに含めたい主要なポイントを箇条書きで入力してください&#10;例:&#10;- 来週の会議の日程を調整したい&#10;- 候補日は月曜日または水曜日&#10;- オンラインでの開催を希望" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="additionalInfo">追加情報（任意）</label>
+                <textarea id="additionalInfo" placeholder="その他、メールに含めたい情報があれば入力してください"></textarea>
+            </div>
+
+            <div class="button-group">
+                <button type="submit" class="btn-generate">✨ メールを生成</button>
+                <button type="button" class="btn-clear" onclick="clearForm()">🗑️ クリア</button>
+            </div>
+        </form>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p style="margin-top: 10px; color: #667eea;">メールを生成中...</p>
+        </div>
+
+        <div class="output-section" id="outputSection">
+            <div class="output-label">生成されたメール:</div>
+            <textarea id="emailOutput"></textarea>
+            <div class="button-group" style="margin-top: 15px;">
+                <button type="button" class="btn-copy" onclick="copyToClipboard()">📋 コピー</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification">
+        クリップボードにコピーしました！
+    </div>
+
+    <script>
+        document.getElementById('emailForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            generateEmail();
+        });
+
+        function generateEmail() {
+            const recipient = document.getElementById('recipient').value;
+            const tone = document.getElementById('tone').value;
+            const subject = document.getElementById('subject').value;
+            const purpose = document.getElementById('purpose').value;
+            const keyPoints = document.getElementById('keyPoints').value;
+            const additionalInfo = document.getElementById('additionalInfo').value;
+
+            // Show loading
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('outputSection').classList.remove('show');
+
+            // Simulate AI processing
+            setTimeout(() => {
+                const email = composeEmail(recipient, tone, subject, purpose, keyPoints, additionalInfo);
+                document.getElementById('emailOutput').value = email;
+
+                // Hide loading and show output
+                document.getElementById('loading').classList.remove('show');
+                document.getElementById('outputSection').classList.add('show');
+                document.querySelector('.btn-copy').classList.add('show');
+
+                // Scroll to output
+                document.getElementById('outputSection').scrollIntoView({ behavior: 'smooth' });
+            }, 1500);
+        }
+
+        function composeEmail(recipient, tone, subject, purpose, keyPoints, additionalInfo) {
+            let email = '';
+
+            // Opening
+            if (tone === 'formal') {
+                email += `${recipient}\n\n`;
+                email += 'お世話になっております。\n\n';
+            } else if (tone === 'semi-formal') {
+                email += `${recipient}\n\n`;
+                email += 'お疲れ様です。\n\n';
+            } else {
+                email += `${recipient}\n\n`;
+                email += 'こんにちは。\n\n';
+            }
+
+            // Purpose-based introduction
+            switch(purpose) {
+                case 'request':
+                    email += tone === 'formal'
+                        ? '標記の件につきまして、ご依頼がございます。\n\n'
+                        : 'お願いがあってご連絡いたしました。\n\n';
+                    break;
+                case 'inquiry':
+                    email += tone === 'formal'
+                        ? '標記の件につきまして、お伺いしたいことがございます。\n\n'
+                        : 'ご質問がありまして、ご連絡いたしました。\n\n';
+                    break;
+                case 'report':
+                    email += tone === 'formal'
+                        ? '標記の件につきまして、ご報告いたします。\n\n'
+                        : '以下の内容についてご報告いたします。\n\n';
+                    break;
+                case 'apology':
+                    email += tone === 'formal'
+                        ? 'この度は大変ご迷惑をおかけし、誠に申し訳ございません。\n\n'
+                        : '申し訳ございません。\n\n';
+                    break;
+                case 'thanks':
+                    email += tone === 'formal'
+                        ? '平素より大変お世話になっております。この度は誠にありがとうございました。\n\n'
+                        : 'いつもありがとうございます。\n\n';
+                    break;
+                case 'invitation':
+                    email += tone === 'formal'
+                        ? '標記の件につきまして、ご案内申し上げます。\n\n'
+                        : 'ご案内させていただきます。\n\n';
+                    break;
+                case 'reminder':
+                    email += tone === 'formal'
+                        ? '標記の件につきまして、念のためご確認のご連絡をさせていただきます。\n\n'
+                        : 'リマインドのご連絡です。\n\n';
+                    break;
+                default:
+                    email += 'ご連絡させていただきます。\n\n';
+            }
+
+            // Key points
+            const points = keyPoints.split('\n').filter(p => p.trim());
+            points.forEach(point => {
+                const cleanPoint = point.trim().replace(/^[-・•*]\s*/, '');
+                email += `${cleanPoint}\n`;
+            });
+            email += '\n';
+
+            // Additional info
+            if (additionalInfo.trim()) {
+                email += `${additionalInfo.trim()}\n\n`;
+            }
+
+            // Closing
+            if (tone === 'formal') {
+                email += 'お忙しいところ恐縮ですが、ご確認のほど何卒よろしくお願い申し上げます。\n\n';
+                email += '以上、よろしくお願いいたします。';
+            } else if (tone === 'semi-formal') {
+                email += 'お手数をおかけしますが、よろしくお願いいたします。\n\n';
+                email += 'よろしくお願いします。';
+            } else {
+                email += 'よろしくお願いします。';
+            }
+
+            return email;
+        }
+
+        function copyToClipboard() {
+            const emailOutput = document.getElementById('emailOutput');
+            emailOutput.select();
+            emailOutput.setSelectionRange(0, 99999); // For mobile devices
+
+            navigator.clipboard.writeText(emailOutput.value).then(() => {
+                const notification = document.getElementById('notification');
+                notification.classList.add('show');
+
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            }).catch(err => {
+                alert('コピーに失敗しました: ' + err);
+            });
+        }
+
+        function clearForm() {
+            document.getElementById('emailForm').reset();
+            document.getElementById('outputSection').classList.remove('show');
+            document.querySelector('.btn-copy').classList.remove('show');
+        }
+    </script>
+</body>
+</html>
