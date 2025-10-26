@@ -1,0 +1,66 @@
+[
+  {
+    "title": "Claude Skillsを使ってみた - システムプロンプト的なカスタマイズが面白い",
+    "url": "https://zenn.dev/lnest_knowledge/articles/2912bc87bc83d5",
+    "platform": "Zenn",
+    "description": "実際にいくつかのスキルを作成・使用してみた感想と、標準で用意されているスキルについて紹介"
+  },
+  {
+    "title": "Claude Skills の概要",
+    "url": "https://note.com/npaka/n/n6e221d209d90",
+    "platform": "note",
+    "author": "npaka",
+    "description": "Skillsは専門知識をパッケージ化できるカスタムオンボーディングマテリアルのようなもので、Claudeをユーザーにとって最も重要分野の専門家にできる"
+  },
+  {
+    "title": "Claudeを「特定タスクの専門家」にする新機能「Skills」登場",
+    "url": "https://news.yahoo.co.jp/articles/89d17f3ed0c223aeb606e7103e436edc425900b9",
+    "platform": "Yahoo!ニュース (CNET Japan)",
+    "description": "Claude Skillsの新機能に関するニュース記事"
+  },
+  {
+    "title": "プロンプトだけじゃない！Claude Skillsで広がるAI活用の可能性",
+    "url": "https://qiita.com/iineineno03k/items/bb9ec1ff47ace14fb57d",
+    "platform": "Qiita",
+    "author": "iineineno03k",
+    "description": "2025年10月16日にAnthropicが発表したClaude Skillsの概要と、Claude DesktopおよびClaude Codeでの使い方について解説"
+  },
+  {
+    "title": "「Claude Skills」を発表 ～専門技能（スキル）を追加する仕組み",
+    "url": "https://forest.watch.impress.co.jp/docs/news/2055832.html",
+    "platform": "窓の杜",
+    "description": "Claude Skillsの発表に関するニュース記事"
+  },
+  {
+    "title": "やさしいClaude Skills入門",
+    "url": "https://www.docswell.com/s/harinezumi/5M683X-2025-10-21-003933",
+    "platform": "ドクセル",
+    "author": "harinezumi",
+    "description": "Claudeが特定のタスクを高品質に実行するために必要に応じて読み込む、指示・スクリプト・リソースを含むベストプラクティス集のフォルダとして説明"
+  },
+  {
+    "title": "Agent Skills - Claude Docs",
+    "url": "https://docs.claude.com/ja/docs/claude-code/skills",
+    "platform": "公式ドキュメント",
+    "description": "Claude Skills（Agent Skills）の公式日本語ドキュメント。スキルを作成、使用、管理する方法を説明"
+  },
+  {
+    "title": "Anthropic、Claudeのカスタマイズ機能「Skills for Skills」リリース",
+    "url": "https://www.itmedia.co.jp/aiplus/articles/2510/17/news060.html",
+    "platform": "ITmedia",
+    "description": "Claude Skillsのリリースに関するニュース記事"
+  },
+  {
+    "title": "Claude Skillsとは何なのか？",
+    "url": "https://note.com/robothink/n/n3f9213f4dd17",
+    "platform": "note",
+    "author": "矢野 哲平@耳で学ぶAI",
+    "description": "事前に動作してほしいタスクを登録しておくことで任意のタイミングで呼び出せる機能として紹介"
+  },
+  {
+    "title": "Claudeの使い方をやさしく解説！回答精度が上がるプロンプトの書き方も紹介",
+    "url": "https://shift-ai.co.jp/blog/11518/",
+    "platform": "SHIFT AI TIMES",
+    "description": "Claudeの使い方とプロンプトの書き方について解説（Claude Skills含む）"
+  }
+]
