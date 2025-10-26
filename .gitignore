@@ -22,3 +22,10 @@ ENV/
 # OS
 .DS_Store
 Thumbs.db
+
+# Clone repositories
+claude-skills-repo/
+
+# Generated files
+*.json
+!claude-skills-ja-articles/references/*.json
