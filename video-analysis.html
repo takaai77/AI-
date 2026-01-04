@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>動画分析AIツール - カメラワーク・カット割・構成分析</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .video-preview {
+            margin: 30px 0;
+            display: none;
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        video {
+            width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        canvas {
+            display: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .result-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-left: 5px solid #667eea;
+        }
+
+        .result-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .result-section p,
+        .result-section ul {
+            color: #555;
+            line-height: 1.8;
+            font-size: 1.05em;
+        }
+
+        .result-section ul {
+            list-style-position: inside;
+            padding-left: 20px;
+        }
+
+        .result-section li {
+            margin-bottom: 10px;
+        }
+
+        .timeline {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .timeline-item {
+            padding: 10px;
+            border-left: 3px solid #667eea;
+            margin-left: 20px;
+            margin-bottom: 15px;
+            padding-left: 20px;
+        }
+
+        .timeline-item .time {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .error {
+            background: #fee;
+            border: 2px solid #f88;
+            color: #c33;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border: 2px solid #2196f3;
+            color: #1565c0;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .info-box strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .frames-preview {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .frame-thumb {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📹 動画分析AIツール</h1>
+            <p>CM・ショート動画のカメラワーク、カット割、構成を自動分析</p>
+        </div>
+
+        <div class="content">
+            <div class="info-box">
+                <strong>📌 使い方</strong>
+                1. Claude API キーを入力（Anthropic公式サイトで取得）<br>
+                2. 分析したい動画のURLを入力（YouTube, Vimeo, 直リンクなど）<br>
+                3. 「動画を分析」ボタンをクリック
+            </div>
+
+            <div class="input-section">
+                <div class="input-group">
+                    <label for="apiKey">Claude API キー *</label>
+                    <input type="password" id="apiKey" placeholder="sk-ant-api03-..." required>
+                </div>
+
+                <div class="input-group">
+                    <label for="videoUrl">動画URL *</label>
+                    <input type="text" id="videoUrl" placeholder="https://www.youtube.com/watch?v=..." required>
+                </div>
+
+                <div class="input-group">
+                    <label for="additionalNotes">追加の分析指示（オプション）</label>
+                    <textarea id="additionalNotes" rows="3" placeholder="特定の観点で分析してほしい場合はここに記入してください（例：ブランディングの観点で分析、ターゲット層の推定など）"></textarea>
+                </div>
+
+                <button class="btn" onclick="analyzeVideo()">🎬 動画を分析</button>
+            </div>
+
+            <div class="video-preview" id="videoPreview">
+                <h3>動画プレビュー</h3>
+                <div class="video-container">
+                    <video id="videoPlayer" controls crossorigin="anonymous"></video>
+                    <canvas id="canvas"></canvas>
+                </div>
+                <div class="frames-preview" id="framesPreview"></div>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>動画を分析中です。しばらくお待ちください...</p>
+            </div>
+
+            <div class="error" id="error"></div>
+
+            <div class="results" id="results">
+                <h2>📊 分析結果</h2>
+                <div id="analysisResults"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let extractedFrames = [];
+
+        async function analyzeVideo() {
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const videoUrl = document.getElementById('videoUrl').value.trim();
+            const additionalNotes = document.getElementById('additionalNotes').value.trim();
+
+            if (!apiKey) {
+                showError('Claude API キーを入力してください');
+                return;
+            }
+
+            if (!videoUrl) {
+                showError('動画URLを入力してください');
+                return;
+            }
+
+            hideError();
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+
+            try {
+                // YouTube URLの場合は処理
+                let processedUrl = videoUrl;
+                if (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be')) {
+                    await analyzeYouTubeVideo(apiKey, videoUrl, additionalNotes);
+                    return;
+                }
+
+                // 直リンクの動画の場合
+                await analyzeDirectVideo(apiKey, processedUrl, additionalNotes);
+
+            } catch (error) {
+                console.error('Error:', error);
+                showError('分析中にエラーが発生しました: ' + error.message);
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        async function analyzeYouTubeVideo(apiKey, videoUrl, additionalNotes) {
+            // YouTube動画の場合、動画IDを抽出してサムネイルを使用
+            const videoId = extractYouTubeId(videoUrl);
+            if (!videoId) {
+                showError('有効なYouTube URLを入力してください');
+                document.getElementById('loading').style.display = 'none';
+                return;
+            }
+
+            // YouTubeのサムネイルを使用してAI分析
+            const thumbnailUrls = [
+                `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
+                `https://img.youtube.com/vi/${videoId}/0.jpg`,
+                `https://img.youtube.com/vi/${videoId}/1.jpg`,
+                `https://img.youtube.com/vi/${videoId}/2.jpg`,
+                `https://img.youtube.com/vi/${videoId}/3.jpg`
+            ];
+
+            // サムネイルをプレビュー表示
+            const framesPreview = document.getElementById('framesPreview');
+            framesPreview.innerHTML = '';
+            for (const url of thumbnailUrls) {
+                const img = document.createElement('img');
+                img.src = url;
+                img.className = 'frame-thumb';
+                framesPreview.appendChild(img);
+            }
+            document.getElementById('videoPreview').style.display = 'block';
+
+            // サムネイルをbase64に変換
+            const frameDataUrls = await Promise.all(
+                thumbnailUrls.map(url => imageUrlToBase64(url))
+            );
+
+            // Claude APIで分析
+            await analyzeWithClaude(apiKey, frameDataUrls, videoUrl, additionalNotes);
+        }
+
+        async function analyzeDirectVideo(apiKey, videoUrl, additionalNotes) {
+            // 直リンク動画の場合、ビデオ要素を使用してフレームを抽出
+            const video = document.getElementById('videoPlayer');
+            video.src = videoUrl;
+            document.getElementById('videoPreview').style.display = 'block';
+
+            video.onloadeddata = async () => {
+                const frames = await extractFrames(video);
+
+                // フレームをプレビュー表示
+                const framesPreview = document.getElementById('framesPreview');
+                framesPreview.innerHTML = '';
+                frames.forEach(frameData => {
+                    const img = document.createElement('img');
+                    img.src = frameData;
+                    img.className = 'frame-thumb';
+                    framesPreview.appendChild(img);
+                });
+
+                // Claude APIで分析
+                await analyzeWithClaude(apiKey, frames, videoUrl, additionalNotes);
+            };
+
+            video.onerror = () => {
+                showError('動画の読み込みに失敗しました。CORS制限がある可能性があります。');
+                document.getElementById('loading').style.display = 'none';
+            };
+        }
+
+        function extractYouTubeId(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+
+        async function imageUrlToBase64(url) {
+            try {
+                const response = await fetch(url);
+                const blob = await response.blob();
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                });
+            } catch (error) {
+                console.error('Failed to convert image:', error);
+                return null;
+            }
+        }
+
+        async function extractFrames(video) {
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            const frames = [];
+            const duration = video.duration;
+            const numFrames = 8; // 8フレームを抽出
+
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            for (let i = 0; i < numFrames; i++) {
+                const time = (duration / numFrames) * i;
+                video.currentTime = time;
+
+                await new Promise(resolve => {
+                    video.onseeked = () => {
+                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                        frames.push(canvas.toDataURL('image/jpeg', 0.8));
+                        resolve();
+                    };
+                });
+            }
+
+            extractedFrames = frames;
+            return frames;
+        }
+
+        async function analyzeWithClaude(apiKey, frames, videoUrl, additionalNotes) {
+            const validFrames = frames.filter(f => f !== null);
+
+            if (validFrames.length === 0) {
+                showError('フレームの抽出に失敗しました');
+                document.getElementById('loading').style.display = 'none';
+                return;
+            }
+
+            // Claude APIにリクエスト
+            const content = [
+                {
+                    type: "text",
+                    text: `あなたは映像分析の専門家です。以下の動画フレームを分析し、詳細なレポートを作成してください。
+
+動画URL: ${videoUrl}
+${additionalNotes ? `追加の指示: ${additionalNotes}` : ''}
+
+以下の観点で分析してください：
+
+1. **カメラワーク分析**
+   - 使用されているカメラアングル（俯瞰、アイレベル、ローアングルなど）
+   - カメラの動き（パン、チルト、ズーム、ドリー、ステディカムなど）
+   - カメラワークの特徴と効果
+
+2. **カット割り・編集**
+   - カットの頻度とリズム
+   - トランジションの種類（カット、ディゾルブ、ワイプなど）
+   - 編集のテンポと印象
+   - シーンの切り替わりのタイミング
+
+3. **映像構成・演出**
+   - 全体的なストーリー構成
+   - シーンの流れと展開
+   - 色彩設計とトーン
+   - ライティングの特徴
+   - フレーミングと構図
+
+4. **視覚効果とスタイル**
+   - 使用されているビジュアルエフェクト
+   - グラフィック要素
+   - 全体的な映像スタイル
+
+5. **総合評価**
+   - ターゲット層の推定
+   - 映像の目的と効果
+   - 印象的なポイント
+   - 改善提案（あれば）
+
+できるだけ具体的に、プロフェッショナルな観点から分析してください。`
+                }
+            ];
+
+            // フレーム画像を追加
+            validFrames.forEach((frame, index) => {
+                const base64Data = frame.split(',')[1];
+                content.push({
+                    type: "image",
+                    source: {
+                        type: "base64",
+                        media_type: "image/jpeg",
+                        data: base64Data
+                    }
+                });
+            });
+
+            try {
+                const response = await fetch('https://api.anthropic.com/v1/messages', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-api-key': apiKey,
+                        'anthropic-version': '2023-06-01'
+                    },
+                    body: JSON.stringify({
+                        model: 'claude-3-5-sonnet-20241022',
+                        max_tokens: 4096,
+                        messages: [{
+                            role: 'user',
+                            content: content
+                        }]
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`API Error: ${errorData.error?.message || response.statusText}`);
+                }
+
+                const data = await response.json();
+                displayResults(data.content[0].text);
+
+            } catch (error) {
+                console.error('Claude API Error:', error);
+                showError('Claude APIでのエラー: ' + error.message);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        function displayResults(analysisText) {
+            const resultsDiv = document.getElementById('analysisResults');
+
+            // マークダウン風のテキストをHTMLに変換
+            let html = analysisText
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\n## (.+?)\n/g, '<h3>$1</h3>')
+                .replace(/\n# (.+?)\n/g, '<h2>$1</h2>')
+                .replace(/\n- (.+?)(?=\n|$)/g, '<li>$1</li>')
+                .replace(/\n\n/g, '<br><br>')
+                .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
+
+            // セクションごとに分割して表示
+            const sections = analysisText.split(/\n(?=\d+\.\s|\#)/);
+            let formattedHtml = '';
+
+            sections.forEach(section => {
+                if (section.trim()) {
+                    formattedHtml += `<div class="result-section">${formatSection(section)}</div>`;
+                }
+            });
+
+            resultsDiv.innerHTML = formattedHtml || `<div class="result-section"><p>${html}</p></div>`;
+            document.getElementById('results').style.display = 'block';
+        }
+
+        function formatSection(text) {
+            return text
+                .replace(/^\d+\.\s\*\*(.+?)\*\*/gm, '<h3>$1</h3>')
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/^-\s(.+?)$/gm, '<li>$1</li>')
+                .replace(/(<li>.*?<\/li>)/s, '<ul>$1</ul>')
+                .replace(/\n\n/g, '<br><br>')
+                .replace(/\n/g, '<br>');
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function hideError() {
+            document.getElementById('error').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
