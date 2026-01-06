@@ -1,0 +1,382 @@
+"""
+プロンプト生成モジュール
+
+このモジュールはGemini APIを使用して動画を分析し、
+Midjourney/Stable Diffusion用の画像生成プロンプトを自動生成します。
+"""
+
+import json
+from datetime import datetime
+from typing import Optional, Dict, List
+
+import google.generativeai as genai
+
+from config import Config
+
+
+class PromptGenerator:
+    """
+    プロンプト生成クラス
+
+    Gemini APIを使用して動画を分析し、
+    画像生成AI用のプロンプトと要点まとめを生成します。
+    """
+
+    def __init__(self, language: str = 'ja', verbose: bool = False):
+        """
+        初期化
+
+        Args:
+            language (str): プロンプトの言語（'ja'または'en'）
+            verbose (bool): 詳細ログを出力するかどうか
+        """
+        self.language = language
+        self.verbose = verbose
+
+        # Google Generative AI の設定
+        genai.configure(api_key=Config.GOOGLE_API_KEY)
+
+        # Gemini モデルの初期化
+        self.model = genai.GenerativeModel(
+            model_name=Config.GEMINI_MODEL
+        )
+
+        if self.verbose:
+            print(f"✓ PromptGenerator initialized")
+            print(f"  Model: {Config.GEMINI_MODEL}")
+            print(f"  Language: {self.language}")
+
+    def _create_analysis_prompt(self) -> str:
+        """
+        動画分析用のシステムプロンプトを作成
+
+        Returns:
+            str: Gemini APIに送信するプロンプト
+        """
+        if self.language == 'ja':
+            prompt = """
+あなたは画像生成AIのプロンプト作成の専門家です。
+提供された動画を詳細に分析し、以下の2つのタスクを実行してください：
+
+# タスク1: 動画の要点まとめ
+動画の内容を3-5文で簡潔にまとめてください。
+主なテーマ、登場するオブジェクト、シーンの特徴を含めてください。
+
+# タスク2: 画像生成プロンプトの作成
+動画の重要なシーンや特徴的な場面について、Midjourney/Stable Diffusion用の
+詳細な画像生成プロンプトを3-5個作成してください。
+
+各プロンプトには以下を含めてください：
+- 視覚的な詳細（構図、色彩、照明、雰囲気）
+- スタイル指定（写真風、イラスト、アート等）
+- 品質タグ（high quality, detailed, masterpiece等）
+
+# 出力形式
+以下のJSON形式で出力してください：
+
+{
+  "summary": "動画の要点まとめ（3-5文）",
+  "prompts": [
+    {
+      "scene": 1,
+      "description": "シーンの説明",
+      "prompt": "詳細な英語プロンプト（Midjourney/Stable Diffusion用）",
+      "japanese_prompt": "日本語での説明的プロンプト"
+    }
+  ]
+}
+
+重要：
+- promptは必ず英語で記述してください（画像生成AIの精度向上のため）
+- 具体的で詳細な描写を心がけてください
+- ネガティブプロンプトは含めないでください
+            """
+        else:  # English
+            prompt = """
+You are an expert in creating prompts for image generation AI.
+Analyze the provided video in detail and perform the following two tasks:
+
+# Task 1: Video Summary
+Summarize the video content in 3-5 sentences.
+Include the main theme, objects that appear, and scene characteristics.
+
+# Task 2: Create Image Generation Prompts
+Create 3-5 detailed image generation prompts for Midjourney/Stable Diffusion
+about important scenes or characteristic moments in the video.
+
+Each prompt should include:
+- Visual details (composition, color, lighting, atmosphere)
+- Style specification (photographic, illustration, art, etc.)
+- Quality tags (high quality, detailed, masterpiece, etc.)
+
+# Output Format
+Output in the following JSON format:
+
+{
+  "summary": "Video summary (3-5 sentences)",
+  "prompts": [
+    {
+      "scene": 1,
+      "description": "Scene description",
+      "prompt": "Detailed English prompt (for Midjourney/Stable Diffusion)"
+    }
+  ]
+}
+
+Important:
+- Prompts must be written in English
+- Be specific and detailed in descriptions
+- Do not include negative prompts
+            """
+
+        return prompt
+
+    def generate_prompts(
+        self,
+        video_file: genai.File,
+        video_url: str
+    ) -> Optional[Dict]:
+        """
+        動画からプロンプトを生成
+
+        Args:
+            video_file (genai.File): Gemini APIにアップロードされた動画ファイル
+            video_url (str): 元の動画URL
+
+        Returns:
+            Optional[Dict]: 生成されたプロンプトと要点まとめ（失敗時はNone）
+        """
+        try:
+            # 分析プロンプトの作成
+            analysis_prompt = self._create_analysis_prompt()
+
+            if self.verbose:
+                print(f"  Sending request to Gemini API...")
+                print(f"  Prompt length: {len(analysis_prompt)} characters")
+
+            # Gemini APIにリクエストを送信
+            response = self.model.generate_content(
+                [video_file, analysis_prompt],
+                request_options={"timeout": 600}  # 10分のタイムアウト
+            )
+
+            if self.verbose:
+                print(f"  ✓ Response received")
+
+            # レスポンスの解析
+            response_text = response.text
+
+            if self.verbose:
+                print(f"  Response length: {len(response_text)} characters")
+                print(f"\n--- Raw Response ---")
+                print(response_text[:500] + "..." if len(response_text) > 500 else response_text)
+                print(f"--- End of Response ---\n")
+
+            # JSONの抽出と解析
+            result = self._parse_response(response_text)
+
+            if not result:
+                print("✗ Failed to parse response as JSON")
+                return None
+
+            # メタデータの追加
+            result['video_url'] = video_url
+            result['timestamp'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            result['model'] = Config.GEMINI_MODEL
+            result['language'] = self.language
+
+            if self.verbose:
+                print(f"  ✓ Successfully generated {len(result.get('prompts', []))} prompts")
+
+            return result
+
+        except Exception as e:
+            print(f"✗ Error generating prompts: {e}")
+            if self.verbose:
+                import traceback
+                traceback.print_exc()
+            return None
+
+    def _parse_response(self, response_text: str) -> Optional[Dict]:
+        """
+        Gemini APIのレスポンスを解析
+
+        JSONブロックを抽出し、パースします。
+
+        Args:
+            response_text (str): Gemini APIからのレスポンステキスト
+
+        Returns:
+            Optional[Dict]: パースされたJSONデータ（失敗時はNone）
+        """
+        try:
+            # JSONブロックの抽出（```json ... ``` または { ... }）
+            json_text = response_text.strip()
+
+            # マークダウンコードブロックの除去
+            if json_text.startswith('```json'):
+                json_text = json_text[7:]  # '```json' を削除
+            elif json_text.startswith('```'):
+                json_text = json_text[3:]  # '```' を削除
+
+            if json_text.endswith('```'):
+                json_text = json_text[:-3]  # '```' を削除
+
+            json_text = json_text.strip()
+
+            # JSONのパース
+            result = json.loads(json_text)
+
+            # 必須フィールドの検証
+            if 'summary' not in result or 'prompts' not in result:
+                print("⚠️  Warning: Response missing required fields (summary or prompts)")
+                # TODO: より詳細なエラーハンドリング
+                return None
+
+            return result
+
+        except json.JSONDecodeError as e:
+            print(f"✗ JSON decode error: {e}")
+            if self.verbose:
+                print(f"  Failed to parse: {response_text[:200]}...")
+            return None
+
+        except Exception as e:
+            print(f"✗ Error parsing response: {e}")
+            return None
+
+    def refine_prompt(self, prompt: str, style: str = None) -> str:
+        """
+        プロンプトの改善
+
+        TODO: 既存のプロンプトをより詳細に、または特定のスタイルに合わせて改善する機能
+
+        Args:
+            prompt (str): 元のプロンプト
+            style (str): 希望するスタイル（例: "anime", "realistic", "oil painting"）
+
+        Returns:
+            str: 改善されたプロンプト
+        """
+        # TODO: Gemini APIを使用してプロンプトを改善
+        # 1. スタイル指定を追加
+        # 2. より詳細な描写を追加
+        # 3. 品質タグの最適化
+
+        if self.verbose:
+            print("⚠️  Prompt refinement is not implemented yet")
+
+        return prompt
+
+    def generate_negative_prompt(self, prompt: str) -> str:
+        """
+        ネガティブプロンプトの生成
+
+        TODO: ポジティブプロンプトから適切なネガティブプロンプトを生成
+
+        Args:
+            prompt (str): ポジティブプロンプト
+
+        Returns:
+            str: ネガティブプロンプト
+        """
+        # TODO: 一般的なネガティブプロンプトのテンプレート
+        # 例: "low quality, blurry, distorted, bad anatomy, ..."
+
+        if self.verbose:
+            print("⚠️  Negative prompt generation is not implemented yet")
+
+        # デフォルトのネガティブプロンプト
+        default_negative = (
+            "low quality, low resolution, blurry, distorted, "
+            "bad anatomy, deformed, disfigured, poorly drawn"
+        )
+
+        return default_negative
+
+    def batch_generate(
+        self,
+        video_files: List[genai.File],
+        video_urls: List[str]
+    ) -> List[Dict]:
+        """
+        複数動画の一括プロンプト生成
+
+        TODO: 複数の動画を効率的に処理する機能
+
+        Args:
+            video_files (List[genai.File]): 動画ファイルのリスト
+            video_urls (List[str]): 動画URLのリスト
+
+        Returns:
+            List[Dict]: 各動画の生成結果のリスト
+        """
+        # TODO: 並列処理や進捗表示を実装
+
+        results = []
+
+        for video_file, video_url in zip(video_files, video_urls):
+            if self.verbose:
+                print(f"\nProcessing: {video_url}")
+
+            result = self.generate_prompts(video_file, video_url)
+
+            if result:
+                results.append(result)
+            else:
+                print(f"⚠️  Failed to process: {video_url}")
+
+        return results
+
+
+# テスト用のメイン関数
+if __name__ == '__main__':
+    """
+    このモジュールを直接実行した場合のテストコード
+    """
+    import sys
+
+    print("=== Prompt Generator Test ===\n")
+
+    from config import initialize_config
+    from video_processor import VideoProcessor
+
+    if not initialize_config():
+        print("Configuration failed!")
+        sys.exit(1)
+
+    if len(sys.argv) < 2:
+        print("Usage: python prompt_generator.py <video_url>")
+        sys.exit(1)
+
+    video_url = sys.argv[1]
+
+    # 動画の処理
+    print("--- Processing Video ---")
+    processor = VideoProcessor(verbose=True)
+    video_path = processor.download_video(video_url)
+
+    if not video_path:
+        print("Failed to download video")
+        sys.exit(1)
+
+    video_file = processor.upload_to_gemini(video_path)
+
+    if not video_file:
+        print("Failed to upload video")
+        sys.exit(1)
+
+    # プロンプト生成
+    print("\n--- Generating Prompts ---")
+    generator = PromptGenerator(language='ja', verbose=True)
+    results = generator.generate_prompts(video_file, video_url)
+
+    if results:
+        print("\n--- Results ---")
+        print(json.dumps(results, ensure_ascii=False, indent=2))
+        print("\n✓ Test completed successfully!")
+    else:
+        print("\n✗ Prompt generation failed")
+
+    # クリーンアップ
+    processor.cleanup(video_path)
