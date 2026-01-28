@@ -9,11 +9,13 @@ import os
 import time
 from pathlib import Path
 from typing import Optional, List, Dict
+from urllib.parse import urlparse
 
 import cv2
 import numpy as np
 import google.generativeai as genai
 from pytube import YouTube
+import yt_dlp
 
 from config import Config
 
@@ -42,9 +44,46 @@ class VideoProcessor:
             print(f"✓ VideoProcessor initialized")
             print(f"  Cache directory: {self.video_cache_dir}")
 
-    def download_video(self, video_url: str) -> Optional[Path]:
+    def download_video(self, video_url_or_path: str) -> Optional[Path]:
         """
-        YouTube動画をダウンロード
+        動画をダウンロード、またはローカルファイルパスを処理
+
+        YouTube, X (Twitter), Instagram, TikTok等のURLに対応。
+        ローカルファイルパスの場合はそのまま返す。
+
+        Args:
+            video_url_or_path (str): 動画のURL、またはローカルファイルパス
+
+        Returns:
+            Optional[Path]: 動画ファイルのパス（失敗時はNone）
+        """
+        # ローカルファイルパスの場合
+        if os.path.exists(video_url_or_path):
+            video_path = Path(video_url_or_path)
+            if self.verbose:
+                print(f"  Using local video file: {video_path.name}")
+                file_size_mb = video_path.stat().st_size / (1024 * 1024)
+                print(f"  File size: {file_size_mb:.2f} MB")
+            return video_path
+
+        # URLの種類を判定
+        parsed_url = urlparse(video_url_or_path)
+        domain = parsed_url.netloc.lower()
+
+        # YouTubeの場合はpytubeを使用（高速）
+        if 'youtube.com' in domain or 'youtu.be' in domain:
+            if self.verbose:
+                print(f"  Detected YouTube URL, using pytube...")
+            return self._download_video_pytube(video_url_or_path)
+        else:
+            # その他のプラットフォーム（X, Instagram等）はyt-dlpを使用
+            if self.verbose:
+                print(f"  Using yt-dlp for platform: {domain}")
+            return self._download_video_ytdlp(video_url_or_path)
+
+    def _download_video_pytube(self, video_url: str) -> Optional[Path]:
+        """
+        pytubeを使用してYouTube動画をダウンロード
 
         Args:
             video_url (str): YouTube動画のURL
@@ -65,7 +104,6 @@ class VideoProcessor:
                 print(f"  Author: {yt.author}")
 
             # ストリームを取得（MP4形式、指定された解像度）
-            # TODO: ユーザーが解像度を選択できるようにする
             stream = yt.streams.filter(
                 progressive=True,
                 file_extension='mp4'
@@ -100,7 +138,86 @@ class VideoProcessor:
             return video_path
 
         except Exception as e:
-            print(f"✗ Error downloading video: {e}")
+            print(f"✗ Error downloading video with pytube: {e}")
+            if self.verbose:
+                import traceback
+                traceback.print_exc()
+            return None
+
+    def _download_video_ytdlp(self, video_url: str) -> Optional[Path]:
+        """
+        yt-dlpを使用して動画をダウンロード
+
+        X (Twitter), Instagram, TikTok等、様々なプラットフォームに対応。
+
+        Args:
+            video_url (str): 動画のURL
+
+        Returns:
+            Optional[Path]: ダウンロードした動画ファイルのパス（失敗時はNone）
+        """
+        try:
+            if self.verbose:
+                print(f"  Fetching video info from: {video_url}")
+
+            # 出力ファイル名のテンプレート
+            output_template = str(self.video_cache_dir / 'video_%(id)s.%(ext)s')
+
+            # yt-dlpの設定
+            ydl_opts = {
+                'format': 'best[ext=mp4]/best',  # MP4を優先、なければベスト品質
+                'outtmpl': output_template,
+                'quiet': not self.verbose,
+                'no_warnings': not self.verbose,
+                'extract_flat': False,
+            }
+
+            # ダウンロード実行
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                # 動画情報を取得
+                info = ydl.extract_info(video_url, download=False)
+
+                if self.verbose:
+                    print(f"  Title: {info.get('title', 'Unknown')}")
+                    print(f"  Duration: {info.get('duration', 0)} seconds")
+                    print(f"  Uploader: {info.get('uploader', 'Unknown')}")
+
+                    # ファイルサイズの推定
+                    filesize = info.get('filesize') or info.get('filesize_approx', 0)
+                    if filesize:
+                        file_size_mb = filesize / (1024 * 1024)
+                        print(f"  Estimated size: {file_size_mb:.2f} MB")
+
+                        if file_size_mb > Config.MAX_VIDEO_SIZE_MB:
+                            print(f"⚠️  Warning: Video size ({file_size_mb:.2f} MB) exceeds "
+                                  f"recommended limit ({Config.MAX_VIDEO_SIZE_MB} MB)")
+
+                # ダウンロード実行
+                print("  Downloading...")
+                ydl.download([video_url])
+
+                # ダウンロードされたファイルを探す
+                video_id = info.get('id', '')
+                expected_ext = info.get('ext', 'mp4')
+                expected_path = self.video_cache_dir / f"video_{video_id}.{expected_ext}"
+
+                # ファイルが存在するか確認
+                if expected_path.exists():
+                    if self.verbose:
+                        print(f"  ✓ Download completed: {expected_path.name}")
+                    return expected_path
+                else:
+                    # 拡張子が違う可能性があるので、パターンマッチで探す
+                    for file in self.video_cache_dir.glob(f"video_{video_id}.*"):
+                        if self.verbose:
+                            print(f"  ✓ Download completed: {file.name}")
+                        return file
+
+                    print("✗ Downloaded file not found")
+                    return None
+
+        except Exception as e:
+            print(f"✗ Error downloading video with yt-dlp: {e}")
             if self.verbose:
                 import traceback
                 traceback.print_exc()

@@ -7,7 +7,11 @@ python-dotenv>=1.0.0
 # HTTPリクエスト
 requests>=2.31.0
 
-# YouTube動画ダウンロード
+# 動画ダウンロード（マルチプラットフォーム対応）
+# YouTube, X (Twitter), Instagram, TikTok等に対応
+yt-dlp>=2023.10.0
+
+# YouTube動画ダウンロード（レガシーサポート）
 pytube>=15.0.0
 
 # 動画処理・画像処理

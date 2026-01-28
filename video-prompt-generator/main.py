@@ -31,28 +31,45 @@ def parse_arguments():
         argparse.Namespace: 解析された引数
     """
     parser = argparse.ArgumentParser(
-        description='動画URLから画像生成プロンプトを自動生成します',
+        description='動画URLまたはローカルファイルから画像生成プロンプトを自動生成します',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 使用例:
+  # YouTube動画
   %(prog)s https://www.youtube.com/watch?v=example_id
-  %(prog)s https://www.youtube.com/watch?v=example_id --output custom_output.json
-  %(prog)s https://www.youtube.com/watch?v=example_id --verbose
-  %(prog)s https://www.youtube.com/watch?v=example_id --detect-scenes
+
+  # X (Twitter)動画
+  %(prog)s https://twitter.com/user/status/123456789
+
+  # ローカルファイル
+  %(prog)s /path/to/video.mp4
+
+  # カット割り検出付き
   %(prog)s https://www.youtube.com/watch?v=example_id --detect-scenes --extract-frames
+
+  # カスタム出力
+  %(prog)s https://www.youtube.com/watch?v=example_id --output my_prompts.json --verbose
+
+対応プラットフォーム:
+  - YouTube
+  - X (Twitter)
+  - Instagram
+  - TikTok
+  - その他多数（yt-dlp対応サイト）
+  - ローカル動画ファイル (.mp4, .avi, .mov等)
 
 注意:
   - Google AI Studio APIキーが必要です（.envファイルに設定）
-  - 動画は一時的にダウンロードされ、処理後に削除されます
+  - URL指定時は動画を一時的にダウンロードします
   - --detect-scenesオプションでカット割り検出を有効化できます
   - --extract-framesオプションで各シーンの代表フレームを抽出できます
         """
     )
 
     parser.add_argument(
-        'video_url',
+        'video_url_or_path',
         type=str,
-        help='処理する動画のURL（YouTube等）'
+        help='処理する動画のURL、またはローカルファイルパス'
     )
 
     parser.add_argument(
@@ -160,7 +177,7 @@ def main():
 
     if args.verbose:
         print(f"\n📋 Arguments:")
-        print(f"  Video URL: {args.video_url}")
+        print(f"  Video URL/Path: {args.video_url_or_path}")
         print(f"  Output: {args.output if args.output else 'Auto-generated'}")
         print(f"  Language: {args.language}")
         print()
@@ -177,8 +194,14 @@ def main():
 
         video_processor = VideoProcessor(verbose=args.verbose)
 
-        print(f"📥 Downloading video from: {args.video_url}")
-        video_path = video_processor.download_video(args.video_url)
+        # ローカルファイルかURLかを判定して表示
+        import os
+        if os.path.exists(args.video_url_or_path):
+            print(f"📁 Processing local video file: {args.video_url_or_path}")
+        else:
+            print(f"📥 Downloading video from: {args.video_url_or_path}")
+
+        video_path = video_processor.download_video(args.video_url_or_path)
 
         if not video_path:
             print("✗ Failed to download video")
@@ -242,12 +265,12 @@ def main():
         if scenes:
             results = prompt_gen.generate_prompts_with_scenes(
                 video_file,
-                args.video_url,
+                args.video_url_or_path,
                 scenes,
                 video_metadata
             )
         else:
-            results = prompt_gen.generate_prompts(video_file, args.video_url)
+            results = prompt_gen.generate_prompts(video_file, args.video_url_or_path)
 
         if not results:
             print("✗ Failed to generate prompts")

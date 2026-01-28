@@ -1,15 +1,16 @@
 # Video Prompt Generator
 
-動画URLから画像を認識し、Midjourney/Stable Diffusion用の画像生成プロンプトを自動作成するツール
+動画URL・ローカルファイルから画像を認識し、Midjourney/Stable Diffusion用の画像生成プロンプトを自動作成するツール
 
 ## プロジェクト概要
 
-Video Prompt Generatorは、YouTube動画などの動画URLを入力として受け取り、Google Gemini APIを使用して動画の内容を分析し、画像生成AI（Midjourney、Stable Diffusion等）で使用できる高品質なプロンプトを自動生成するPythonツールです。
+Video Prompt Generatorは、YouTube、X (Twitter)、Instagram、TikTok等の動画URLや、ローカルの動画ファイルを入力として受け取り、Google Gemini APIを使用して動画の内容を分析し、画像生成AI（Midjourney、Stable Diffusion等）で使用できる高品質なプロンプトを自動生成するPythonツールです。
 
 ## 機能一覧
 
 ### 実装済み機能
-- ✅ **動画URL入力**: YouTubeなどの動画URLを入力として受け付け
+- ✅ **マルチプラットフォーム対応**: YouTube, X (Twitter), Instagram, TikTok等に対応
+- ✅ **ローカルファイル対応**: ローカルに保存された動画ファイルも処理可能
 - ✅ **動画分析**: Google Gemini APIを使用した動画コンテンツの分析
 - ✅ **プロンプト生成**: Midjourney/Stable Diffusion用の詳細な画像生成プロンプトを自動作成
 - ✅ **要点まとめ**: 動画の内容を簡潔にまとめたサマリーを生成
@@ -29,7 +30,8 @@ Video Prompt Generatorは、YouTube動画などの動画URLを入力として受
 
 - **言語**: Python 3.8+
 - **AI API**: Google Gemini API (Generative AI)
-- **動画処理**: pytube, opencv-python
+- **動画ダウンロード**: yt-dlp (マルチプラットフォーム), pytube (YouTube)
+- **動画処理**: opencv-python
 - **その他**: python-dotenv, requests
 
 ## セットアップ手順
@@ -85,9 +87,24 @@ python main.py <動画URL>
 
 ### 実行例
 
-**基本的な使用（動画全体を分析）:**
+**YouTube動画を分析:**
 ```bash
 python main.py https://www.youtube.com/watch?v=example_video_id
+```
+
+**X (Twitter) の動画を分析:**
+```bash
+python main.py https://twitter.com/user/status/123456789
+```
+
+**Instagram動画を分析:**
+```bash
+python main.py https://www.instagram.com/p/ABC123/
+```
+
+**ローカル動画ファイルを分析:**
+```bash
+python main.py /path/to/video.mp4
 ```
 
 **カット割り検出を有効にする:**
@@ -114,12 +131,21 @@ python main.py https://www.youtube.com/watch?v=example_video_id --output my_prom
 
 | オプション | 説明 |
 |----------|------|
-| `video_url` | 処理する動画のURL（必須） |
+| `video_url_or_path` | 処理する動画のURL、またはローカルファイルパス（必須） |
 | `-o, --output` | 出力JSONファイル名（省略時は自動生成） |
 | `-v, --verbose` | 詳細なログを表示 |
 | `--detect-scenes` | カット割り検出を有効にする |
 | `--extract-frames` | 各シーンの代表フレームを抽出 |
 | `--language` | プロンプトの言語（ja/en、デフォルト: ja） |
+
+### 対応プラットフォーム
+
+- **YouTube** - 高速ダウンロード（pytube使用）
+- **X (Twitter)** - ツイートの動画
+- **Instagram** - 投稿・ストーリーの動画
+- **TikTok** - 短編動画
+- **その他** - yt-dlp対応の1000+サイト
+- **ローカルファイル** - .mp4, .avi, .mov, .mkv等
 
 ### 出力
 
@@ -235,7 +261,25 @@ Error: GOOGLE_API_KEY not found in environment variables
 Error downloading video: ...
 ```
 
-→ 動画URLが正しいか、動画が公開されているか確認してください。
+→ 以下を確認してください：
+- 動画URLが正しいか
+- 動画が公開されているか（非公開・限定公開の動画は処理できません）
+- Xの動画の場合、ツイートが削除されていないか
+- ネットワーク接続が正常か
+
+### プラットフォーム固有の問題
+
+**X (Twitter) の動画:**
+- 一部の保護されたアカウントの動画はダウンロードできない場合があります
+- yt-dlpが最新版であることを確認してください: `pip install --upgrade yt-dlp`
+
+**Instagram の動画:**
+- アカウントによっては制限がかかる場合があります
+- ログインが必要な動画はダウンロードできません
+
+**ローカルファイル:**
+- ファイルパスが正しいか確認してください
+- 対応形式: .mp4, .avi, .mov, .mkv, .flv, .wmv等
 
 ### API制限エラー
 
