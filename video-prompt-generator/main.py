@@ -38,10 +38,14 @@ def parse_arguments():
   %(prog)s https://www.youtube.com/watch?v=example_id
   %(prog)s https://www.youtube.com/watch?v=example_id --output custom_output.json
   %(prog)s https://www.youtube.com/watch?v=example_id --verbose
+  %(prog)s https://www.youtube.com/watch?v=example_id --detect-scenes
+  %(prog)s https://www.youtube.com/watch?v=example_id --detect-scenes --extract-frames
 
 注意:
   - Google AI Studio APIキーが必要です（.envファイルに設定）
   - 動画は一時的にダウンロードされ、処理後に削除されます
+  - --detect-scenesオプションでカット割り検出を有効化できます
+  - --extract-framesオプションで各シーンの代表フレームを抽出できます
         """
     )
 
@@ -77,6 +81,18 @@ def parse_arguments():
         choices=['ja', 'en'],
         default='ja',
         help='プロンプトの言語（ja: 日本語, en: 英語）'
+    )
+
+    parser.add_argument(
+        '--detect-scenes',
+        action='store_true',
+        help='カット割り検出を有効にする（シーン変更を自動検出）'
+    )
+
+    parser.add_argument(
+        '--extract-frames',
+        action='store_true',
+        help='各シーンの代表フレームを抽出（--detect-scenesと併用）'
     )
 
     return parser.parse_args()
@@ -179,6 +195,37 @@ def main():
 
         print(f"✓ Video uploaded successfully")
 
+        # オプション: カット割り検出とフレーム抽出
+        scenes = None
+        video_metadata = None
+        extracted_frames = None
+
+        if args.detect_scenes:
+            print("\n" + "=" * 60)
+            print("STEP 1.5: Scene Detection & Frame Extraction")
+            print("=" * 60)
+
+            # 動画メタデータの取得
+            print("📊 Getting video metadata...")
+            video_metadata = video_processor.get_video_metadata(video_path)
+
+            # カット割り検出
+            print("🎬 Detecting scene changes...")
+            scenes = video_processor.detect_scene_changes(video_path)
+
+            if scenes:
+                print(f"✓ Detected {len(scenes)} scenes")
+
+                # フレーム抽出（オプション）
+                if args.extract_frames:
+                    print("🖼️  Extracting representative frames...")
+                    extracted_frames = video_processor.extract_frames(video_path, scenes)
+
+                    if extracted_frames:
+                        print(f"✓ Extracted {len(extracted_frames)} frames")
+            else:
+                print("⚠️  No scenes detected, proceeding without scene information")
+
         # ステップ2: プロンプト生成
         print("\n" + "=" * 60)
         print("STEP 2: Prompt Generation")
@@ -190,7 +237,17 @@ def main():
         )
 
         print("🤖 Analyzing video with Gemini API...")
-        results = prompt_gen.generate_prompts(video_file, args.video_url)
+
+        # シーン情報がある場合は、それを含めてプロンプトを生成
+        if scenes:
+            results = prompt_gen.generate_prompts_with_scenes(
+                video_file,
+                args.video_url,
+                scenes,
+                video_metadata
+            )
+        else:
+            results = prompt_gen.generate_prompts(video_file, args.video_url)
 
         if not results:
             print("✗ Failed to generate prompts")
@@ -232,6 +289,26 @@ def main():
             print(f"  Video URL: {results.get('video_url')}")
             print(f"  Timestamp: {results.get('timestamp')}")
             print(f"  Number of prompts: {len(results.get('prompts', []))}")
+
+            if video_metadata:
+                print(f"\n📹 Video Info:")
+                print(f"  Duration: {video_metadata.get('duration_formatted')}")
+                print(f"  Resolution: {video_metadata.get('width')}x{video_metadata.get('height')}")
+                print(f"  FPS: {video_metadata.get('fps'):.2f}")
+
+            if scenes:
+                print(f"\n🎬 Scene Detection:")
+                print(f"  Total scenes: {len(scenes)}")
+                for scene in scenes[:5]:  # 最初の5つのシーンのみ表示
+                    print(f"    Scene {scene['scene_number']}: {scene['timestamp']} ({scene['duration']:.1f}s)")
+                if len(scenes) > 5:
+                    print(f"    ... and {len(scenes) - 5} more scenes")
+
+            if extracted_frames:
+                print(f"\n🖼️  Extracted Frames:")
+                print(f"  Total frames: {len(extracted_frames)}")
+                print(f"  Location: {Config.OUTPUT_DIR / 'frames'}")
+
             print(f"\n📝 Video Summary:")
             print(f"  {results.get('summary', 'N/A')}")
 

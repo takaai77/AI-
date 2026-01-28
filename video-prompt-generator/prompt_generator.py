@@ -46,87 +46,111 @@ class PromptGenerator:
             print(f"  Model: {Config.GEMINI_MODEL}")
             print(f"  Language: {self.language}")
 
-    def _create_analysis_prompt(self) -> str:
+    def _create_analysis_prompt(self, scenes: Optional[List[Dict]] = None) -> str:
         """
         動画分析用のシステムプロンプトを作成
+
+        Args:
+            scenes (Optional[List[Dict]]): シーン情報（カット割り検出結果）
 
         Returns:
             str: Gemini APIに送信するプロンプト
         """
+        # シーン情報がある場合は、それを含めたプロンプトを作成
+        scene_info = ""
+        if scenes:
+            scene_info = "\n\n# 検出されたシーン情報\n以下のタイムスタンプでシーンが検出されました：\n"
+            for scene in scenes:
+                scene_info += f"- Scene {scene['scene_number']}: {scene['timestamp']} - {scene['duration']:.1f}秒間\n"
+            scene_info += "\n各シーンに対応するプロンプトを作成してください。\n"
+
         if self.language == 'ja':
-            prompt = """
+            prompt = f"""
 あなたは画像生成AIのプロンプト作成の専門家です。
 提供された動画を詳細に分析し、以下の2つのタスクを実行してください：
-
+{scene_info}
 # タスク1: 動画の要点まとめ
 動画の内容を3-5文で簡潔にまとめてください。
 主なテーマ、登場するオブジェクト、シーンの特徴を含めてください。
 
 # タスク2: 画像生成プロンプトの作成
 動画の重要なシーンや特徴的な場面について、Midjourney/Stable Diffusion用の
-詳細な画像生成プロンプトを3-5個作成してください。
+詳細な画像生成プロンプトを作成してください。
 
 各プロンプトには以下を含めてください：
 - 視覚的な詳細（構図、色彩、照明、雰囲気）
 - スタイル指定（写真風、イラスト、アート等）
 - 品質タグ（high quality, detailed, masterpiece等）
+{'- タイムスタンプ（各シーンの開始時刻）' if scenes else ''}
 
 # 出力形式
 以下のJSON形式で出力してください：
 
-{
+{{
   "summary": "動画の要点まとめ（3-5文）",
   "prompts": [
-    {
+    {{
       "scene": 1,
+      "timestamp": "00:00:00",
       "description": "シーンの説明",
       "prompt": "詳細な英語プロンプト（Midjourney/Stable Diffusion用）",
       "japanese_prompt": "日本語での説明的プロンプト"
-    }
+    }}
   ]
-}
+}}
 
 重要：
 - promptは必ず英語で記述してください（画像生成AIの精度向上のため）
 - 具体的で詳細な描写を心がけてください
 - ネガティブプロンプトは含めないでください
+{'- タイムスタンプは HH:MM:SS 形式で記載してください' if scenes else ''}
             """
         else:  # English
-            prompt = """
+            scene_info_en = ""
+            if scenes:
+                scene_info_en = "\n\n# Detected Scene Information\nScenes detected at the following timestamps:\n"
+                for scene in scenes:
+                    scene_info_en += f"- Scene {scene['scene_number']}: {scene['timestamp']} - {scene['duration']:.1f}s duration\n"
+                scene_info_en += "\nPlease create prompts for each scene.\n"
+
+            prompt = f"""
 You are an expert in creating prompts for image generation AI.
 Analyze the provided video in detail and perform the following two tasks:
-
+{scene_info_en}
 # Task 1: Video Summary
 Summarize the video content in 3-5 sentences.
 Include the main theme, objects that appear, and scene characteristics.
 
 # Task 2: Create Image Generation Prompts
-Create 3-5 detailed image generation prompts for Midjourney/Stable Diffusion
+Create detailed image generation prompts for Midjourney/Stable Diffusion
 about important scenes or characteristic moments in the video.
 
 Each prompt should include:
 - Visual details (composition, color, lighting, atmosphere)
 - Style specification (photographic, illustration, art, etc.)
 - Quality tags (high quality, detailed, masterpiece, etc.)
+{'- Timestamp (start time of each scene)' if scenes else ''}
 
 # Output Format
 Output in the following JSON format:
 
-{
+{{
   "summary": "Video summary (3-5 sentences)",
   "prompts": [
-    {
+    {{
       "scene": 1,
+      "timestamp": "00:00:00",
       "description": "Scene description",
       "prompt": "Detailed English prompt (for Midjourney/Stable Diffusion)"
-    }
+    }}
   ]
-}
+}}
 
 Important:
 - Prompts must be written in English
 - Be specific and detailed in descriptions
 - Do not include negative prompts
+{'- Timestamps should be in HH:MM:SS format' if scenes else ''}
             """
 
         return prompt
@@ -134,7 +158,8 @@ Important:
     def generate_prompts(
         self,
         video_file: genai.File,
-        video_url: str
+        video_url: str,
+        scenes: Optional[List[Dict]] = None
     ) -> Optional[Dict]:
         """
         動画からプロンプトを生成
@@ -142,17 +167,20 @@ Important:
         Args:
             video_file (genai.File): Gemini APIにアップロードされた動画ファイル
             video_url (str): 元の動画URL
+            scenes (Optional[List[Dict]]): シーン情報（カット割り検出結果）
 
         Returns:
             Optional[Dict]: 生成されたプロンプトと要点まとめ（失敗時はNone）
         """
         try:
-            # 分析プロンプトの作成
-            analysis_prompt = self._create_analysis_prompt()
+            # 分析プロンプトの作成（シーン情報を含む）
+            analysis_prompt = self._create_analysis_prompt(scenes)
 
             if self.verbose:
                 print(f"  Sending request to Gemini API...")
                 print(f"  Prompt length: {len(analysis_prompt)} characters")
+                if scenes:
+                    print(f"  Including {len(scenes)} scene timestamps")
 
             # Gemini APIにリクエストを送信
             response = self.model.generate_content(
@@ -185,6 +213,11 @@ Important:
             result['model'] = Config.GEMINI_MODEL
             result['language'] = self.language
 
+            # シーン情報がある場合は追加
+            if scenes:
+                result['scenes'] = scenes
+                result['total_scenes'] = len(scenes)
+
             if self.verbose:
                 print(f"  ✓ Successfully generated {len(result.get('prompts', []))} prompts")
 
@@ -196,6 +229,34 @@ Important:
                 import traceback
                 traceback.print_exc()
             return None
+
+    def generate_prompts_with_scenes(
+        self,
+        video_file: genai.File,
+        video_url: str,
+        scenes: List[Dict],
+        video_metadata: Optional[Dict] = None
+    ) -> Optional[Dict]:
+        """
+        シーン情報付きで動画からプロンプトを生成
+
+        カット割り検出結果を使用して、各シーンに対応するプロンプトを生成します。
+
+        Args:
+            video_file (genai.File): Gemini APIにアップロードされた動画ファイル
+            video_url (str): 元の動画URL
+            scenes (List[Dict]): シーン情報（カット割り検出結果）
+            video_metadata (Optional[Dict]): 動画のメタデータ
+
+        Returns:
+            Optional[Dict]: 生成されたプロンプトと要点まとめ（失敗時はNone）
+        """
+        result = self.generate_prompts(video_file, video_url, scenes)
+
+        if result and video_metadata:
+            result['video_metadata'] = video_metadata
+
+        return result
 
     def _parse_response(self, response_text: str) -> Optional[Dict]:
         """

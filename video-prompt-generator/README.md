@@ -14,12 +14,16 @@ Video Prompt Generatorは、YouTube動画などの動画URLを入力として受
 - ✅ **プロンプト生成**: Midjourney/Stable Diffusion用の詳細な画像生成プロンプトを自動作成
 - ✅ **要点まとめ**: 動画の内容を簡潔にまとめたサマリーを生成
 - ✅ **JSON形式での出力**: 構造化されたデータ形式で結果を保存
+- ✅ **カット割り検出**: OpenCVを使用したシーン変更の自動検出
+- ✅ **タイムスタンプ付き出力**: 各プロンプトに対応する動画の時間情報（HH:MM:SS形式）
+- ✅ **フレーム抽出**: 各シーンの代表フレームを画像として保存
+- ✅ **動画メタデータ取得**: 動画の長さ、解像度、フレームレート情報の取得
 
 ### 今後実装予定の機能
-- 🔲 **カット割り検出**: シーン変更の自動検出
-- 🔲 **タイムスタンプ付き出力**: 各プロンプトに対応する動画の時間情報
 - 🔲 **バッチ処理**: 複数の動画を一括処理
 - 🔲 **カスタムプロンプトテンプレート**: ユーザー定義のプロンプト形式に対応
+- 🔲 **ネガティブプロンプト生成**: より高品質な画像生成のための除外項目の自動生成
+- 🔲 **プロンプト改善機能**: 既存プロンプトのリファインメント
 
 ## 技術スタック
 
@@ -81,27 +85,108 @@ python main.py <動画URL>
 
 ### 実行例
 
+**基本的な使用（動画全体を分析）:**
 ```bash
 python main.py https://www.youtube.com/watch?v=example_video_id
 ```
+
+**カット割り検出を有効にする:**
+```bash
+python main.py https://www.youtube.com/watch?v=example_video_id --detect-scenes
+```
+
+**カット割り検出 + フレーム抽出:**
+```bash
+python main.py https://www.youtube.com/watch?v=example_video_id --detect-scenes --extract-frames
+```
+
+**詳細ログを表示:**
+```bash
+python main.py https://www.youtube.com/watch?v=example_video_id --detect-scenes --verbose
+```
+
+**カスタムファイル名で出力:**
+```bash
+python main.py https://www.youtube.com/watch?v=example_video_id --output my_prompts.json
+```
+
+### コマンドラインオプション
+
+| オプション | 説明 |
+|----------|------|
+| `video_url` | 処理する動画のURL（必須） |
+| `-o, --output` | 出力JSONファイル名（省略時は自動生成） |
+| `-v, --verbose` | 詳細なログを表示 |
+| `--detect-scenes` | カット割り検出を有効にする |
+| `--extract-frames` | 各シーンの代表フレームを抽出 |
+| `--language` | プロンプトの言語（ja/en、デフォルト: ja） |
 
 ### 出力
 
 実行すると、以下のファイルが `output/` ディレクトリに生成されます：
 
 - `prompts_YYYYMMDD_HHMMSS.json`: 生成されたプロンプトと要点まとめ
+- `output/frames/`: 各シーンの代表フレーム画像（`--extract-frames`使用時）
 
-出力例：
+#### 基本的な出力例：
 ```json
 {
   "video_url": "https://www.youtube.com/watch?v=example",
   "timestamp": "2025-01-06 12:34:56",
+  "model": "gemini-1.5-flash",
+  "language": "ja",
   "summary": "動画の要点まとめ...",
   "prompts": [
     {
       "scene": 1,
       "description": "シーンの説明",
-      "prompt": "詳細な画像生成プロンプト..."
+      "prompt": "詳細な画像生成プロンプト...",
+      "japanese_prompt": "日本語での説明的プロンプト"
+    }
+  ]
+}
+```
+
+#### カット割り検出を使用した出力例：
+```json
+{
+  "video_url": "https://www.youtube.com/watch?v=example",
+  "timestamp": "2025-01-06 12:34:56",
+  "model": "gemini-1.5-flash",
+  "language": "ja",
+  "summary": "動画の要点まとめ...",
+  "total_scenes": 5,
+  "video_metadata": {
+    "duration": 120.5,
+    "duration_formatted": "00:02:00",
+    "width": 1920,
+    "height": 1080,
+    "fps": 30.0,
+    "frame_count": 3615
+  },
+  "scenes": [
+    {
+      "scene_number": 1,
+      "start_time": 0.0,
+      "end_time": 15.3,
+      "duration": 15.3,
+      "timestamp": "00:00:00"
+    },
+    {
+      "scene_number": 2,
+      "start_time": 15.3,
+      "end_time": 42.7,
+      "duration": 27.4,
+      "timestamp": "00:00:15"
+    }
+  ],
+  "prompts": [
+    {
+      "scene": 1,
+      "timestamp": "00:00:00",
+      "description": "オープニングシーン - 都市の夜景",
+      "prompt": "cinematic night cityscape, neon lights reflecting on wet streets, high angle view, cyberpunk atmosphere, detailed architecture, high quality, 8k resolution",
+      "japanese_prompt": "映画的な夜の都市景観、濡れた路面に反射するネオンライト、ハイアングル視点、サイバーパンクな雰囲気"
     }
   ]
 }
@@ -115,12 +200,23 @@ video-prompt-generator/
 ├── requirements.txt       # Pythonパッケージの依存関係
 ├── .env.example          # 環境変数のテンプレート
 ├── .gitignore            # Gitで無視するファイル
-├── config.py             # 設定管理
+├── config.py             # 設定管理（APIキー、ディレクトリ設定等）
 ├── main.py               # メインエントリーポイント
 ├── video_processor.py    # 動画処理機能
+│                         # - YouTube動画ダウンロード
+│                         # - Gemini APIへのアップロード
+│                         # - カット割り検出（OpenCV）
+│                         # - フレーム抽出
+│                         # - 動画メタデータ取得
 ├── prompt_generator.py   # プロンプト生成機能
-├── videos/               # ダウンロードした動画（自動生成）
+│                         # - Gemini APIで動画分析
+│                         # - 画像生成プロンプト作成
+│                         # - タイムスタンプ付きプロンプト生成
+│                         # - 要点まとめ生成
+├── videos/               # ダウンロードした動画（自動生成、.gitignoreに含まれる）
 └── output/               # 生成結果（自動生成）
+    ├── prompts_*.json    # プロンプトJSON
+    └── frames/           # 抽出されたフレーム画像
 ```
 
 ## トラブルシューティング

@@ -8,8 +8,10 @@
 import os
 import time
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List, Dict
 
+import cv2
+import numpy as np
 import google.generativeai as genai
 from pytube import YouTube
 
@@ -156,78 +158,309 @@ class VideoProcessor:
                 traceback.print_exc()
             return None
 
-    def detect_scene_changes(self, video_path: Path) -> list:
+    def detect_scene_changes(self, video_path: Path) -> List[Dict]:
         """
         動画内のシーン変更を検出（カット割り検出）
 
-        TODO: OpenCVを使用してシーン変更を検出する機能を実装
-        現在は未実装で、空のリストを返します。
+        OpenCVを使用してフレーム間のヒストグラム差分を計算し、
+        閾値を超えた場合にシーン変更として検出します。
 
         Args:
             video_path (Path): 分析する動画ファイルのパス
 
         Returns:
-            list: シーン変更のタイムスタンプリスト（秒単位）
+            List[Dict]: シーン情報のリスト
+                [{
+                    'scene_number': int,      # シーン番号
+                    'start_time': float,      # 開始時刻（秒）
+                    'end_time': float,        # 終了時刻（秒）
+                    'duration': float,        # シーンの長さ（秒）
+                    'timestamp': str          # 開始時刻のフォーマット済み文字列 (HH:MM:SS)
+                }]
         """
-        # TODO: 以下の機能を実装予定:
-        # 1. OpenCVで動画を読み込む
-        # 2. フレーム間の差分を計算
-        # 3. 閾値を超えた場合にシーン変更として記録
-        # 4. 最小シーン長を考慮してフィルタリング
+        try:
+            if not video_path.exists():
+                print(f"✗ Video file not found: {video_path}")
+                return []
 
-        if self.verbose:
-            print("⚠️  Scene change detection is not implemented yet")
+            if self.verbose:
+                print(f"  Analyzing video for scene changes...")
 
-        return []
+            # 動画を開く
+            cap = cv2.VideoCapture(str(video_path))
+            if not cap.isOpened():
+                print("✗ Failed to open video file")
+                return []
 
-    def extract_frames(self, video_path: Path, timestamps: list) -> list:
+            # 動画の情報を取得
+            fps = cap.get(cv2.CAP_PROP_FPS)
+            frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+            duration = frame_count / fps
+
+            if self.verbose:
+                print(f"  Video info: {frame_count} frames, {fps:.2f} FPS, {duration:.2f}s")
+
+            # シーン変更の検出
+            scene_changes = [0.0]  # 最初は0秒から開始
+            prev_hist = None
+            frame_number = 0
+
+            # 設定値を取得
+            threshold = Config.SCENE_CHANGE_THRESHOLD
+            min_scene_length = Config.MIN_SCENE_LENGTH
+
+            if self.verbose:
+                print(f"  Detection settings: threshold={threshold}, min_scene_length={min_scene_length}s")
+
+            while True:
+                ret, frame = cap.read()
+                if not ret:
+                    break
+
+                # フレームをRGBに変換してヒストグラムを計算
+                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                hist = cv2.calcHist([frame_rgb], [0, 1, 2], None, [8, 8, 8], [0, 256, 0, 256, 0, 256])
+                hist = cv2.normalize(hist, hist).flatten()
+
+                # 前のフレームとの差分を計算
+                if prev_hist is not None:
+                    # ヒストグラムの差分（相関係数を使用）
+                    diff = cv2.compareHist(prev_hist, hist, cv2.HISTCMP_CORREL)
+                    # 相関係数は1に近いほど似ている（0: 全く違う, 1: 同じ）
+                    # 閾値より小さい場合（つまり違いが大きい場合）にシーン変更とみなす
+                    similarity = diff * 100  # パーセント表示
+
+                    if similarity < (100 - threshold):
+                        current_time = frame_number / fps
+
+                        # 最小シーン長の確認
+                        if len(scene_changes) == 0 or (current_time - scene_changes[-1]) >= min_scene_length:
+                            scene_changes.append(current_time)
+                            if self.verbose:
+                                print(f"    Scene change detected at {self._format_timestamp(current_time)} "
+                                      f"(similarity: {similarity:.1f}%)")
+
+                prev_hist = hist
+                frame_number += 1
+
+                # 進捗表示
+                if self.verbose and frame_number % 100 == 0:
+                    progress = (frame_number / frame_count) * 100
+                    print(f"    Progress: {progress:.1f}% ({frame_number}/{frame_count} frames)", end='\r')
+
+            cap.release()
+
+            # 最後のシーンの終了時刻を追加
+            if scene_changes[-1] < duration:
+                scene_changes.append(duration)
+
+            if self.verbose:
+                print(f"\n  ✓ Detected {len(scene_changes) - 1} scenes")
+
+            # シーン情報を構築
+            scenes = []
+            for i in range(len(scene_changes) - 1):
+                scene = {
+                    'scene_number': i + 1,
+                    'start_time': scene_changes[i],
+                    'end_time': scene_changes[i + 1],
+                    'duration': scene_changes[i + 1] - scene_changes[i],
+                    'timestamp': self._format_timestamp(scene_changes[i])
+                }
+                scenes.append(scene)
+
+                if self.verbose:
+                    print(f"    Scene {scene['scene_number']}: "
+                          f"{scene['timestamp']} - {self._format_timestamp(scene['end_time'])} "
+                          f"({scene['duration']:.1f}s)")
+
+            return scenes
+
+        except Exception as e:
+            print(f"✗ Error detecting scene changes: {e}")
+            if self.verbose:
+                import traceback
+                traceback.print_exc()
+            return []
+
+    def extract_frames(self, video_path: Path, scenes: List[Dict]) -> List[Dict]:
         """
-        指定されたタイムスタンプでフレームを抽出
+        各シーンの中間フレームを抽出
 
-        TODO: 特定の時刻のフレームを画像として抽出する機能を実装
-        各シーンの代表フレームを取得するのに使用します。
+        各シーンの中間地点のフレームを画像として保存します。
 
         Args:
             video_path (Path): 動画ファイルのパス
-            timestamps (list): 抽出するタイムスタンプのリスト（秒単位）
+            scenes (List[Dict]): シーン情報のリスト（detect_scene_changesの出力）
 
         Returns:
-            list: 抽出されたフレーム画像のパスリスト
+            List[Dict]: フレーム情報のリスト
+                [{
+                    'scene_number': int,      # シーン番号
+                    'timestamp': str,         # タイムスタンプ
+                    'frame_path': Path,       # 抽出されたフレーム画像のパス
+                    'time_seconds': float     # 秒単位の時刻
+                }]
         """
-        # TODO: 以下の機能を実装予定:
-        # 1. OpenCVで動画を開く
-        # 2. 各タイムスタンプに移動
-        # 3. フレームを画像として保存
-        # 4. 保存したファイルパスをリストで返す
+        try:
+            if not video_path.exists():
+                print(f"✗ Video file not found: {video_path}")
+                return []
 
-        if self.verbose:
-            print("⚠️  Frame extraction is not implemented yet")
+            if not scenes:
+                print("⚠️  No scenes provided for frame extraction")
+                return []
 
-        return []
+            if self.verbose:
+                print(f"  Extracting frames from {len(scenes)} scenes...")
 
-    def get_video_metadata(self, video_path: Path) -> dict:
+            # 出力ディレクトリの作成
+            frames_dir = Config.OUTPUT_DIR / 'frames'
+            frames_dir.mkdir(parents=True, exist_ok=True)
+
+            # 動画を開く
+            cap = cv2.VideoCapture(str(video_path))
+            if not cap.isOpened():
+                print("✗ Failed to open video file")
+                return []
+
+            fps = cap.get(cv2.CAP_PROP_FPS)
+            extracted_frames = []
+
+            for scene in scenes:
+                # シーンの中間時刻を計算
+                mid_time = (scene['start_time'] + scene['end_time']) / 2
+                frame_number = int(mid_time * fps)
+
+                # フレームに移動
+                cap.set(cv2.CAP_PROP_POS_FRAMES, frame_number)
+                ret, frame = cap.read()
+
+                if ret:
+                    # ファイル名を生成
+                    frame_filename = f"scene_{scene['scene_number']:03d}_{self._format_timestamp(mid_time).replace(':', '-')}.jpg"
+                    frame_path = frames_dir / frame_filename
+
+                    # フレームを保存
+                    cv2.imwrite(str(frame_path), frame)
+
+                    extracted_frames.append({
+                        'scene_number': scene['scene_number'],
+                        'timestamp': self._format_timestamp(mid_time),
+                        'frame_path': frame_path,
+                        'time_seconds': mid_time
+                    })
+
+                    if self.verbose:
+                        print(f"    ✓ Scene {scene['scene_number']}: {frame_filename}")
+                else:
+                    if self.verbose:
+                        print(f"    ✗ Failed to extract frame for scene {scene['scene_number']}")
+
+            cap.release()
+
+            if self.verbose:
+                print(f"  ✓ Extracted {len(extracted_frames)} frames to {frames_dir}")
+
+            return extracted_frames
+
+        except Exception as e:
+            print(f"✗ Error extracting frames: {e}")
+            if self.verbose:
+                import traceback
+                traceback.print_exc()
+            return []
+
+    def get_video_metadata(self, video_path: Path) -> Dict:
         """
         動画のメタデータを取得
 
-        TODO: 動画の長さ、解像度、フレームレートなどの情報を取得
+        OpenCVを使用して動画の長さ、解像度、フレームレートなどの情報を取得します。
 
         Args:
             video_path (Path): 動画ファイルのパス
 
         Returns:
-            dict: メタデータ（長さ、解像度、フレームレート等）
+            Dict: メタデータ
+                {
+                    'duration': float,        # 動画の長さ（秒）
+                    'width': int,             # 幅（ピクセル）
+                    'height': int,            # 高さ（ピクセル）
+                    'fps': float,             # フレームレート
+                    'frame_count': int,       # 総フレーム数
+                    'duration_formatted': str # フォーマット済みの長さ (HH:MM:SS)
+                }
         """
-        # TODO: OpenCVまたはffmpegを使用してメタデータを取得
+        try:
+            if not video_path.exists():
+                print(f"✗ Video file not found: {video_path}")
+                return self._empty_metadata()
 
-        if self.verbose:
-            print("⚠️  Metadata extraction is not implemented yet")
+            # 動画を開く
+            cap = cv2.VideoCapture(str(video_path))
+            if not cap.isOpened():
+                print("✗ Failed to open video file")
+                return self._empty_metadata()
 
+            # メタデータを取得
+            fps = cap.get(cv2.CAP_PROP_FPS)
+            frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+            width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+            height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+            duration = frame_count / fps if fps > 0 else 0
+
+            cap.release()
+
+            metadata = {
+                'duration': duration,
+                'width': width,
+                'height': height,
+                'fps': fps,
+                'frame_count': frame_count,
+                'duration_formatted': self._format_timestamp(duration)
+            }
+
+            if self.verbose:
+                print(f"  Video metadata:")
+                print(f"    Duration: {metadata['duration_formatted']} ({duration:.2f}s)")
+                print(f"    Resolution: {width}x{height}")
+                print(f"    FPS: {fps:.2f}")
+                print(f"    Frame count: {frame_count}")
+
+            return metadata
+
+        except Exception as e:
+            print(f"✗ Error getting video metadata: {e}")
+            if self.verbose:
+                import traceback
+                traceback.print_exc()
+            return self._empty_metadata()
+
+    def _empty_metadata(self) -> Dict:
+        """空のメタデータを返す"""
         return {
             'duration': 0,
             'width': 0,
             'height': 0,
-            'fps': 0
+            'fps': 0,
+            'frame_count': 0,
+            'duration_formatted': '00:00:00'
         }
+
+    def _format_timestamp(self, seconds: float) -> str:
+        """
+        秒数をHH:MM:SS形式にフォーマット
+
+        Args:
+            seconds (float): 秒数
+
+        Returns:
+            str: フォーマット済みのタイムスタンプ (HH:MM:SS)
+        """
+        hours = int(seconds // 3600)
+        minutes = int((seconds % 3600) // 60)
+        secs = int(seconds % 60)
+        return f"{hours:02d}:{minutes:02d}:{secs:02d}"
 
     def cleanup(self, video_path: Optional[Path] = None):
         """
