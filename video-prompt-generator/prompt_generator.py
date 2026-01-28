@@ -46,12 +46,17 @@ class PromptGenerator:
             print(f"  Model: {Config.GEMINI_MODEL}")
             print(f"  Language: {self.language}")
 
-    def _create_analysis_prompt(self, scenes: Optional[List[Dict]] = None) -> str:
+    def _create_analysis_prompt(
+        self,
+        scenes: Optional[List[Dict]] = None,
+        audio_analysis: Optional[Dict] = None
+    ) -> str:
         """
         動画分析用のシステムプロンプトを作成
 
         Args:
             scenes (Optional[List[Dict]]): シーン情報（カット割り検出結果）
+            audio_analysis (Optional[Dict]): 音声分析結果
 
         Returns:
             str: Gemini APIに送信するプロンプト
@@ -64,14 +69,49 @@ class PromptGenerator:
                 scene_info += f"- Scene {scene['scene_number']}: {scene['timestamp']} - {scene['duration']:.1f}秒間\n"
             scene_info += "\n各シーンに対応するプロンプトを作成してください。\n"
 
+        # 音声分析情報がある場合は、それを含める
+        audio_info = ""
+        if audio_analysis:
+            audio_info = "\n\n# 音声分析情報\n"
+
+            # BGM情報
+            if audio_analysis.get('music_analysis'):
+                music = audio_analysis['music_analysis']
+                audio_info += "\n## BGM・音楽情報:\n"
+                audio_info += f"- テンポ: {music.get('tempo', 'N/A'):.1f} BPM\n"
+                audio_info += f"- 雰囲気: {music.get('mood', 'N/A')}\n"
+                audio_info += f"- エネルギーレベル: {music.get('energy', 0):.2f}\n"
+                audio_info += f"- 推定キー: {music.get('key', 'N/A')}\n"
+
+            # 文字起こし情報
+            if audio_analysis.get('transcription'):
+                trans = audio_analysis['transcription']
+                audio_info += "\n## セリフ・会話:\n"
+                audio_info += f"- 言語: {trans.get('language', 'N/A')}\n"
+
+                segments = trans.get('segments', [])
+                if segments:
+                    audio_info += f"- セリフ数: {len(segments)}件\n"
+                    audio_info += "\n主なセリフ:\n"
+                    # 最初の5件のセリフを表示
+                    for seg in segments[:5]:
+                        audio_info += f"  [{seg.get('timestamp', '00:00:00')}] {seg.get('text', '')}\n"
+
+                    if len(segments) > 5:
+                        audio_info += f"  ... (他 {len(segments) - 5}件のセリフ)\n"
+
+            audio_info += "\nプロンプト作成時は、上記の音声情報も考慮してください。\n"
+            audio_info += "特に、BGMの雰囲気やセリフの内容は、画像の雰囲気やシーンの理解に重要です。\n"
+
         if self.language == 'ja':
             prompt = f"""
 あなたは画像生成AIのプロンプト作成の専門家です。
 提供された動画を詳細に分析し、以下の2つのタスクを実行してください：
-{scene_info}
+{scene_info}{audio_info}
 # タスク1: 動画の要点まとめ
 動画の内容を3-5文で簡潔にまとめてください。
 主なテーマ、登場するオブジェクト、シーンの特徴を含めてください。
+{'音声（セリフやBGM）の情報も要約に含めてください。' if audio_analysis else ''}
 
 # タスク2: 画像生成プロンプトの作成
 動画の重要なシーンや特徴的な場面について、Midjourney/Stable Diffusion用の
@@ -82,19 +122,22 @@ class PromptGenerator:
 - スタイル指定（写真風、イラスト、アート等）
 - 品質タグ（high quality, detailed, masterpiece等）
 {'- タイムスタンプ（各シーンの開始時刻）' if scenes else ''}
+{'- 音声情報を考慮した雰囲気の描写（BGMの雰囲気、セリフの内容を反映）' if audio_analysis else ''}
 
 # 出力形式
 以下のJSON形式で出力してください：
 
 {{
-  "summary": "動画の要点まとめ（3-5文）",
+  "summary": "動画の要点まとめ（3-5文）{'、音声情報も含む' if audio_analysis else ''}",
   "prompts": [
     {{
       "scene": 1,
       "timestamp": "00:00:00",
       "description": "シーンの説明",
       "prompt": "詳細な英語プロンプト（Midjourney/Stable Diffusion用）",
-      "japanese_prompt": "日本語での説明的プロンプト"
+      "japanese_prompt": "日本語での説明的プロンプト"{',' if audio_analysis else ''}
+      {'\"dialogue\": \"このシーンのセリフ（ある場合）\",' if audio_analysis else ''}
+      {'\"audio_mood\": \"BGMの雰囲気やセリフから感じる感情\"' if audio_analysis else ''}
     }}
   ]
 }}
@@ -104,6 +147,7 @@ class PromptGenerator:
 - 具体的で詳細な描写を心がけてください
 - ネガティブプロンプトは含めないでください
 {'- タイムスタンプは HH:MM:SS 形式で記載してください' if scenes else ''}
+{'- 音声情報（セリフやBGM）を活用して、より雰囲気のあるプロンプトを作成してください' if audio_analysis else ''}
             """
         else:  # English
             scene_info_en = ""
@@ -113,13 +157,45 @@ class PromptGenerator:
                     scene_info_en += f"- Scene {scene['scene_number']}: {scene['timestamp']} - {scene['duration']:.1f}s duration\n"
                 scene_info_en += "\nPlease create prompts for each scene.\n"
 
+            # 音声情報の英語版
+            audio_info_en = ""
+            if audio_analysis:
+                audio_info_en = "\n\n# Audio Analysis Information\n"
+
+                if audio_analysis.get('music_analysis'):
+                    music = audio_analysis['music_analysis']
+                    audio_info_en += "\n## Background Music:\n"
+                    audio_info_en += f"- Tempo: {music.get('tempo', 'N/A'):.1f} BPM\n"
+                    audio_info_en += f"- Mood: {music.get('mood', 'N/A')}\n"
+                    audio_info_en += f"- Energy: {music.get('energy', 0):.2f}\n"
+                    audio_info_en += f"- Key: {music.get('key', 'N/A')}\n"
+
+                if audio_analysis.get('transcription'):
+                    trans = audio_analysis['transcription']
+                    audio_info_en += "\n## Dialogue/Speech:\n"
+                    audio_info_en += f"- Language: {trans.get('language', 'N/A')}\n"
+
+                    segments = trans.get('segments', [])
+                    if segments:
+                        audio_info_en += f"- Number of segments: {len(segments)}\n"
+                        audio_info_en += "\nMain dialogue:\n"
+                        for seg in segments[:5]:
+                            audio_info_en += f"  [{seg.get('timestamp', '00:00:00')}] {seg.get('text', '')}\n"
+
+                        if len(segments) > 5:
+                            audio_info_en += f"  ... (and {len(segments) - 5} more)\n"
+
+                audio_info_en += "\nConsider the audio information when creating prompts.\n"
+                audio_info_en += "The mood of BGM and content of dialogue are important for understanding scene atmosphere.\n"
+
             prompt = f"""
 You are an expert in creating prompts for image generation AI.
 Analyze the provided video in detail and perform the following two tasks:
-{scene_info_en}
+{scene_info_en}{audio_info_en}
 # Task 1: Video Summary
 Summarize the video content in 3-5 sentences.
 Include the main theme, objects that appear, and scene characteristics.
+{'Also include audio information (dialogue and BGM) in the summary.' if audio_analysis else ''}
 
 # Task 2: Create Image Generation Prompts
 Create detailed image generation prompts for Midjourney/Stable Diffusion
@@ -130,18 +206,21 @@ Each prompt should include:
 - Style specification (photographic, illustration, art, etc.)
 - Quality tags (high quality, detailed, masterpiece, etc.)
 {'- Timestamp (start time of each scene)' if scenes else ''}
+{'- Atmospheric descriptions considering audio (BGM mood, dialogue content)' if audio_analysis else ''}
 
 # Output Format
 Output in the following JSON format:
 
 {{
-  "summary": "Video summary (3-5 sentences)",
+  "summary": "Video summary (3-5 sentences){'including audio information' if audio_analysis else ''}",
   "prompts": [
     {{
       "scene": 1,
       "timestamp": "00:00:00",
       "description": "Scene description",
-      "prompt": "Detailed English prompt (for Midjourney/Stable Diffusion)"
+      "prompt": "Detailed English prompt (for Midjourney/Stable Diffusion)"{',' if audio_analysis else ''}
+      {'\"dialogue\": \"Dialogue in this scene (if any)\",' if audio_analysis else ''}
+      {'\"audio_mood\": \"Mood from BGM and dialogue\"' if audio_analysis else ''}
     }}
   ]
 }}
@@ -151,6 +230,7 @@ Important:
 - Be specific and detailed in descriptions
 - Do not include negative prompts
 {'- Timestamps should be in HH:MM:SS format' if scenes else ''}
+{'- Utilize audio information (dialogue and BGM) to create more atmospheric prompts' if audio_analysis else ''}
             """
 
         return prompt
@@ -159,7 +239,8 @@ Important:
         self,
         video_file: genai.File,
         video_url: str,
-        scenes: Optional[List[Dict]] = None
+        scenes: Optional[List[Dict]] = None,
+        audio_analysis: Optional[Dict] = None
     ) -> Optional[Dict]:
         """
         動画からプロンプトを生成
@@ -168,19 +249,22 @@ Important:
             video_file (genai.File): Gemini APIにアップロードされた動画ファイル
             video_url (str): 元の動画URL
             scenes (Optional[List[Dict]]): シーン情報（カット割り検出結果）
+            audio_analysis (Optional[Dict]): 音声分析結果
 
         Returns:
             Optional[Dict]: 生成されたプロンプトと要点まとめ（失敗時はNone）
         """
         try:
-            # 分析プロンプトの作成（シーン情報を含む）
-            analysis_prompt = self._create_analysis_prompt(scenes)
+            # 分析プロンプトの作成（シーン情報と音声情報を含む）
+            analysis_prompt = self._create_analysis_prompt(scenes, audio_analysis)
 
             if self.verbose:
                 print(f"  Sending request to Gemini API...")
                 print(f"  Prompt length: {len(analysis_prompt)} characters")
                 if scenes:
                     print(f"  Including {len(scenes)} scene timestamps")
+                if audio_analysis:
+                    print(f"  Including audio analysis (transcription & music)")
 
             # Gemini APIにリクエストを送信
             response = self.model.generate_content(
@@ -218,6 +302,10 @@ Important:
                 result['scenes'] = scenes
                 result['total_scenes'] = len(scenes)
 
+            # 音声分析情報がある場合は追加
+            if audio_analysis:
+                result['audio_analysis'] = audio_analysis
+
             if self.verbose:
                 print(f"  ✓ Successfully generated {len(result.get('prompts', []))} prompts")
 
@@ -235,23 +323,25 @@ Important:
         video_file: genai.File,
         video_url: str,
         scenes: List[Dict],
-        video_metadata: Optional[Dict] = None
+        video_metadata: Optional[Dict] = None,
+        audio_analysis: Optional[Dict] = None
     ) -> Optional[Dict]:
         """
         シーン情報付きで動画からプロンプトを生成
 
-        カット割り検出結果を使用して、各シーンに対応するプロンプトを生成します。
+        カット割り検出結果と音声分析結果を使用して、各シーンに対応するプロンプトを生成します。
 
         Args:
             video_file (genai.File): Gemini APIにアップロードされた動画ファイル
             video_url (str): 元の動画URL
             scenes (List[Dict]): シーン情報（カット割り検出結果）
             video_metadata (Optional[Dict]): 動画のメタデータ
+            audio_analysis (Optional[Dict]): 音声分析結果
 
         Returns:
             Optional[Dict]: 生成されたプロンプトと要点まとめ（失敗時はNone）
         """
-        result = self.generate_prompts(video_file, video_url, scenes)
+        result = self.generate_prompts(video_file, video_url, scenes, audio_analysis)
 
         if result and video_metadata:
             result['video_metadata'] = video_metadata

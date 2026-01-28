@@ -21,6 +21,7 @@ from pathlib import Path
 from config import Config, initialize_config
 from video_processor import VideoProcessor
 from prompt_generator import PromptGenerator
+from audio_analyzer import AudioAnalyzer
 
 
 def parse_arguments():
@@ -47,6 +48,12 @@ def parse_arguments():
   # カット割り検出付き
   %(prog)s https://www.youtube.com/watch?v=example_id --detect-scenes --extract-frames
 
+  # 音声分析付き（セリフ + BGM）
+  %(prog)s https://www.youtube.com/watch?v=example_id --analyze-audio
+
+  # 完全分析（シーン + 音声 + フレーム）
+  %(prog)s https://www.youtube.com/watch?v=example_id --detect-scenes --extract-frames --analyze-audio --verbose
+
   # カスタム出力
   %(prog)s https://www.youtube.com/watch?v=example_id --output my_prompts.json --verbose
 
@@ -63,6 +70,8 @@ def parse_arguments():
   - URL指定時は動画を一時的にダウンロードします
   - --detect-scenesオプションでカット割り検出を有効化できます
   - --extract-framesオプションで各シーンの代表フレームを抽出できます
+  - --analyze-audioオプションで音声分析（セリフの文字起こし、BGM分析）を有効化できます
+  - 音声分析には初回のみWhisperモデルのダウンロードが必要です（数百MB）
         """
     )
 
@@ -110,6 +119,20 @@ def parse_arguments():
         '--extract-frames',
         action='store_true',
         help='各シーンの代表フレームを抽出（--detect-scenesと併用）'
+    )
+
+    parser.add_argument(
+        '--analyze-audio',
+        action='store_true',
+        help='音声分析を有効にする（セリフの文字起こし、BGM分析）'
+    )
+
+    parser.add_argument(
+        '--whisper-model',
+        type=str,
+        choices=['tiny', 'base', 'small', 'medium', 'large'],
+        default='base',
+        help='Whisper音声認識モデルのサイズ（tiny=最速、large=最高精度）'
     )
 
     return parser.parse_args()
@@ -249,6 +272,45 @@ def main():
             else:
                 print("⚠️  No scenes detected, proceeding without scene information")
 
+        # オプション: 音声分析
+        audio_analysis = None
+
+        if args.analyze_audio:
+            print("\n" + "=" * 60)
+            print("STEP 1.6: Audio Analysis")
+            print("=" * 60)
+
+            audio_analyzer = AudioAnalyzer(
+                whisper_model=args.whisper_model,
+                verbose=args.verbose
+            )
+
+            print("🎤 Analyzing audio (transcription & music analysis)...")
+            audio_analysis = audio_analyzer.analyze_complete(
+                video_path,
+                language=None,  # 自動検出
+                analyze_music=True,
+                detect_segments=True
+            )
+
+            if audio_analysis:
+                # 文字起こし結果の表示
+                if audio_analysis.get('transcription'):
+                    trans = audio_analysis['transcription']
+                    segments = trans.get('segments', [])
+                    print(f"✓ Transcribed {len(segments)} dialogue segments")
+                    print(f"  Detected language: {trans.get('language', 'N/A')}")
+
+                # BGM分析結果の表示
+                if audio_analysis.get('music_analysis'):
+                    music = audio_analysis['music_analysis']
+                    print(f"✓ Music analysis completed")
+                    print(f"  Tempo: {music.get('tempo', 0):.1f} BPM")
+                    print(f"  Mood: {music.get('mood', 'N/A')}")
+                    print(f"  Energy: {music.get('energy', 0):.2f}")
+            else:
+                print("⚠️  Audio analysis failed, proceeding without audio information")
+
         # ステップ2: プロンプト生成
         print("\n" + "=" * 60)
         print("STEP 2: Prompt Generation")
@@ -267,10 +329,15 @@ def main():
                 video_file,
                 args.video_url_or_path,
                 scenes,
-                video_metadata
+                video_metadata,
+                audio_analysis  # 音声分析結果を追加
             )
         else:
-            results = prompt_gen.generate_prompts(video_file, args.video_url_or_path)
+            results = prompt_gen.generate_prompts(
+                video_file,
+                args.video_url_or_path,
+                audio_analysis=audio_analysis  # 音声分析結果を追加
+            )
 
         if not results:
             print("✗ Failed to generate prompts")
@@ -331,6 +398,30 @@ def main():
                 print(f"\n🖼️  Extracted Frames:")
                 print(f"  Total frames: {len(extracted_frames)}")
                 print(f"  Location: {Config.OUTPUT_DIR / 'frames'}")
+
+            if audio_analysis:
+                print(f"\n🎤 Audio Analysis:")
+
+                if audio_analysis.get('transcription'):
+                    trans = audio_analysis['transcription']
+                    segments = trans.get('segments', [])
+                    print(f"  Dialogue segments: {len(segments)}")
+                    print(f"  Language: {trans.get('language', 'N/A')}")
+
+                    if segments:
+                        print(f"\n  Sample dialogue:")
+                        for seg in segments[:3]:  # 最初の3件のみ表示
+                            print(f"    [{seg.get('timestamp')}] {seg.get('text', '')}")
+                        if len(segments) > 3:
+                            print(f"    ... and {len(segments) - 3} more")
+
+                if audio_analysis.get('music_analysis'):
+                    music = audio_analysis['music_analysis']
+                    print(f"\n  Music:")
+                    print(f"    Tempo: {music.get('tempo', 0):.1f} BPM")
+                    print(f"    Mood: {music.get('mood', 'N/A')}")
+                    print(f"    Energy: {music.get('energy', 0):.2f}")
+                    print(f"    Key: {music.get('key', 'N/A')}")
 
             print(f"\n📝 Video Summary:")
             print(f"  {results.get('summary', 'N/A')}")

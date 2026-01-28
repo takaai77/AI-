@@ -19,6 +19,9 @@ Video Prompt Generatorは、YouTube、X (Twitter)、Instagram、TikTok等の動�
 - ✅ **タイムスタンプ付き出力**: 各プロンプトに対応する動画の時間情報（HH:MM:SS形式）
 - ✅ **フレーム抽出**: 各シーンの代表フレームを画像として保存
 - ✅ **動画メタデータ取得**: 動画の長さ、解像度、フレームレート情報の取得
+- ✅ **音声分析**: OpenAI Whisperによるセリフの文字起こし（タイムスタンプ付き）
+- ✅ **BGM分析**: librosaによる音楽の雰囲気、テンポ、キー解析
+- ✅ **音声情報統合**: セリフやBGMの情報をプロンプト生成に活用
 
 ### 今後実装予定の機能
 - 🔲 **バッチ処理**: 複数の動画を一括処理
@@ -32,7 +35,8 @@ Video Prompt Generatorは、YouTube、X (Twitter)、Instagram、TikTok等の動�
 - **AI API**: Google Gemini API (Generative AI)
 - **Webインターフェース**: Streamlit (iPhone・モバイル対応)
 - **動画ダウンロード**: yt-dlp (マルチプラットフォーム), pytube (YouTube)
-- **動画処理**: opencv-python
+- **動画処理**: opencv-python, moviepy
+- **音声処理**: OpenAI Whisper (音声認識), librosa (音楽分析), soundfile, pydub
 - **その他**: python-dotenv, requests
 
 ## セットアップ手順
@@ -112,6 +116,8 @@ streamlit run web_ui.py
    - プロンプト言語: 日本語または英語
    - カット割り検出: シーン変更を自動検出
    - 代表フレーム抽出: 各シーンの画像を保存
+   - 音声分析: セリフの文字起こし、BGM分析を有効化
+   - 音声認識モデル: tiny（最速）〜medium（高精度）を選択
 
 3. **実行**
    - 「🚀 プロンプトを生成」ボタンをクリック
@@ -162,6 +168,16 @@ python main.py https://www.youtube.com/watch?v=example_video_id --detect-scenes
 python main.py https://www.youtube.com/watch?v=example_video_id --detect-scenes --extract-frames
 ```
 
+**音声分析を有効にする（セリフ + BGM）:**
+```bash
+python main.py https://www.youtube.com/watch?v=example_video_id --analyze-audio
+```
+
+**完全分析（シーン + 音声 + フレーム）:**
+```bash
+python main.py https://www.youtube.com/watch?v=example_video_id --detect-scenes --extract-frames --analyze-audio --verbose
+```
+
 **詳細ログを表示:**
 ```bash
 python main.py https://www.youtube.com/watch?v=example_video_id --detect-scenes --verbose
@@ -181,6 +197,8 @@ python main.py https://www.youtube.com/watch?v=example_video_id --output my_prom
 | `-v, --verbose` | 詳細なログを表示 |
 | `--detect-scenes` | カット割り検出を有効にする |
 | `--extract-frames` | 各シーンの代表フレームを抽出 |
+| `--analyze-audio` | 音声分析を有効にする（セリフの文字起こし、BGM分析） |
+| `--whisper-model` | Whisper音声認識モデル（tiny/base/small/medium、デフォルト: base） |
 | `--language` | プロンプトの言語（ja/en、デフォルト: ja） |
 
 ### 対応プラットフォーム
@@ -198,6 +216,7 @@ python main.py https://www.youtube.com/watch?v=example_video_id --output my_prom
 
 - `prompts_YYYYMMDD_HHMMSS.json`: 生成されたプロンプトと要点まとめ
 - `output/frames/`: 各シーンの代表フレーム画像（`--extract-frames`使用時）
+- `audio_cache/`: 抽出された音声ファイル（`--analyze-audio`使用時）
 
 #### 基本的な出力例：
 ```json
@@ -210,11 +229,31 @@ python main.py https://www.youtube.com/watch?v=example_video_id --output my_prom
   "prompts": [
     {
       "scene": 1,
+      "timestamp": "00:00:00",
       "description": "シーンの説明",
       "prompt": "詳細な画像生成プロンプト...",
-      "japanese_prompt": "日本語での説明的プロンプト"
+      "japanese_prompt": "日本語での説明的プロンプト",
+      "dialogue": "このシーンのセリフ（音声分析有効時）",
+      "audio_mood": "BGMの雰囲気（音声分析有効時）"
     }
-  ]
+  ],
+  "audio_analysis": {
+    "transcription": {
+      "language": "ja",
+      "segments": [
+        {
+          "timestamp": "00:00:00",
+          "text": "文字起こしされたセリフ"
+        }
+      ]
+    },
+    "music_analysis": {
+      "tempo": 120.0,
+      "mood": "upbeat/exciting",
+      "energy": 0.75,
+      "key": "C"
+    }
+  }
 }
 ```
 

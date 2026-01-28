@@ -19,6 +19,7 @@ import tempfile
 from config import Config, initialize_config
 from video_processor import VideoProcessor
 from prompt_generator import PromptGenerator
+from audio_analyzer import AudioAnalyzer
 
 
 # ページ設定（モバイル対応）
@@ -120,6 +121,25 @@ def display_sidebar():
             help="各シーンの代表画像を保存"
         )
 
+        # 音声分析オプション
+        st.subheader("🎤 音声分析")
+        analyze_audio = st.checkbox(
+            "音声分析を有効にする",
+            value=False,
+            help="セリフの文字起こしとBGM分析を実行"
+        )
+
+        whisper_model = st.selectbox(
+            "音声認識モデル",
+            options=["tiny", "base", "small", "medium"],
+            index=1,  # baseをデフォルト
+            disabled=not analyze_audio,
+            help="tiny=最速・低精度、medium=高精度・遅い（初回のみモデルダウンロードが必要）"
+        )
+
+        if analyze_audio:
+            st.info("💡 初回実行時は音声認識モデルのダウンロードが発生します（数百MB）")
+
         # 詳細ログ
         verbose = st.checkbox(
             "詳細ログを表示",
@@ -143,7 +163,7 @@ def display_sidebar():
         st.markdown("---")
         st.caption("Powered by Google Gemini API")
 
-        return language, detect_scenes, extract_frames, verbose
+        return language, detect_scenes, extract_frames, analyze_audio, whisper_model, verbose
 
 
 def display_input_section():
@@ -207,7 +227,7 @@ def display_input_section():
         return "file", None
 
 
-def process_video(video_source, source_type, language, detect_scenes, extract_frames, verbose):
+def process_video(video_source, source_type, language, detect_scenes, extract_frames, analyze_audio, whisper_model, verbose):
     """動画の処理"""
 
     # 入力チェック
@@ -279,6 +299,38 @@ def process_video(video_source, source_type, language, detect_scenes, extract_fr
 
             progress_bar.progress(60)
 
+        # 音声分析（オプション）
+        audio_analysis = None
+
+        if analyze_audio:
+            status_text.text("🎤 音声を分析中...")
+
+            audio_analyzer = AudioAnalyzer(
+                whisper_model=whisper_model,
+                verbose=verbose
+            )
+
+            audio_analysis = audio_analyzer.analyze_complete(
+                video_path,
+                language=None,  # 自動検出
+                analyze_music=True,
+                detect_segments=True
+            )
+
+            if audio_analysis:
+                # 文字起こし結果の表示
+                if audio_analysis.get('transcription'):
+                    trans = audio_analysis['transcription']
+                    segments = trans.get('segments', [])
+                    st.info(f"✓ {len(segments)}件のセリフを文字起こししました")
+
+                # BGM分析結果の表示
+                if audio_analysis.get('music_analysis'):
+                    music = audio_analysis['music_analysis']
+                    st.info(f"✓ BGM分析完了: {music.get('mood', 'N/A')} ({music.get('tempo', 0):.0f} BPM)")
+
+            progress_bar.progress(65)
+
         # ステップ2: プロンプト生成
         status_text.text("⏳ ステップ2/3: プロンプトを生成中...")
         progress_bar.progress(70)
@@ -292,12 +344,14 @@ def process_video(video_source, source_type, language, detect_scenes, extract_fr
                 video_file,
                 video_source if source_type == "url" else str(video_path),
                 scenes,
-                video_metadata
+                video_metadata,
+                audio_analysis  # 音声分析結果を追加
             )
         else:
             results = prompt_gen.generate_prompts(
                 video_file,
-                video_source if source_type == "url" else str(video_path)
+                video_source if source_type == "url" else str(video_path),
+                audio_analysis=audio_analysis  # 音声分析結果を追加
             )
 
         if not results:
@@ -358,6 +412,42 @@ def display_results():
         with col4:
             st.metric("シーン数", results.get('total_scenes', 'N/A'))
 
+    # 音声分析情報
+    if 'audio_analysis' in results:
+        audio_analysis = results['audio_analysis']
+
+        with st.expander("🎤 音声分析結果", expanded=False):
+            # 文字起こし
+            if audio_analysis.get('transcription'):
+                trans = audio_analysis['transcription']
+                segments = trans.get('segments', [])
+
+                st.markdown(f"**言語:** {trans.get('language', 'N/A')}")
+                st.markdown(f"**セリフ数:** {len(segments)}件")
+
+                if segments:
+                    st.markdown("**セリフ一覧:**")
+                    for seg in segments:
+                        st.markdown(f"`[{seg.get('timestamp')}]` {seg.get('text', '')}")
+
+            # BGM分析
+            if audio_analysis.get('music_analysis'):
+                music = audio_analysis['music_analysis']
+
+                st.markdown("---")
+                st.markdown("**🎵 BGM分析:**")
+
+                col1, col2, col3, col4 = st.columns(4)
+
+                with col1:
+                    st.metric("テンポ", f"{music.get('tempo', 0):.0f} BPM")
+                with col2:
+                    st.metric("雰囲気", music.get('mood', 'N/A'))
+                with col3:
+                    st.metric("エネルギー", f"{music.get('energy', 0):.2f}")
+                with col4:
+                    st.metric("キー", music.get('key', 'N/A'))
+
     # プロンプト一覧
     st.subheader("🎨 生成されたプロンプト")
 
@@ -368,6 +458,14 @@ def display_results():
             # 説明
             if 'description' in prompt:
                 st.markdown(f"**説明:** {prompt['description']}")
+
+            # セリフ（音声分析結果）
+            if 'dialogue' in prompt and prompt['dialogue']:
+                st.markdown(f"**💬 セリフ:** {prompt['dialogue']}")
+
+            # BGMの雰囲気（音声分析結果）
+            if 'audio_mood' in prompt and prompt['audio_mood']:
+                st.markdown(f"**🎵 音の雰囲気:** {prompt['audio_mood']}")
 
             # 英語プロンプト
             st.markdown("**🇬🇧 English Prompt:**")
@@ -468,7 +566,7 @@ def main():
     display_header()
 
     # サイドバー
-    language, detect_scenes, extract_frames, verbose = display_sidebar()
+    language, detect_scenes, extract_frames, analyze_audio, whisper_model, verbose = display_sidebar()
 
     # 入力セクション
     source_type, video_source = display_input_section()
@@ -495,6 +593,8 @@ def main():
                 language,
                 detect_scenes,
                 extract_frames,
+                analyze_audio,
+                whisper_model,
                 verbose
             )
 

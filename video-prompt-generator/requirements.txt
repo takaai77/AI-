@@ -16,6 +16,13 @@ pytube>=15.0.0
 
 # 動画処理・画像処理
 opencv-python>=4.8.0
+moviepy>=1.0.3
+
+# 音声処理・分析
+openai-whisper>=20231117
+librosa>=0.10.0
+soundfile>=0.12.1
+pydub>=0.25.1
 
 # Webインターフェース
 streamlit>=1.28.0
