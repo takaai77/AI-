@@ -30,6 +30,7 @@ Video Prompt Generatorは、YouTube、X (Twitter)、Instagram、TikTok等の動�
 
 - **言語**: Python 3.8+
 - **AI API**: Google Gemini API (Generative AI)
+- **Webインターフェース**: Streamlit (iPhone・モバイル対応)
 - **動画ダウンロード**: yt-dlp (マルチプラットフォーム), pytube (YouTube)
 - **動画処理**: opencv-python
 - **その他**: python-dotenv, requests
@@ -79,7 +80,51 @@ GOOGLE_API_KEY=your_actual_api_key_here
 
 ## 使用方法
 
-### 基本的な使い方
+### 💻 Webインターフェース（iPhone・モバイル対応）
+
+**最も手軽な方法！ブラウザから直接使えます。**
+
+#### 1. Streamlitサーバーの起動
+
+```bash
+streamlit run web_ui.py
+```
+
+#### 2. ブラウザでアクセス
+
+起動すると、以下のようなメッセージが表示されます：
+
+```
+  Local URL: http://localhost:8501
+  Network URL: http://192.168.1.100:8501
+```
+
+- **PCから:** `http://localhost:8501` にアクセス
+- **iPhone/スマホから:** 同じWi-Fiに接続し、`Network URL`にアクセス
+
+#### 3. Webインターフェースの使い方
+
+1. **動画の入力**
+   - 「URL入力」タブ: YouTube、X、Instagram等のURLを入力
+   - 「ファイルアップロード」タブ: ローカルの動画ファイルを選択
+
+2. **設定（サイドバー）**
+   - プロンプト言語: 日本語または英語
+   - カット割り検出: シーン変更を自動検出
+   - 代表フレーム抽出: 各シーンの画像を保存
+
+3. **実行**
+   - 「🚀 プロンプトを生成」ボタンをクリック
+   - 処理完了後、結果が表示されます
+
+4. **結果の活用**
+   - 各プロンプトをコピーしてMidjourney/Stable Diffusionで使用
+   - JSON形式またはテキスト形式でダウンロード
+   - 抽出されたフレーム画像を確認
+
+### 🖥️ コマンドライン（CLI）
+
+#### 基本的な使い方
 
 ```bash
 python main.py <動画URL>
@@ -227,7 +272,12 @@ video-prompt-generator/
 ├── .env.example          # 環境変数のテンプレート
 ├── .gitignore            # Gitで無視するファイル
 ├── config.py             # 設定管理（APIキー、ディレクトリ設定等）
-├── main.py               # メインエントリーポイント
+├── main.py               # コマンドラインインターフェース（CLI）
+├── web_ui.py             # Webインターフェース（Streamlit）
+│                         # - iPhone・モバイル対応
+│                         # - URLまたはファイルアップロード
+│                         # - リアルタイム進捗表示
+│                         # - 結果の可視化とダウンロード
 ├── video_processor.py    # 動画処理機能
 │                         # - YouTube動画ダウンロード
 │                         # - Gemini APIへのアップロード
