@@ -106,6 +106,27 @@ def display_sidebar():
             help="生成されるプロンプトの言語を選択"
         )
 
+        # プラットフォーム選択
+        platform = st.selectbox(
+            "🎨 画像生成プラットフォーム",
+            options=["seaart", "novelai", "midjourney"],
+            format_func=lambda x: {
+                "seaart": "SeaArt（シーダンス）",
+                "novelai": "NovelAI（ナノバナナプロ）",
+                "midjourney": "Midjourney"
+            }[x],
+            index=0,  # SeaArtをデフォルト
+            help="使用する画像生成プラットフォームを選択"
+        )
+
+        # プラットフォーム別の説明
+        platform_desc = {
+            "seaart": "💡 タグベース + 自然言語のハイブリッド形式で生成",
+            "novelai": "💡 アニメ・イラスト特化、タグベース形式で生成",
+            "midjourney": "💡 自然言語で詳細に記述する形式で生成"
+        }
+        st.info(platform_desc[platform])
+
         # シーン検出オプション
         st.subheader("🎬 シーン検出")
         detect_scenes = st.checkbox(
@@ -163,7 +184,7 @@ def display_sidebar():
         st.markdown("---")
         st.caption("Powered by Google Gemini API")
 
-        return language, detect_scenes, extract_frames, analyze_audio, whisper_model, verbose
+        return language, platform, detect_scenes, extract_frames, analyze_audio, whisper_model, verbose
 
 
 def display_input_section():
@@ -227,7 +248,7 @@ def display_input_section():
         return "file", None
 
 
-def process_video(video_source, source_type, language, detect_scenes, extract_frames, analyze_audio, whisper_model, verbose):
+def process_video(video_source, source_type, language, platform, detect_scenes, extract_frames, analyze_audio, whisper_model, verbose):
     """動画の処理"""
 
     # 入力チェック
@@ -335,7 +356,7 @@ def process_video(video_source, source_type, language, detect_scenes, extract_fr
         status_text.text("⏳ ステップ2/3: プロンプトを生成中...")
         progress_bar.progress(70)
 
-        prompt_gen = PromptGenerator(language=language, verbose=verbose)
+        prompt_gen = PromptGenerator(language=language, platform=platform, verbose=verbose)
 
         status_text.text("🤖 Gemini APIで動画を分析中...")
 
@@ -566,7 +587,7 @@ def main():
     display_header()
 
     # サイドバー
-    language, detect_scenes, extract_frames, analyze_audio, whisper_model, verbose = display_sidebar()
+    language, platform, detect_scenes, extract_frames, analyze_audio, whisper_model, verbose = display_sidebar()
 
     # 入力セクション
     source_type, video_source = display_input_section()
@@ -591,6 +612,7 @@ def main():
                 video_source,
                 source_type,
                 language,
+                platform,
                 detect_scenes,
                 extract_frames,
                 analyze_audio,

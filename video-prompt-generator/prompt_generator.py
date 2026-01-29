@@ -22,15 +22,17 @@ class PromptGenerator:
     画像生成AI用のプロンプトと要点まとめを生成します。
     """
 
-    def __init__(self, language: str = 'ja', verbose: bool = False):
+    def __init__(self, language: str = 'ja', platform: str = 'seaart', verbose: bool = False):
         """
         初期化
 
         Args:
             language (str): プロンプトの言語（'ja'または'en'）
+            platform (str): 画像生成プラットフォーム（'midjourney', 'seaart', 'novelai'）
             verbose (bool): 詳細ログを出力するかどうか
         """
         self.language = language
+        self.platform = platform
         self.verbose = verbose
 
         # Google Generative AI の設定
@@ -45,6 +47,77 @@ class PromptGenerator:
             print(f"✓ PromptGenerator initialized")
             print(f"  Model: {Config.GEMINI_MODEL}")
             print(f"  Language: {self.language}")
+            print(f"  Platform: {self.platform}")
+
+    def _get_platform_instructions(self) -> Dict[str, str]:
+        """
+        プラットフォーム別のプロンプト生成指示を取得
+
+        Returns:
+            Dict: 日本語と英語の指示
+        """
+        instructions = {
+            'midjourney': {
+                'ja': """
+**Midjourney向けプロンプト:**
+- 自然言語で詳細に記述
+- 視覚的な要素を豊かに表現
+- カメラアングル、ライティング、雰囲気を含める
+- 例: "cinematic shot of sunset beach, golden hour lighting, warm atmosphere, professional photography"
+                """,
+                'en': """
+**For Midjourney:**
+- Use natural language, descriptive phrases
+- Rich visual descriptions
+- Include camera angles, lighting, atmosphere
+- Example: "cinematic shot of sunset beach, golden hour lighting, warm atmosphere, professional photography"
+                """
+            },
+            'seaart': {
+                'ja': """
+**SeaArt（シーダンス）向けプロンプト:**
+- タグベースと自然言語のハイブリッド形式
+- 主要タグをカンマ区切りで列挙した後、詳細説明を追加
+- 品質タグを必ず含める: masterpiece, best quality, highres, detailed
+- スタイルタグ: realistic, anime, illustration, photorealistic等
+- 例: "masterpiece, best quality, sunset beach, person walking, golden hour lighting, warm colors, cinematic composition, highly detailed"
+                """,
+                'en': """
+**For SeaArt:**
+- Hybrid format: tags + natural language
+- List main tags separated by commas, then add detailed description
+- Always include quality tags: masterpiece, best quality, highres, detailed
+- Style tags: realistic, anime, illustration, photorealistic, etc.
+- Example: "masterpiece, best quality, sunset beach, person walking, golden hour lighting, warm colors, cinematic composition, highly detailed"
+                """
+            },
+            'novelai': {
+                'ja': """
+**NovelAI（ナノバナナプロ）向けプロンプト:**
+- 完全タグベース形式（カンマ区切り）
+- アニメ・イラスト特化のタグを使用
+- 必須品質タグ: masterpiece, best quality, high resolution, detailed, absurdres
+- スタイルタグ: anime, illustration, digital art, 2d, etc.
+- キャラクターの詳細: 1girl, 1boy, solo, group等
+- 背景・構図: beach, sunset, scenic, landscape等
+- 色・照明: warm colors, golden hour, soft lighting等
+- 例: "masterpiece, best quality, absurdres, anime, 1girl, sunset beach, golden hour, warm colors, detailed background, soft lighting, scenic"
+                """,
+                'en': """
+**For NovelAI:**
+- Pure tag-based format (comma-separated)
+- Use anime/illustration-focused tags
+- Required quality tags: masterpiece, best quality, high resolution, detailed, absurdres
+- Style tags: anime, illustration, digital art, 2d, etc.
+- Character details: 1girl, 1boy, solo, group, etc.
+- Background/composition: beach, sunset, scenic, landscape, etc.
+- Colors/lighting: warm colors, golden hour, soft lighting, etc.
+- Example: "masterpiece, best quality, absurdres, anime, 1girl, sunset beach, golden hour, warm colors, detailed background, soft lighting, scenic"
+                """
+            }
+        }
+
+        return instructions.get(self.platform, instructions['seaart'])
 
     def _create_analysis_prompt(
         self,
@@ -103,6 +176,9 @@ class PromptGenerator:
             audio_info += "\nプロンプト作成時は、上記の音声情報も考慮してください。\n"
             audio_info += "特に、BGMの雰囲気やセリフの内容は、画像の雰囲気やシーンの理解に重要です。\n"
 
+        # プラットフォーム別の指示を取得
+        platform_instructions = self._get_platform_instructions()
+
         if self.language == 'ja':
             prompt = f"""
 あなたは画像生成AIのプロンプト作成の専門家です。
@@ -114,13 +190,15 @@ class PromptGenerator:
 {'音声（セリフやBGM）の情報も要約に含めてください。' if audio_analysis else ''}
 
 # タスク2: 画像生成プロンプトの作成
-動画の重要なシーンや特徴的な場面について、Midjourney/Stable Diffusion用の
+動画の重要なシーンや特徴的な場面について、**{self.platform.upper()}向け**の
 詳細な画像生成プロンプトを作成してください。
+
+{platform_instructions['ja']}
 
 各プロンプトには以下を含めてください：
 - 視覚的な詳細（構図、色彩、照明、雰囲気）
 - スタイル指定（写真風、イラスト、アート等）
-- 品質タグ（high quality, detailed, masterpiece等）
+- 品質タグ（masterpiece, best quality, highres, detailed等）
 {'- タイムスタンプ（各シーンの開始時刻）' if scenes else ''}
 {'- 音声情報を考慮した雰囲気の描写（BGMの雰囲気、セリフの内容を反映）' if audio_analysis else ''}
 
@@ -198,13 +276,15 @@ Include the main theme, objects that appear, and scene characteristics.
 {'Also include audio information (dialogue and BGM) in the summary.' if audio_analysis else ''}
 
 # Task 2: Create Image Generation Prompts
-Create detailed image generation prompts for Midjourney/Stable Diffusion
+Create detailed image generation prompts **specifically for {self.platform.upper()}**
 about important scenes or characteristic moments in the video.
+
+{platform_instructions['en']}
 
 Each prompt should include:
 - Visual details (composition, color, lighting, atmosphere)
 - Style specification (photographic, illustration, art, etc.)
-- Quality tags (high quality, detailed, masterpiece, etc.)
+- Quality tags (masterpiece, best quality, highres, detailed, etc.)
 {'- Timestamp (start time of each scene)' if scenes else ''}
 {'- Atmospheric descriptions considering audio (BGM mood, dialogue content)' if audio_analysis else ''}
 
@@ -296,6 +376,7 @@ Important:
             result['timestamp'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             result['model'] = Config.GEMINI_MODEL
             result['language'] = self.language
+            result['platform'] = self.platform
 
             # シーン情報がある場合は追加
             if scenes:

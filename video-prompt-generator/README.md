@@ -1,10 +1,15 @@
 # Video Prompt Generator
 
-動画URL・ローカルファイルから画像を認識し、Midjourney/Stable Diffusion用の画像生成プロンプトを自動作成するツール
+動画URL・ローカルファイルから画像を認識し、SeaArt/NovelAI/Midjourney用の画像生成プロンプトを自動作成するツール
 
 ## プロジェクト概要
 
-Video Prompt Generatorは、YouTube、X (Twitter)、Instagram、TikTok等の動画URLや、ローカルの動画ファイルを入力として受け取り、Google Gemini APIを使用して動画の内容を分析し、画像生成AI（Midjourney、Stable Diffusion等）で使用できる高品質なプロンプトを自動生成するPythonツールです。
+Video Prompt Generatorは、YouTube、X (Twitter)、Instagram、TikTok等の動画URLや、ローカルの動画ファイルを入力として受け取り、Google Gemini APIを使用して動画の内容を分析し、画像生成AI（**SeaArt、NovelAI、Midjourney**等）で使用できる高品質なプロンプトを自動生成するPythonツールです。
+
+**🎨 対応プラットフォーム:**
+- **SeaArt（シーダンス）**: タグベース + 自然言語のハイブリッド形式（デフォルト）
+- **NovelAI（ナノバナナプロ）**: アニメ・イラスト特化、タグベース形式
+- **Midjourney**: 自然言語で詳細に記述する形式
 
 ## 機能一覧
 
@@ -12,7 +17,10 @@ Video Prompt Generatorは、YouTube、X (Twitter)、Instagram、TikTok等の動�
 - ✅ **マルチプラットフォーム対応**: YouTube, X (Twitter), Instagram, TikTok等に対応
 - ✅ **ローカルファイル対応**: ローカルに保存された動画ファイルも処理可能
 - ✅ **動画分析**: Google Gemini APIを使用した動画コンテンツの分析
-- ✅ **プロンプト生成**: Midjourney/Stable Diffusion用の詳細な画像生成プロンプトを自動作成
+- ✅ **プラットフォーム別プロンプト生成**: SeaArt/NovelAI/Midjourney向けに最適化
+  - **SeaArt**: タグ + 自然言語のハイブリッド形式
+  - **NovelAI**: アニメ特化、タグベース形式
+  - **Midjourney**: 自然言語で詳細記述
 - ✅ **要点まとめ**: 動画の内容を簡潔にまとめたサマリーを生成
 - ✅ **JSON形式での出力**: 構造化されたデータ形式で結果を保存
 - ✅ **カット割り検出**: OpenCVを使用したシーン変更の自動検出
@@ -113,6 +121,7 @@ streamlit run web_ui.py
    - 「ファイルアップロード」タブ: ローカルの動画ファイルを選択
 
 2. **設定（サイドバー）**
+   - **画像生成プラットフォーム**: SeaArt/NovelAI/Midjourneyから選択
    - プロンプト言語: 日本語または英語
    - カット割り検出: シーン変更を自動検出
    - 代表フレーム抽出: 各シーンの画像を保存
@@ -168,6 +177,18 @@ python main.py https://www.youtube.com/watch?v=example_video_id --detect-scenes
 python main.py https://www.youtube.com/watch?v=example_video_id --detect-scenes --extract-frames
 ```
 
+**プラットフォーム指定（SeaArt/NovelAI/Midjourney）:**
+```bash
+# SeaArt向けプロンプト生成（デフォルト）
+python main.py https://www.youtube.com/watch?v=example_video_id --platform seaart
+
+# NovelAI向けプロンプト生成
+python main.py https://www.youtube.com/watch?v=example_video_id --platform novelai
+
+# Midjourney向けプロンプト生成
+python main.py https://www.youtube.com/watch?v=example_video_id --platform midjourney
+```
+
 **音声分析を有効にする（セリフ + BGM）:**
 ```bash
 python main.py https://www.youtube.com/watch?v=example_video_id --analyze-audio
@@ -195,11 +216,12 @@ python main.py https://www.youtube.com/watch?v=example_video_id --output my_prom
 | `video_url_or_path` | 処理する動画のURL、またはローカルファイルパス（必須） |
 | `-o, --output` | 出力JSONファイル名（省略時は自動生成） |
 | `-v, --verbose` | 詳細なログを表示 |
+| `--platform` | 画像生成プラットフォーム（seaart/novelai/midjourney、デフォルト: seaart） |
+| `--language` | プロンプトの言語（ja/en、デフォルト: ja） |
 | `--detect-scenes` | カット割り検出を有効にする |
 | `--extract-frames` | 各シーンの代表フレームを抽出 |
 | `--analyze-audio` | 音声分析を有効にする（セリフの文字起こし、BGM分析） |
 | `--whisper-model` | Whisper音声認識モデル（tiny/base/small/medium、デフォルト: base） |
-| `--language` | プロンプトの言語（ja/en、デフォルト: ja） |
 
 ### 対応プラットフォーム
 
@@ -225,13 +247,14 @@ python main.py https://www.youtube.com/watch?v=example_video_id --output my_prom
   "timestamp": "2025-01-06 12:34:56",
   "model": "gemini-1.5-flash",
   "language": "ja",
+  "platform": "seaart",
   "summary": "動画の要点まとめ...",
   "prompts": [
     {
       "scene": 1,
       "timestamp": "00:00:00",
       "description": "シーンの説明",
-      "prompt": "詳細な画像生成プロンプト...",
+      "prompt": "masterpiece, best quality, sunset beach scene, person walking, golden hour lighting, cinematic atmosphere, detailed background...",
       "japanese_prompt": "日本語での説明的プロンプト",
       "dialogue": "このシーンのセリフ（音声分析有効時）",
       "audio_mood": "BGMの雰囲気（音声分析有効時）"
@@ -264,6 +287,7 @@ python main.py https://www.youtube.com/watch?v=example_video_id --output my_prom
   "timestamp": "2025-01-06 12:34:56",
   "model": "gemini-1.5-flash",
   "language": "ja",
+  "platform": "seaart",
   "summary": "動画の要点まとめ...",
   "total_scenes": 5,
   "video_metadata": {

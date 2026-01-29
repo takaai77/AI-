@@ -110,6 +110,14 @@ def parse_arguments():
     )
 
     parser.add_argument(
+        '--platform',
+        type=str,
+        choices=['midjourney', 'seaart', 'novelai'],
+        default='seaart',
+        help='画像生成プラットフォーム（midjourney/seaart/novelai、デフォルト: seaart）'
+    )
+
+    parser.add_argument(
         '--detect-scenes',
         action='store_true',
         help='カット割り検出を有効にする（シーン変更を自動検出）'
@@ -318,6 +326,7 @@ def main():
 
         prompt_gen = PromptGenerator(
             language=args.language,
+            platform=args.platform,
             verbose=args.verbose
         )
 
