@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Week 2 - レッスン3: セレクタをマスター | Playwright マスター道場</title>
+    <style>
+        :root { --primary: #6366f1; --primary-dark: #4f46e5; --secondary: #10b981; --accent: #f59e0b; --bg: #0f172a; --bg-light: #1e293b; --text: #e2e8f0; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg); color: var(--text); line-height: 1.8; }
+        .nav { background: var(--bg-light); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .nav a { color: var(--text); text-decoration: none; }
+        .lesson-header { background: linear-gradient(135deg, #8b5cf6, #a78bfa); padding: 3rem 2rem; text-align: center; }
+        .lesson-badge { background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 2rem; font-size: 0.9rem; display: inline-block; margin-bottom: 1rem; }
+        .lesson-header h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+        .content { max-width: 800px; margin: 0 auto; padding: 2rem; }
+        .section { background: var(--bg-light); border-radius: 1rem; padding: 2rem; margin-bottom: 2rem; }
+        .section h2 { color: var(--primary); margin-bottom: 1rem; font-size: 1.5rem; }
+        .section h3 { color: var(--accent); margin: 1.5rem 0 1rem; }
+        .section p { margin-bottom: 1rem; }
+        .code-block { background: #0d1117; border-radius: 0.5rem; padding: 1.5rem; margin: 1rem 0; overflow-x: auto; font-family: 'Fira Code', 'Consolas', monospace; font-size: 0.9rem; border: 1px solid #30363d; position: relative; }
+        .code-comment { color: #8b949e; }
+        .code-keyword { color: #ff7b72; }
+        .code-string { color: #a5d6ff; }
+        .code-function { color: #d2a8ff; }
+        .code-variable { color: #ffa657; }
+        .copy-btn { position: absolute; top: 0.5rem; right: 0.5rem; background: var(--primary); color: white; border: none; padding: 0.3rem 0.8rem; border-radius: 0.3rem; cursor: pointer; font-size: 0.8rem; }
+        .hint-box { background: rgba(245, 158, 11, 0.2); border-left: 4px solid var(--accent); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 0.5rem 0.5rem 0; }
+        .hint-box h4 { color: var(--accent); margin-bottom: 0.5rem; }
+        .success-box { background: rgba(16, 185, 129, 0.2); border-left: 4px solid var(--secondary); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 0.5rem 0.5rem 0; }
+        .success-box h4 { color: var(--secondary); margin-bottom: 0.5rem; }
+        .info-box { background: rgba(99, 102, 241, 0.2); border-left: 4px solid var(--primary); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 0.5rem 0.5rem 0; }
+        .info-box h4 { color: var(--primary); margin-bottom: 0.5rem; }
+        .selector-table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+        .selector-table th, .selector-table td { padding: 0.8rem; text-align: left; border-bottom: 1px solid var(--bg); }
+        .selector-table th { background: var(--bg); color: var(--accent); }
+        .selector-table td:first-child { font-family: 'Fira Code', monospace; color: var(--primary); font-size: 0.85rem; }
+        .demo-html { background: #1a1a2e; border-radius: 0.5rem; padding: 1.5rem; margin: 1rem 0; border: 1px solid #4a4a6a; }
+        .demo-html code { color: #e0e0e0; }
+        .tag { color: #ff6b6b; }
+        .attr { color: #4ecdc4; }
+        .value { color: #ffe66d; }
+        .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-size: 1rem; font-weight: 600; cursor: pointer; border: none; text-decoration: none; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-secondary { background: var(--secondary); color: white; }
+        .navigation-buttons { display: flex; justify-content: space-between; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--bg-light); }
+        .progress-indicator { display: flex; justify-content: center; gap: 0.5rem; margin: 2rem 0; }
+        .progress-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--bg-light); }
+        .progress-dot.active { background: var(--primary); }
+        .progress-dot.completed { background: var(--secondary); }
+        .priority-badge { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; font-weight: bold; margin-left: 0.5rem; }
+        .priority-1 { background: #10b981; color: white; }
+        .priority-2 { background: #6366f1; color: white; }
+        .priority-3 { background: #f59e0b; color: black; }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="../index.html">← ホームに戻る</a>
+        <span>Week 2 / Lesson 3</span>
+    </nav>
+
+    <header class="lesson-header">
+        <span class="lesson-badge">Week 2 - レッスン 3/5</span>
+        <h1>🎯 セレクタをマスター</h1>
+        <p>要素を確実に見つける方法を学ぼう！</p>
+    </header>
+
+    <div class="progress-indicator">
+        <span class="progress-dot completed"></span>
+        <span class="progress-dot completed"></span>
+        <span class="progress-dot active"></span>
+        <span class="progress-dot"></span>
+        <span class="progress-dot"></span>
+    </div>
+
+    <main class="content">
+        <section class="section">
+            <h2>🔍 セレクタって何？</h2>
+            <p>セレクタとは「Webページの中から特定の要素を見つける方法」です。</p>
+            <p>例えば、「赤いボタン」「ログインフォームの入力欄」「ページのタイトル」など、操作したい要素を指定するために使います。</p>
+
+            <div class="demo-html">
+                <code>
+<span class="tag">&lt;button</span> <span class="attr">id</span>=<span class="value">"login-btn"</span> <span class="attr">class</span>=<span class="value">"btn primary"</span><span class="tag">&gt;</span>ログイン<span class="tag">&lt;/button&gt;</span>
+                </code>
+            </div>
+
+            <p>この要素を見つけるには、いくつかの方法があります：</p>
+            <ul style="margin-left: 1.5rem;">
+                <li>テキスト「ログイン」で探す</li>
+                <li>ID「login-btn」で探す</li>
+                <li>クラス「btn」で探す</li>
+                <li>ボタンという役割（role）で探す</li>
+            </ul>
+        </section>
+
+        <section class="section">
+            <h2>⭐ おすすめのセレクタ（優先順位）</h2>
+
+            <h3>1位: getByRole() <span class="priority-badge priority-1">最優先</span></h3>
+            <p>要素の「役割」で見つける。一番信頼性が高い！</p>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>
+<span class="code-comment">// ボタンを探す</span>
+<span class="code-keyword">await</span> page.<span class="code-function">getByRole</span>(<span class="code-string">'button'</span>, { <span class="code-variable">name</span>: <span class="code-string">'送信'</span> }).<span class="code-function">click</span>();
+
+<span class="code-comment">// リンクを探す</span>
+<span class="code-keyword">await</span> page.<span class="code-function">getByRole</span>(<span class="code-string">'link'</span>, { <span class="code-variable">name</span>: <span class="code-string">'ホーム'</span> }).<span class="code-function">click</span>();
+
+<span class="code-comment">// テキストボックスを探す</span>
+<span class="code-keyword">await</span> page.<span class="code-function">getByRole</span>(<span class="code-string">'textbox'</span>, { <span class="code-variable">name</span>: <span class="code-string">'メールアドレス'</span> }).<span class="code-function">fill</span>(<span class="code-string">'test@example.com'</span>);
+
+<span class="code-comment">// チェックボックスを探す</span>
+<span class="code-keyword">await</span> page.<span class="code-function">getByRole</span>(<span class="code-string">'checkbox'</span>, { <span class="code-variable">name</span>: <span class="code-string">'利用規約に同意'</span> }).<span class="code-function">check</span>();
+                </code>
+            </div>
+
+            <table class="selector-table">
+                <thead>
+                    <tr><th>role</th><th>対象要素</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>button</td><td>ボタン</td></tr>
+                    <tr><td>link</td><td>リンク（a タグ）</td></tr>
+                    <tr><td>textbox</td><td>テキスト入力欄</td></tr>
+                    <tr><td>checkbox</td><td>チェックボックス</td></tr>
+                    <tr><td>heading</td><td>見出し（h1, h2...）</td></tr>
+                    <tr><td>img</td><td>画像</td></tr>
+                </tbody>
+            </table>
+
+            <h3>2位: getByText() <span class="priority-badge priority-2">おすすめ</span></h3>
+            <p>画面に表示されているテキストで探す。</p>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>
+<span class="code-comment">// 完全一致</span>
+<span class="code-keyword">await</span> page.<span class="code-function">getByText</span>(<span class="code-string">'ログイン'</span>).<span class="code-function">click</span>();
+
+<span class="code-comment">// 部分一致</span>
+<span class="code-keyword">await</span> page.<span class="code-function">getByText</span>(<span class="code-string">'ログイン'</span>, { <span class="code-variable">exact</span>: <span class="code-keyword">false</span> }).<span class="code-function">click</span>();
+                </code>
+            </div>
+
+            <h3>3位: getByLabel() / getByPlaceholder() <span class="priority-badge priority-2">おすすめ</span></h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>
+<span class="code-comment">// ラベルで探す（フォーム向き）</span>
+<span class="code-keyword">await</span> page.<span class="code-function">getByLabel</span>(<span class="code-string">'ユーザー名'</span>).<span class="code-function">fill</span>(<span class="code-string">'taro'</span>);
+
+<span class="code-comment">// プレースホルダーで探す</span>
+<span class="code-keyword">await</span> page.<span class="code-function">getByPlaceholder</span>(<span class="code-string">'検索...'</span>).<span class="code-function">fill</span>(<span class="code-string">'Playwright'</span>);
+                </code>
+            </div>
+
+            <h3>4位: locator() - CSSセレクタ <span class="priority-badge priority-3">必要な時だけ</span></h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>
+<span class="code-comment">// IDで探す（#をつける）</span>
+<span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'#submit-button'</span>).<span class="code-function">click</span>();
+
+<span class="code-comment">// クラスで探す（.をつける）</span>
+<span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'.login-form'</span>).<span class="code-function">click</span>();
+
+<span class="code-comment">// 属性で探す</span>
+<span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'input[name="email"]'</span>).<span class="code-function">fill</span>(<span class="code-string">'test@example.com'</span>);
+
+<span class="code-comment">// 複合セレクタ</span>
+<span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'div.container button.primary'</span>).<span class="code-function">click</span>();
+                </code>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🔗 セレクタを組み合わせる</h2>
+
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>
+<span class="code-comment">// 特定のエリア内の要素を探す</span>
+<span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'.login-form'</span>).<span class="code-function">getByRole</span>(<span class="code-string">'button'</span>).<span class="code-function">click</span>();
+
+<span class="code-comment">// 最初の要素だけ</span>
+<span class="code-keyword">await</span> page.<span class="code-function">getByRole</span>(<span class="code-string">'button'</span>).<span class="code-function">first</span>().<span class="code-function">click</span>();
+
+<span class="code-comment">// 最後の要素</span>
+<span class="code-keyword">await</span> page.<span class="code-function">getByRole</span>(<span class="code-string">'button'</span>).<span class="code-function">last</span>().<span class="code-function">click</span>();
+
+<span class="code-comment">// N番目の要素（0から始まる）</span>
+<span class="code-keyword">await</span> page.<span class="code-function">getByRole</span>(<span class="code-string">'button'</span>).<span class="code-function">nth</span>(2).<span class="code-function">click</span>();  <span class="code-comment">// 3番目</span>
+                </code>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🎯 このレッスンのまとめ</h2>
+            <ul style="margin-left: 1.5rem;">
+                <li><strong>getByRole()</strong> - 役割で探す（最優先）</li>
+                <li><strong>getByText()</strong> - テキストで探す</li>
+                <li><strong>getByLabel()</strong> - ラベルで探す</li>
+                <li><strong>getByPlaceholder()</strong> - プレースホルダーで探す</li>
+                <li><strong>locator()</strong> - CSSセレクタで探す</li>
+                <li><strong>first() / last() / nth()</strong> - 複数ある時に絞り込む</li>
+            </ul>
+
+            <div class="success-box">
+                <h4>🎉 よくできました！</h4>
+                <p>セレクタをマスターしました！次はページの情報を取得する方法を学ぼう！</p>
+            </div>
+        </section>
+
+        <div class="navigation-buttons">
+            <a href="week2-lesson2.html" class="btn btn-primary">← 前のレッスン</a>
+            <a href="week2-lesson4.html" class="btn btn-secondary">次のレッスンへ →</a>
+        </div>
+    </main>
+
+    <script>
+        function copyCode(btn) {
+            const codeBlock = btn.parentElement;
+            const code = codeBlock.querySelector('code').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                btn.textContent = '✓ コピー完了';
+                setTimeout(() => { btn.textContent = 'コピー'; }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>

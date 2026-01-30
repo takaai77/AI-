@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Week 1 - レッスン3: ブラウザを操作しよう | Playwright マスター道場</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #10b981;
+            --accent: #f59e0b;
+            --bg: #0f172a;
+            --bg-light: #1e293b;
+            --text: #e2e8f0;
+            --text-muted: #94a3b8;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg); color: var(--text); line-height: 1.8; }
+        .nav { background: var(--bg-light); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .nav a { color: var(--text); text-decoration: none; }
+        .nav a:hover { color: var(--primary); }
+        .lesson-header { background: linear-gradient(135deg, #3b82f6, #60a5fa); padding: 3rem 2rem; text-align: center; }
+        .lesson-badge { background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 2rem; font-size: 0.9rem; display: inline-block; margin-bottom: 1rem; }
+        .lesson-header h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+        .content { max-width: 800px; margin: 0 auto; padding: 2rem; }
+        .section { background: var(--bg-light); border-radius: 1rem; padding: 2rem; margin-bottom: 2rem; }
+        .section h2 { color: var(--primary); margin-bottom: 1rem; font-size: 1.5rem; }
+        .section h3 { color: var(--accent); margin: 1.5rem 0 1rem; }
+        .section p { margin-bottom: 1rem; }
+        .code-block { background: #0d1117; border-radius: 0.5rem; padding: 1.5rem; margin: 1rem 0; overflow-x: auto; font-family: 'Fira Code', 'Consolas', monospace; font-size: 0.9rem; border: 1px solid #30363d; position: relative; }
+        .code-comment { color: #8b949e; }
+        .code-keyword { color: #ff7b72; }
+        .code-string { color: #a5d6ff; }
+        .code-function { color: #d2a8ff; }
+        .code-variable { color: #ffa657; }
+        .copy-btn { position: absolute; top: 0.5rem; right: 0.5rem; background: var(--primary); color: white; border: none; padding: 0.3rem 0.8rem; border-radius: 0.3rem; cursor: pointer; font-size: 0.8rem; }
+        .copy-btn:hover { background: var(--primary-dark); }
+        .hint-box { background: rgba(245, 158, 11, 0.2); border-left: 4px solid var(--accent); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 0.5rem 0.5rem 0; }
+        .hint-box h4 { color: var(--accent); margin-bottom: 0.5rem; }
+        .success-box { background: rgba(16, 185, 129, 0.2); border-left: 4px solid var(--secondary); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 0.5rem 0.5rem 0; }
+        .success-box h4 { color: var(--secondary); margin-bottom: 0.5rem; }
+        .warning-box { background: rgba(239, 68, 68, 0.2); border-left: 4px solid #ef4444; padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 0.5rem 0.5rem 0; }
+        .warning-box h4 { color: #ef4444; margin-bottom: 0.5rem; }
+        .exercise { background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(6, 182, 212, 0.2)); border-radius: 1rem; padding: 1.5rem; margin: 1.5rem 0; border: 2px solid var(--secondary); }
+        .exercise h4 { color: var(--secondary); margin-bottom: 1rem; }
+        .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-size: 1rem; font-weight: 600; cursor: pointer; border: none; transition: all 0.3s; text-decoration: none; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-secondary { background: var(--secondary); color: white; }
+        .navigation-buttons { display: flex; justify-content: space-between; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--bg-light); }
+        .progress-indicator { display: flex; justify-content: center; gap: 0.5rem; margin: 2rem 0; }
+        .progress-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--bg-light); }
+        .progress-dot.active { background: var(--primary); }
+        .progress-dot.completed { background: var(--secondary); }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="../index.html">← ホームに戻る</a>
+        <span>Week 1 / Lesson 3</span>
+    </nav>
+
+    <header class="lesson-header">
+        <span class="lesson-badge">Week 1 - レッスン 3/5</span>
+        <h1>🚀 ブラウザを操作してみよう</h1>
+        <p>実際にコードを動かしてみよう！</p>
+    </header>
+
+    <div class="progress-indicator">
+        <span class="progress-dot completed"></span>
+        <span class="progress-dot completed"></span>
+        <span class="progress-dot active"></span>
+        <span class="progress-dot"></span>
+        <span class="progress-dot"></span>
+    </div>
+
+    <main class="content">
+        <section class="section">
+            <h2>📁 プロジェクトを作ろう</h2>
+            <p>まずは作業用のフォルダを作って、Playwrightをインストールしよう！</p>
+
+            <h3>ステップ1: フォルダを作成</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>
+<span class="code-comment"># デスクトップに移動（Windowsの場合）</span>
+cd Desktop
+
+<span class="code-comment"># 新しいフォルダを作成</span>
+mkdir playwright-practice
+
+<span class="code-comment"># フォルダに移動</span>
+cd playwright-practice
+                </code>
+            </div>
+
+            <h3>ステップ2: プロジェクトを初期化</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>
+<span class="code-comment"># package.jsonを作成（-y で全部デフォルト設定）</span>
+npm init -y
+                </code>
+            </div>
+
+            <h3>ステップ3: Playwrightをインストール</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>
+<span class="code-comment"># Playwrightをインストール</span>
+npm install playwright
+                </code>
+            </div>
+
+            <div class="hint-box">
+                <h4>💡 時間がかかるよ</h4>
+                <p>Playwrightのインストールには数分かかることがあります。ブラウザのダウンロードも一緒に行われるからです。</p>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>📝 はじめてのスクリプト</h2>
+            <p>新しいファイルを作って、以下のコードを書いてみよう！</p>
+
+            <h3>ファイル名: first-script.js</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>
+<span class="code-comment">// Playwrightを読み込む</span>
+<span class="code-keyword">const</span> { chromium } = <span class="code-function">require</span>(<span class="code-string">'playwright'</span>);
+
+(<span class="code-keyword">async</span> () => {
+    console.<span class="code-function">log</span>(<span class="code-string">'🚀 ブラウザを起動します...'</span>);
+
+    <span class="code-comment">// ブラウザを起動（画面を表示する）</span>
+    <span class="code-keyword">const</span> browser = <span class="code-keyword">await</span> chromium.<span class="code-function">launch</span>({
+        <span class="code-variable">headless</span>: <span class="code-keyword">false</span>
+    });
+
+    console.<span class="code-function">log</span>(<span class="code-string">'📄 新しいページを開きます...'</span>);
+
+    <span class="code-comment">// 新しいページを開く</span>
+    <span class="code-keyword">const</span> page = <span class="code-keyword">await</span> browser.<span class="code-function">newPage</span>();
+
+    console.<span class="code-function">log</span>(<span class="code-string">'🌐 Googleにアクセスします...'</span>);
+
+    <span class="code-comment">// Googleにアクセス</span>
+    <span class="code-keyword">await</span> page.<span class="code-function">goto</span>(<span class="code-string">'https://www.google.com'</span>);
+
+    console.<span class="code-function">log</span>(<span class="code-string">'⏳ 5秒待ちます（画面を確認してね）...'</span>);
+
+    <span class="code-comment">// 5秒待つ</span>
+    <span class="code-keyword">await</span> page.<span class="code-function">waitForTimeout</span>(5000);
+
+    console.<span class="code-function">log</span>(<span class="code-string">'👋 ブラウザを閉じます...'</span>);
+
+    <span class="code-comment">// ブラウザを閉じる</span>
+    <span class="code-keyword">await</span> browser.<span class="code-function">close</span>();
+
+    console.<span class="code-function">log</span>(<span class="code-string">'🎉 完了！お疲れさま！'</span>);
+})();
+                </code>
+            </div>
+
+            <h3>実行してみよう！</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>node first-script.js</code>
+            </div>
+
+            <div class="success-box">
+                <h4>✨ 成功したかな？</h4>
+                <p>ブラウザが自動で開いて、Googleが表示されたら大成功！</p>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🔧 コードの解説</h2>
+
+            <h3>1. require（読み込み）</h3>
+            <div class="code-block">
+                <code><span class="code-keyword">const</span> { chromium } = <span class="code-function">require</span>(<span class="code-string">'playwright'</span>);</code>
+            </div>
+            <p>Playwrightの中から <code>chromium</code>（Chrome系ブラウザ）を使う準備。</p>
+
+            <h3>2. launch（起動）</h3>
+            <div class="code-block">
+                <code><span class="code-keyword">const</span> browser = <span class="code-keyword">await</span> chromium.<span class="code-function">launch</span>({ <span class="code-variable">headless</span>: <span class="code-keyword">false</span> });</code>
+            </div>
+            <p>ブラウザを起動。<code>headless: false</code> で画面を表示。</p>
+
+            <h3>3. newPage（新しいページ）</h3>
+            <div class="code-block">
+                <code><span class="code-keyword">const</span> page = <span class="code-keyword">await</span> browser.<span class="code-function">newPage</span>();</code>
+            </div>
+            <p>新しいタブを開く。</p>
+
+            <h3>4. goto（移動）</h3>
+            <div class="code-block">
+                <code><span class="code-keyword">await</span> page.<span class="code-function">goto</span>(<span class="code-string">'https://www.google.com'</span>);</code>
+            </div>
+            <p>指定したURLにアクセス。</p>
+
+            <h3>5. waitForTimeout（待機）</h3>
+            <div class="code-block">
+                <code><span class="code-keyword">await</span> page.<span class="code-function">waitForTimeout</span>(5000);</code>
+            </div>
+            <p>5000ミリ秒（5秒）待つ。結果を確認する時間を作れる。</p>
+
+            <h3>6. close（終了）</h3>
+            <div class="code-block">
+                <code><span class="code-keyword">await</span> browser.<span class="code-function">close</span>();</code>
+            </div>
+            <p>ブラウザを閉じる。これを忘れるとブラウザが残っちゃう！</p>
+        </section>
+
+        <section class="section">
+            <h2>🏋️ 練習問題</h2>
+
+            <div class="exercise">
+                <h4>チャレンジ1: 別のサイトにアクセスしてみよう</h4>
+                <p>Googleの代わりに、以下のサイトにアクセスするコードに書き換えてみよう：</p>
+                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                    <li>Yahoo! Japan: <code>https://www.yahoo.co.jp</code></li>
+                    <li>YouTube: <code>https://www.youtube.com</code></li>
+                    <li>Wikipedia: <code>https://ja.wikipedia.org</code></li>
+                </ul>
+            </div>
+
+            <div class="exercise">
+                <h4>チャレンジ2: 待ち時間を変えてみよう</h4>
+                <p><code>waitForTimeout</code> の数値を変えて、待ち時間を変更してみよう：</p>
+                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                    <li>1秒 = <code>1000</code></li>
+                    <li>3秒 = <code>3000</code></li>
+                    <li>10秒 = <code>10000</code></li>
+                </ul>
+            </div>
+
+            <div class="exercise">
+                <h4>チャレンジ3: 複数のサイトにアクセス</h4>
+                <p><code>goto</code> を複数回使って、いくつかのサイトを順番に見てみよう！</p>
+                <div class="code-block">
+                    <code>
+<span class="code-keyword">await</span> page.<span class="code-function">goto</span>(<span class="code-string">'https://www.google.com'</span>);
+<span class="code-keyword">await</span> page.<span class="code-function">waitForTimeout</span>(2000);
+
+<span class="code-keyword">await</span> page.<span class="code-function">goto</span>(<span class="code-string">'https://www.yahoo.co.jp'</span>);
+<span class="code-keyword">await</span> page.<span class="code-function">waitForTimeout</span>(2000);
+
+<span class="code-keyword">await</span> page.<span class="code-function">goto</span>(<span class="code-string">'https://www.youtube.com'</span>);
+<span class="code-keyword">await</span> page.<span class="code-function">waitForTimeout</span>(2000);
+                    </code>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>⚠️ よくあるエラーと対処法</h2>
+
+            <div class="warning-box">
+                <h4>エラー: Cannot find module 'playwright'</h4>
+                <p>Playwrightがインストールされていない。<code>npm install playwright</code> を実行しよう。</p>
+            </div>
+
+            <div class="warning-box">
+                <h4>エラー: Navigation timeout</h4>
+                <p>ネットワークが遅いか、サイトが重い。待ち時間を長くするか、ネット接続を確認しよう。</p>
+            </div>
+
+            <div class="warning-box">
+                <h4>エラー: Protocol error</h4>
+                <p>ブラウザが予期せず閉じた。コードを確認して再実行しよう。</p>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🎯 このレッスンのまとめ</h2>
+            <ul style="margin-left: 1.5rem;">
+                <li><strong>npm init -y</strong> でプロジェクトを初期化</li>
+                <li><strong>npm install playwright</strong> でインストール</li>
+                <li><strong>launch()</strong> でブラウザを起動</li>
+                <li><strong>goto()</strong> でURLに移動</li>
+                <li><strong>waitForTimeout()</strong> で待機</li>
+                <li><strong>close()</strong> でブラウザを閉じる</li>
+            </ul>
+
+            <div class="success-box">
+                <h4>🎉 よくできました！</h4>
+                <p>はじめてのPlaywrightスクリプトが動いた！次はもっといろんなページ操作を学ぼう！</p>
+            </div>
+        </section>
+
+        <div class="navigation-buttons">
+            <a href="week1-lesson2.html" class="btn btn-primary">← 前のレッスン</a>
+            <a href="week1-lesson4.html" class="btn btn-secondary">次のレッスンへ →</a>
+        </div>
+    </main>
+
+    <script>
+        function copyCode(btn) {
+            const codeBlock = btn.parentElement;
+            const code = codeBlock.querySelector('code').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                btn.textContent = '✓ コピー完了';
+                setTimeout(() => { btn.textContent = 'コピー'; }, 2000);
+            });
+        }
+
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                let progress = JSON.parse(localStorage.getItem('playwright-progress')) || { lessonsCompleted: 0, completedLessons: [] };
+                if (!progress.completedLessons.includes('week1-lesson3')) {
+                    progress.completedLessons.push('week1-lesson3');
+                    progress.lessonsCompleted++;
+                    localStorage.setItem('playwright-progress', JSON.stringify(progress));
+                }
+            }, 5000);
+        });
+    </script>
+</body>
+</html>

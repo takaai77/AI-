@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Week 1 - レッスン1: プログラミングって何？ | Playwright マスター道場</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #10b981;
+            --accent: #f59e0b;
+            --bg: #0f172a;
+            --bg-light: #1e293b;
+            --text: #e2e8f0;
+            --text-muted: #94a3b8;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.8;
+        }
+
+        .nav {
+            background: var(--bg-light);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav a {
+            color: var(--text);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav a:hover { color: var(--primary); }
+
+        .lesson-header {
+            background: linear-gradient(135deg, #3b82f6, #60a5fa);
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+
+        .lesson-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.9rem;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+
+        .lesson-header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .lesson-header p {
+            opacity: 0.9;
+        }
+
+        .content {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .section {
+            background: var(--bg-light);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .section h2 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .section h3 {
+            color: var(--accent);
+            margin: 1.5rem 0 1rem;
+        }
+
+        .section p {
+            margin-bottom: 1rem;
+        }
+
+        .hint-box {
+            background: rgba(245, 158, 11, 0.2);
+            border-left: 4px solid var(--accent);
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+
+        .hint-box h4 {
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+
+        .info-box {
+            background: rgba(99, 102, 241, 0.2);
+            border-left: 4px solid var(--primary);
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+
+        .info-box h4 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .success-box {
+            background: rgba(16, 185, 129, 0.2);
+            border-left: 4px solid var(--secondary);
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+
+        .success-box h4 {
+            color: var(--secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .analogy {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(99, 102, 241, 0.3));
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border: 1px solid rgba(139, 92, 246, 0.5);
+        }
+
+        .analogy-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .code-block {
+            background: #0d1117;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+            font-family: 'Fira Code', 'Consolas', monospace;
+            font-size: 0.9rem;
+            border: 1px solid #30363d;
+        }
+
+        .code-comment { color: #8b949e; }
+        .code-keyword { color: #ff7b72; }
+        .code-string { color: #a5d6ff; }
+        .code-function { color: #d2a8ff; }
+
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .comparison-item {
+            background: var(--bg);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            text-align: center;
+        }
+
+        .comparison-item h4 {
+            margin-bottom: 1rem;
+        }
+
+        .comparison-item.before {
+            border: 2px solid #ef4444;
+        }
+
+        .comparison-item.after {
+            border: 2px solid var(--secondary);
+        }
+
+        .quiz {
+            background: var(--bg);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .quiz h4 {
+            color: var(--accent);
+            margin-bottom: 1rem;
+        }
+
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .quiz-option {
+            background: var(--bg-light);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .quiz-option:hover {
+            border-color: var(--primary);
+        }
+
+        .quiz-option.correct {
+            border-color: var(--secondary);
+            background: rgba(16, 185, 129, 0.2);
+        }
+
+        .quiz-option.wrong {
+            border-color: #ef4444;
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--bg-light);
+        }
+
+        .progress-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 2rem 0;
+        }
+
+        .progress-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--bg-light);
+        }
+
+        .progress-dot.active {
+            background: var(--primary);
+        }
+
+        .progress-dot.completed {
+            background: var(--secondary);
+        }
+
+        @media (max-width: 768px) {
+            .comparison {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="../index.html">← ホームに戻る</a>
+        <span>Week 1 / Lesson 1</span>
+    </nav>
+
+    <header class="lesson-header">
+        <span class="lesson-badge">Week 1 - レッスン 1/5</span>
+        <h1>🎮 プログラミングって何？</h1>
+        <p>コンピュータに命令を出す魔法の言葉を学ぼう！</p>
+    </header>
+
+    <div class="progress-indicator">
+        <span class="progress-dot active"></span>
+        <span class="progress-dot"></span>
+        <span class="progress-dot"></span>
+        <span class="progress-dot"></span>
+        <span class="progress-dot"></span>
+    </div>
+
+    <main class="content">
+        <section class="section">
+            <h2>🤔 プログラミングってなんだろう？</h2>
+
+            <p>プログラミングとは、<strong>コンピュータにやってほしいことを教える</strong>ことです。</p>
+
+            <p>でも、コンピュータは人間の言葉がわかりません。だから、コンピュータがわかる特別な言葉（プログラミング言語）を使って、命令を書いていきます。</p>
+
+            <div class="analogy">
+                <div class="analogy-icon">🍳</div>
+                <h4>例え話：料理のレシピ</h4>
+                <p>プログラミングは<strong>料理のレシピ</strong>に似ています。</p>
+                <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                    <li>「玉ねぎを切る」→「フライパンで炒める」→「塩を入れる」</li>
+                    <li>手順どおりにやれば、誰でも同じ料理ができる！</li>
+                </ul>
+                <p style="margin-top: 0.5rem;">プログラミングも同じ。手順を書けば、コンピュータがその通りに動いてくれます！</p>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🌐 ブラウザ自動化ってなに？</h2>
+
+            <p>みんなは毎日インターネットを使っていますよね？</p>
+
+            <div class="comparison">
+                <div class="comparison-item before">
+                    <h4>😫 手動でやると...</h4>
+                    <p>同じ作業を何度も繰り返し<br>時間がかかる<br>疲れる・ミスする</p>
+                </div>
+                <div class="comparison-item after">
+                    <h4>😎 自動化すると...</h4>
+                    <p>一度プログラムを書くだけ<br>あっという間に終わる<br>正確・ミスなし！</p>
+                </div>
+            </div>
+
+            <h3>自動化できることの例</h3>
+            <ul style="margin-left: 1.5rem;">
+                <li>🔍 たくさんのWebサイトから情報を集める</li>
+                <li>📸 決まった時間にスクリーンショットを撮る</li>
+                <li>📝 フォームに自動で入力する</li>
+                <li>✅ Webサイトが正しく動くかテストする</li>
+                <li>📊 データを集めてグラフにする</li>
+            </ul>
+
+            <div class="hint-box">
+                <h4>💡 身近な例</h4>
+                <p>例えば、毎朝「今日の天気」を調べるのが面倒なら、自動で天気サイトにアクセスして情報を取得するプログラムが作れます！</p>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🎭 Playwrightって何？</h2>
+
+            <p><strong>Playwright（プレイライト）</strong>は、ブラウザを自動で操作するための道具（ライブラリ）です。</p>
+
+            <div class="info-box">
+                <h4>📝 Playwrightの名前の由来</h4>
+                <p>「Playwright」は英語で「劇作家」という意味。劇作家が役者に演技の指示を出すように、Playwrightはブラウザに動きの指示を出します！</p>
+            </div>
+
+            <h3>Playwrightでできること</h3>
+            <div class="code-block">
+                <code>
+<span class="code-comment">// こんなことができるよ！</span>
+
+<span class="code-comment">// 1. ブラウザを開く</span>
+ブラウザを起動する
+
+<span class="code-comment">// 2. Webサイトにアクセス</span>
+「https://google.com」に移動する
+
+<span class="code-comment">// 3. ボタンをクリック</span>
+「検索」ボタンをクリックする
+
+<span class="code-comment">// 4. 文字を入力</span>
+検索ボックスに「Playwright」と入力する
+
+<span class="code-comment">// 5. スクリーンショットを撮る</span>
+画面を撮影して保存する
+                </code>
+            </div>
+
+            <div class="success-box">
+                <h4>✨ すごいところ</h4>
+                <p>Playwrightは、Chrome、Firefox、Safariなど、いろんなブラウザを同じコードで動かせます！しかも無料で使えます。</p>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🧪 実際のコードを見てみよう</h2>
+
+            <p>これが実際のPlaywrightのコードです。まだ完全に理解できなくても大丈夫！雰囲気だけつかんでね。</p>
+
+            <div class="code-block">
+                <code>
+<span class="code-comment">// Playwrightを使う準備</span>
+<span class="code-keyword">const</span> { chromium } = <span class="code-function">require</span>(<span class="code-string">'playwright'</span>);
+
+<span class="code-comment">// メインの処理</span>
+(<span class="code-keyword">async</span> () => {
+    <span class="code-comment">// ブラウザを起動</span>
+    <span class="code-keyword">const</span> browser = <span class="code-keyword">await</span> chromium.<span class="code-function">launch</span>();
+
+    <span class="code-comment">// 新しいページを開く</span>
+    <span class="code-keyword">const</span> page = <span class="code-keyword">await</span> browser.<span class="code-function">newPage</span>();
+
+    <span class="code-comment">// Googleにアクセス</span>
+    <span class="code-keyword">await</span> page.<span class="code-function">goto</span>(<span class="code-string">'https://www.google.com'</span>);
+
+    <span class="code-comment">// スクリーンショットを撮る</span>
+    <span class="code-keyword">await</span> page.<span class="code-function">screenshot</span>({ <span class="code-variable">path</span>: <span class="code-string">'google.png'</span> });
+
+    <span class="code-comment">// ブラウザを閉じる</span>
+    <span class="code-keyword">await</span> browser.<span class="code-function">close</span>();
+})();
+                </code>
+            </div>
+
+            <div class="hint-box">
+                <h4>💡 コードの読み方</h4>
+                <p><span class="code-comment" style="background: #0d1117; padding: 0.2rem 0.5rem; border-radius: 3px;">// で始まる行</span>はコメントです。コンピュータは無視するので、人間がメモを書くために使います。</p>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>📝 確認クイズ</h2>
+
+            <div class="quiz">
+                <h4>Q1: プログラミングとは何でしょう？</h4>
+                <div class="quiz-options">
+                    <div class="quiz-option" onclick="checkAnswer(this, false)">
+                        A. コンピュータを修理すること
+                    </div>
+                    <div class="quiz-option" onclick="checkAnswer(this, true)">
+                        B. コンピュータにやってほしいことを教えること
+                    </div>
+                    <div class="quiz-option" onclick="checkAnswer(this, false)">
+                        C. インターネットで遊ぶこと
+                    </div>
+                </div>
+            </div>
+
+            <div class="quiz">
+                <h4>Q2: Playwrightでできることは？</h4>
+                <div class="quiz-options">
+                    <div class="quiz-option" onclick="checkAnswer(this, false)">
+                        A. ゲームを作る
+                    </div>
+                    <div class="quiz-option" onclick="checkAnswer(this, false)">
+                        B. 音楽を作る
+                    </div>
+                    <div class="quiz-option" onclick="checkAnswer(this, true)">
+                        C. ブラウザを自動で操作する
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🎯 このレッスンのまとめ</h2>
+            <ul style="margin-left: 1.5rem;">
+                <li><strong>プログラミング</strong> = コンピュータへの命令を書くこと</li>
+                <li><strong>ブラウザ自動化</strong> = 手作業を自動でやらせること</li>
+                <li><strong>Playwright</strong> = ブラウザを自動操作するための道具</li>
+            </ul>
+
+            <div class="success-box">
+                <h4>🎉 よくできました！</h4>
+                <p>これでプログラミングとPlaywrightの基本がわかりました。次のレッスンでは、Playwrightの仕組みをもっと詳しく見ていこう！</p>
+            </div>
+        </section>
+
+        <div class="navigation-buttons">
+            <a href="../index.html" class="btn btn-primary">← ホームへ</a>
+            <a href="week1-lesson2.html" class="btn btn-secondary">次のレッスンへ →</a>
+        </div>
+    </main>
+
+    <script>
+        function checkAnswer(element, isCorrect) {
+            const options = element.parentElement.querySelectorAll('.quiz-option');
+            options.forEach(opt => {
+                opt.style.pointerEvents = 'none';
+            });
+
+            if (isCorrect) {
+                element.classList.add('correct');
+            } else {
+                element.classList.add('wrong');
+                options.forEach(opt => {
+                    if (!opt.classList.contains('wrong')) {
+                        // Find correct answer
+                    }
+                });
+            }
+        }
+
+        // レッスン完了を記録
+        function completeLesson() {
+            let progress = JSON.parse(localStorage.getItem('playwright-progress')) || {
+                lessonsCompleted: 0,
+                completedLessons: []
+            };
+
+            if (!progress.completedLessons.includes('week1-lesson1')) {
+                progress.completedLessons.push('week1-lesson1');
+                progress.lessonsCompleted++;
+                localStorage.setItem('playwright-progress', JSON.stringify(progress));
+            }
+        }
+
+        // ページ読み込み時に完了を記録
+        window.addEventListener('load', () => {
+            setTimeout(completeLesson, 5000); // 5秒後に完了とみなす
+        });
+    </script>
+</body>
+</html>

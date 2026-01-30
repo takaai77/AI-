@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Week 1 - レッスン5: スクリーンショットを撮ろう | Playwright マスター道場</title>
+    <style>
+        :root { --primary: #6366f1; --primary-dark: #4f46e5; --secondary: #10b981; --accent: #f59e0b; --bg: #0f172a; --bg-light: #1e293b; --text: #e2e8f0; --text-muted: #94a3b8; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg); color: var(--text); line-height: 1.8; }
+        .nav { background: var(--bg-light); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .nav a { color: var(--text); text-decoration: none; }
+        .nav a:hover { color: var(--primary); }
+        .lesson-header { background: linear-gradient(135deg, #3b82f6, #60a5fa); padding: 3rem 2rem; text-align: center; }
+        .lesson-badge { background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 2rem; font-size: 0.9rem; display: inline-block; margin-bottom: 1rem; }
+        .lesson-header h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+        .content { max-width: 800px; margin: 0 auto; padding: 2rem; }
+        .section { background: var(--bg-light); border-radius: 1rem; padding: 2rem; margin-bottom: 2rem; }
+        .section h2 { color: var(--primary); margin-bottom: 1rem; font-size: 1.5rem; }
+        .section h3 { color: var(--accent); margin: 1.5rem 0 1rem; }
+        .section p { margin-bottom: 1rem; }
+        .code-block { background: #0d1117; border-radius: 0.5rem; padding: 1.5rem; margin: 1rem 0; overflow-x: auto; font-family: 'Fira Code', 'Consolas', monospace; font-size: 0.9rem; border: 1px solid #30363d; position: relative; }
+        .code-comment { color: #8b949e; }
+        .code-keyword { color: #ff7b72; }
+        .code-string { color: #a5d6ff; }
+        .code-function { color: #d2a8ff; }
+        .code-variable { color: #ffa657; }
+        .copy-btn { position: absolute; top: 0.5rem; right: 0.5rem; background: var(--primary); color: white; border: none; padding: 0.3rem 0.8rem; border-radius: 0.3rem; cursor: pointer; font-size: 0.8rem; }
+        .hint-box { background: rgba(245, 158, 11, 0.2); border-left: 4px solid var(--accent); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 0.5rem 0.5rem 0; }
+        .hint-box h4 { color: var(--accent); margin-bottom: 0.5rem; }
+        .success-box { background: rgba(16, 185, 129, 0.2); border-left: 4px solid var(--secondary); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 0.5rem 0.5rem 0; }
+        .success-box h4 { color: var(--secondary); margin-bottom: 0.5rem; }
+        .info-box { background: rgba(99, 102, 241, 0.2); border-left: 4px solid var(--primary); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 0.5rem 0.5rem 0; }
+        .info-box h4 { color: var(--primary); margin-bottom: 0.5rem; }
+        .command-table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+        .command-table th, .command-table td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--bg); }
+        .command-table th { background: var(--bg); color: var(--accent); }
+        .command-table td:first-child { font-family: 'Fira Code', monospace; color: var(--primary); }
+        .exercise { background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(6, 182, 212, 0.2)); border-radius: 1rem; padding: 1.5rem; margin: 1.5rem 0; border: 2px solid var(--secondary); }
+        .exercise h4 { color: var(--secondary); margin-bottom: 1rem; }
+        .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-size: 1rem; font-weight: 600; cursor: pointer; border: none; transition: all 0.3s; text-decoration: none; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-secondary { background: var(--secondary); color: white; }
+        .navigation-buttons { display: flex; justify-content: space-between; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--bg-light); }
+        .progress-indicator { display: flex; justify-content: center; gap: 0.5rem; margin: 2rem 0; }
+        .progress-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--bg-light); }
+        .progress-dot.active { background: var(--primary); }
+        .progress-dot.completed { background: var(--secondary); }
+        .week-complete { background: linear-gradient(135deg, var(--secondary), #34d399); padding: 2rem; border-radius: 1rem; text-align: center; margin: 2rem 0; }
+        .week-complete h3 { font-size: 1.5rem; margin-bottom: 1rem; }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="../index.html">← ホームに戻る</a>
+        <span>Week 1 / Lesson 5</span>
+    </nav>
+
+    <header class="lesson-header">
+        <span class="lesson-badge">Week 1 - レッスン 5/5</span>
+        <h1>📸 スクリーンショットを撮ろう</h1>
+        <p>ページを画像として保存しよう！</p>
+    </header>
+
+    <div class="progress-indicator">
+        <span class="progress-dot completed"></span>
+        <span class="progress-dot completed"></span>
+        <span class="progress-dot completed"></span>
+        <span class="progress-dot completed"></span>
+        <span class="progress-dot active"></span>
+    </div>
+
+    <main class="content">
+        <section class="section">
+            <h2>📷 スクリーンショットの基本</h2>
+            <p>Playwrightでは、ブラウザの画面を画像として保存できます。これをスクリーンショットと言います。</p>
+
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>
+<span class="code-keyword">const</span> { chromium } = <span class="code-function">require</span>(<span class="code-string">'playwright'</span>);
+
+(<span class="code-keyword">async</span> () => {
+    <span class="code-keyword">const</span> browser = <span class="code-keyword">await</span> chromium.<span class="code-function">launch</span>();
+    <span class="code-keyword">const</span> page = <span class="code-keyword">await</span> browser.<span class="code-function">newPage</span>();
+
+    <span class="code-comment">// Googleにアクセス</span>
+    <span class="code-keyword">await</span> page.<span class="code-function">goto</span>(<span class="code-string">'https://www.google.com'</span>);
+
+    <span class="code-comment">// スクリーンショットを撮影</span>
+    <span class="code-keyword">await</span> page.<span class="code-function">screenshot</span>({
+        <span class="code-variable">path</span>: <span class="code-string">'google.png'</span>
+    });
+
+    console.<span class="code-function">log</span>(<span class="code-string">'📸 スクリーンショットを保存しました！'</span>);
+
+    <span class="code-keyword">await</span> browser.<span class="code-function">close</span>();
+})();
+                </code>
+            </div>
+
+            <div class="hint-box">
+                <h4>💡 ファイルはどこに？</h4>
+                <p>スクリーンショットは、スクリプトと同じフォルダに保存されます。<code>google.png</code> というファイルを探してみよう！</p>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>⚙️ スクリーンショットのオプション</h2>
+            <p>いろんなオプションで、撮影方法を変えられます。</p>
+
+            <h3>1. フルページを撮影</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>
+<span class="code-comment">// ページ全体（スクロールが必要な部分も含めて）を撮影</span>
+<span class="code-keyword">await</span> page.<span class="code-function">screenshot</span>({
+    <span class="code-variable">path</span>: <span class="code-string">'fullpage.png'</span>,
+    <span class="code-variable">fullPage</span>: <span class="code-keyword">true</span>
+});
+                </code>
+            </div>
+
+            <h3>2. 特定のエリアだけ撮影</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>
+<span class="code-comment">// 座標を指定して一部分だけ撮影</span>
+<span class="code-keyword">await</span> page.<span class="code-function">screenshot</span>({
+    <span class="code-variable">path</span>: <span class="code-string">'partial.png'</span>,
+    <span class="code-variable">clip</span>: {
+        <span class="code-variable">x</span>: 0,      <span class="code-comment">// 左端からの位置</span>
+        <span class="code-variable">y</span>: 0,      <span class="code-comment">// 上端からの位置</span>
+        <span class="code-variable">width</span>: 500,  <span class="code-comment">// 幅</span>
+        <span class="code-variable">height</span>: 300  <span class="code-comment">// 高さ</span>
+    }
+});
+                </code>
+            </div>
+
+            <h3>3. JPEG形式で保存</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>
+<span class="code-comment">// JPEG形式（ファイルサイズが小さい）</span>
+<span class="code-keyword">await</span> page.<span class="code-function">screenshot</span>({
+    <span class="code-variable">path</span>: <span class="code-string">'screenshot.jpg'</span>,
+    <span class="code-variable">type</span>: <span class="code-string">'jpeg'</span>,
+    <span class="code-variable">quality</span>: 80  <span class="code-comment">// 品質（0-100）</span>
+});
+                </code>
+            </div>
+
+            <table class="command-table">
+                <thead>
+                    <tr>
+                        <th>オプション</th>
+                        <th>説明</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>path</td>
+                        <td>保存するファイル名</td>
+                    </tr>
+                    <tr>
+                        <td>fullPage</td>
+                        <td>true にするとページ全体を撮影</td>
+                    </tr>
+                    <tr>
+                        <td>clip</td>
+                        <td>撮影範囲を指定（x, y, width, height）</td>
+                    </tr>
+                    <tr>
+                        <td>type</td>
+                        <td>'png' または 'jpeg'</td>
+                    </tr>
+                    <tr>
+                        <td>quality</td>
+                        <td>JPEG品質（0-100）</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="section">
+            <h2>🎯 特定の要素だけ撮影</h2>
+            <p>ページ全体ではなく、特定のボタンや画像だけを撮影することもできます。</p>
+
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>
+<span class="code-keyword">const</span> { chromium } = <span class="code-function">require</span>(<span class="code-string">'playwright'</span>);
+
+(<span class="code-keyword">async</span> () => {
+    <span class="code-keyword">const</span> browser = <span class="code-keyword">await</span> chromium.<span class="code-function">launch</span>();
+    <span class="code-keyword">const</span> page = <span class="code-keyword">await</span> browser.<span class="code-function">newPage</span>();
+
+    <span class="code-keyword">await</span> page.<span class="code-function">goto</span>(<span class="code-string">'https://www.google.com'</span>);
+
+    <span class="code-comment">// 検索ボックスを見つける</span>
+    <span class="code-keyword">const</span> searchBox = page.<span class="code-function">locator</span>(<span class="code-string">'input[name="q"]'</span>);
+
+    <span class="code-comment">// その要素だけスクリーンショット</span>
+    <span class="code-keyword">await</span> searchBox.<span class="code-function">screenshot</span>({
+        <span class="code-variable">path</span>: <span class="code-string">'search-box.png'</span>
+    });
+
+    console.<span class="code-function">log</span>(<span class="code-string">'📸 検索ボックスだけ撮影しました！'</span>);
+
+    <span class="code-keyword">await</span> browser.<span class="code-function">close</span>();
+})();
+                </code>
+            </div>
+
+            <div class="info-box">
+                <h4>📝 locator って？</h4>
+                <p>locator() は「要素を見つける」ためのコマンドです。Week 2で詳しく学びます！</p>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>📁 実践: 複数サイトのスクリーンショット</h2>
+            <p>複数のサイトを巡回して、それぞれのスクリーンショットを撮ってみよう！</p>
+
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>
+<span class="code-keyword">const</span> { chromium } = <span class="code-function">require</span>(<span class="code-string">'playwright'</span>);
+
+(<span class="code-keyword">async</span> () => {
+    <span class="code-keyword">const</span> browser = <span class="code-keyword">await</span> chromium.<span class="code-function">launch</span>();
+    <span class="code-keyword">const</span> page = <span class="code-keyword">await</span> browser.<span class="code-function">newPage</span>();
+
+    <span class="code-comment">// 撮影するサイトのリスト</span>
+    <span class="code-keyword">const</span> sites = [
+        { <span class="code-variable">url</span>: <span class="code-string">'https://www.google.com'</span>, <span class="code-variable">name</span>: <span class="code-string">'google'</span> },
+        { <span class="code-variable">url</span>: <span class="code-string">'https://www.yahoo.co.jp'</span>, <span class="code-variable">name</span>: <span class="code-string">'yahoo'</span> },
+        { <span class="code-variable">url</span>: <span class="code-string">'https://www.youtube.com'</span>, <span class="code-variable">name</span>: <span class="code-string">'youtube'</span> }
+    ];
+
+    <span class="code-keyword">for</span> (<span class="code-keyword">const</span> site <span class="code-keyword">of</span> sites) {
+        console.<span class="code-function">log</span>(<span class="code-string">`📸 ${site.name} を撮影中...`</span>);
+
+        <span class="code-keyword">await</span> page.<span class="code-function">goto</span>(site.<span class="code-variable">url</span>);
+        <span class="code-keyword">await</span> page.<span class="code-function">screenshot</span>({
+            <span class="code-variable">path</span>: <span class="code-string">`${site.name}.png`</span>,
+            <span class="code-variable">fullPage</span>: <span class="code-keyword">true</span>
+        });
+
+        console.<span class="code-function">log</span>(<span class="code-string">`✅ ${site.name}.png を保存しました！`</span>);
+    }
+
+    console.<span class="code-function">log</span>(<span class="code-string">'🎉 全サイトの撮影完了！'</span>);
+    <span class="code-keyword">await</span> browser.<span class="code-function">close</span>();
+})();
+                </code>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🏋️ 練習問題</h2>
+
+            <div class="exercise">
+                <h4>チャレンジ1: タイムスタンプ付きスクリーンショット</h4>
+                <p>ファイル名に日時を入れて、いつ撮影したかわかるようにしよう！</p>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                    <code>
+<span class="code-comment">// 現在の日時をファイル名に使う</span>
+<span class="code-keyword">const</span> now = <span class="code-keyword">new</span> <span class="code-function">Date</span>();
+<span class="code-keyword">const</span> timestamp = now.<span class="code-function">toISOString</span>().<span class="code-function">replace</span>(<span class="code-string">/[:.]/g</span>, <span class="code-string">'-'</span>);
+<span class="code-keyword">const</span> filename = <span class="code-string">`screenshot-${timestamp}.png`</span>;
+
+<span class="code-keyword">await</span> page.<span class="code-function">screenshot</span>({ <span class="code-variable">path</span>: filename });
+console.<span class="code-function">log</span>(<span class="code-string">`保存: ${filename}`</span>);
+                    </code>
+                </div>
+            </div>
+
+            <div class="exercise">
+                <h4>チャレンジ2: screenshotsフォルダに保存</h4>
+                <p>専用フォルダを作って、そこにスクリーンショットを整理しよう！</p>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                    <code>
+<span class="code-keyword">const</span> fs = <span class="code-function">require</span>(<span class="code-string">'fs'</span>);
+
+<span class="code-comment">// フォルダがなければ作成</span>
+<span class="code-keyword">if</span> (!fs.<span class="code-function">existsSync</span>(<span class="code-string">'screenshots'</span>)) {
+    fs.<span class="code-function">mkdirSync</span>(<span class="code-string">'screenshots'</span>);
+}
+
+<span class="code-comment">// フォルダ内に保存</span>
+<span class="code-keyword">await</span> page.<span class="code-function">screenshot</span>({
+    <span class="code-variable">path</span>: <span class="code-string">'screenshots/google.png'</span>
+});
+                    </code>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🎯 Week 1 のまとめ</h2>
+            <p>おめでとう！Week 1 で学んだことを振り返ってみよう：</p>
+
+            <ul style="margin-left: 1.5rem;">
+                <li>✅ プログラミングとは何か</li>
+                <li>✅ Playwrightの3階層構造（Browser → Page → Element）</li>
+                <li>✅ ブラウザの起動と終了</li>
+                <li>✅ ページナビゲーション（goto, goBack, goForward, reload）</li>
+                <li>✅ ページ情報の取得（url, title）</li>
+                <li>✅ スクリーンショットの撮影</li>
+            </ul>
+        </section>
+
+        <div class="week-complete">
+            <h3>🎊 Week 1 完了！</h3>
+            <p>素晴らしい！Playwrightの基礎をマスターしました。<br>
+            Week 2 では、ボタンをクリックしたり、テキストを入力したり、<br>
+            もっとインタラクティブな操作を学んでいきます！</p>
+            <a href="../index.html" class="btn" style="background: white; color: #059669; margin-top: 1rem;">🏠 ホームに戻る</a>
+        </div>
+
+        <div class="navigation-buttons">
+            <a href="week1-lesson4.html" class="btn btn-primary">← 前のレッスン</a>
+            <a href="week2-lesson1.html" class="btn btn-secondary">Week 2 へ →</a>
+        </div>
+    </main>
+
+    <script>
+        function copyCode(btn) {
+            const codeBlock = btn.parentElement;
+            const code = codeBlock.querySelector('code').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                btn.textContent = '✓ コピー完了';
+                setTimeout(() => { btn.textContent = 'コピー'; }, 2000);
+            });
+        }
+
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                let progress = JSON.parse(localStorage.getItem('playwright-progress')) || { lessonsCompleted: 0, completedLessons: [] };
+                if (!progress.completedLessons.includes('week1-lesson5')) {
+                    progress.completedLessons.push('week1-lesson5');
+                    progress.lessonsCompleted++;
+                    localStorage.setItem('playwright-progress', JSON.stringify(progress));
+                }
+            }, 5000);
+        });
+    </script>
+</body>
+</html>

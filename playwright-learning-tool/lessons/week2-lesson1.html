@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Week 2 - レッスン1: ボタンをクリックしよう | Playwright マスター道場</title>
+    <style>
+        :root { --primary: #6366f1; --primary-dark: #4f46e5; --secondary: #10b981; --accent: #f59e0b; --bg: #0f172a; --bg-light: #1e293b; --text: #e2e8f0; --text-muted: #94a3b8; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg); color: var(--text); line-height: 1.8; }
+        .nav { background: var(--bg-light); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .nav a { color: var(--text); text-decoration: none; }
+        .nav a:hover { color: var(--primary); }
+        .lesson-header { background: linear-gradient(135deg, #8b5cf6, #a78bfa); padding: 3rem 2rem; text-align: center; }
+        .lesson-badge { background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 2rem; font-size: 0.9rem; display: inline-block; margin-bottom: 1rem; }
+        .lesson-header h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+        .content { max-width: 800px; margin: 0 auto; padding: 2rem; }
+        .section { background: var(--bg-light); border-radius: 1rem; padding: 2rem; margin-bottom: 2rem; }
+        .section h2 { color: var(--primary); margin-bottom: 1rem; font-size: 1.5rem; }
+        .section h3 { color: var(--accent); margin: 1.5rem 0 1rem; }
+        .section p { margin-bottom: 1rem; }
+        .code-block { background: #0d1117; border-radius: 0.5rem; padding: 1.5rem; margin: 1rem 0; overflow-x: auto; font-family: 'Fira Code', 'Consolas', monospace; font-size: 0.9rem; border: 1px solid #30363d; position: relative; }
+        .code-comment { color: #8b949e; }
+        .code-keyword { color: #ff7b72; }
+        .code-string { color: #a5d6ff; }
+        .code-function { color: #d2a8ff; }
+        .code-variable { color: #ffa657; }
+        .copy-btn { position: absolute; top: 0.5rem; right: 0.5rem; background: var(--primary); color: white; border: none; padding: 0.3rem 0.8rem; border-radius: 0.3rem; cursor: pointer; font-size: 0.8rem; }
+        .hint-box { background: rgba(245, 158, 11, 0.2); border-left: 4px solid var(--accent); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 0.5rem 0.5rem 0; }
+        .hint-box h4 { color: var(--accent); margin-bottom: 0.5rem; }
+        .success-box { background: rgba(16, 185, 129, 0.2); border-left: 4px solid var(--secondary); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 0.5rem 0.5rem 0; }
+        .success-box h4 { color: var(--secondary); margin-bottom: 0.5rem; }
+        .info-box { background: rgba(99, 102, 241, 0.2); border-left: 4px solid var(--primary); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 0.5rem 0.5rem 0; }
+        .info-box h4 { color: var(--primary); margin-bottom: 0.5rem; }
+        .command-table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+        .command-table th, .command-table td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--bg); }
+        .command-table th { background: var(--bg); color: var(--accent); }
+        .command-table td:first-child { font-family: 'Fira Code', monospace; color: var(--primary); font-size: 0.85rem; }
+        .demo-box { background: white; color: #1f2937; padding: 2rem; border-radius: 0.5rem; margin: 1rem 0; text-align: center; }
+        .demo-btn { background: #3b82f6; color: white; border: none; padding: 1rem 2rem; font-size: 1.1rem; border-radius: 0.5rem; cursor: pointer; margin: 0.5rem; }
+        .demo-btn:hover { background: #2563eb; }
+        .demo-btn.clicked { background: #10b981; }
+        .exercise { background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(6, 182, 212, 0.2)); border-radius: 1rem; padding: 1.5rem; margin: 1.5rem 0; border: 2px solid var(--secondary); }
+        .exercise h4 { color: var(--secondary); margin-bottom: 1rem; }
+        .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-size: 1rem; font-weight: 600; cursor: pointer; border: none; transition: all 0.3s; text-decoration: none; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-secondary { background: var(--secondary); color: white; }
+        .navigation-buttons { display: flex; justify-content: space-between; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--bg-light); }
+        .progress-indicator { display: flex; justify-content: center; gap: 0.5rem; margin: 2rem 0; }
+        .progress-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--bg-light); }
+        .progress-dot.active { background: var(--primary); }
+        .progress-dot.completed { background: var(--secondary); }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="../index.html">← ホームに戻る</a>
+        <span>Week 2 / Lesson 1</span>
+    </nav>
+
+    <header class="lesson-header">
+        <span class="lesson-badge">Week 2 - レッスン 1/5</span>
+        <h1>🖱️ ボタンをクリックしよう</h1>
+        <p>Webページの要素をクリックする方法を学ぼう！</p>
+    </header>
+
+    <div class="progress-indicator">
+        <span class="progress-dot active"></span>
+        <span class="progress-dot"></span>
+        <span class="progress-dot"></span>
+        <span class="progress-dot"></span>
+        <span class="progress-dot"></span>
+    </div>
+
+    <main class="content">
+        <section class="section">
+            <h2>🎯 クリックの基本</h2>
+            <p>Webページにはたくさんのクリックできる要素があります：</p>
+            <ul style="margin-left: 1.5rem;">
+                <li>ボタン</li>
+                <li>リンク</li>
+                <li>メニュー</li>
+                <li>チェックボックス</li>
+                <li>画像</li>
+            </ul>
+
+            <p style="margin-top: 1rem;">Playwrightでは、<code>click()</code> を使ってこれらをクリックできます。</p>
+
+            <div class="demo-box">
+                <p style="margin-bottom: 1rem;">↓ 実際にクリックしてみよう！</p>
+                <button class="demo-btn" onclick="this.classList.toggle('clicked'); this.textContent = this.classList.contains('clicked') ? 'クリックされた!' : 'クリックしてね'">クリックしてね</button>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>📝 クリックのコード</h2>
+
+            <h3>方法1: テキストでクリック（おすすめ！）</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>
+<span class="code-comment">// 「ログイン」というテキストのボタンをクリック</span>
+<span class="code-keyword">await</span> page.<span class="code-function">getByText</span>(<span class="code-string">'ログイン'</span>).<span class="code-function">click</span>();
+
+<span class="code-comment">// 「送信」ボタンをクリック</span>
+<span class="code-keyword">await</span> page.<span class="code-function">getByText</span>(<span class="code-string">'送信'</span>).<span class="code-function">click</span>();
+
+<span class="code-comment">// リンクをクリック</span>
+<span class="code-keyword">await</span> page.<span class="code-function">getByText</span>(<span class="code-string">'詳細はこちら'</span>).<span class="code-function">click</span>();
+                </code>
+            </div>
+
+            <div class="hint-box">
+                <h4>💡 getByText() のメリット</h4>
+                <p>画面に見えているテキストで指定するので、直感的でわかりやすい！初心者には一番おすすめの方法です。</p>
+            </div>
+
+            <h3>方法2: ロール（役割）でクリック</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>
+<span class="code-comment">// 「検索」という名前のボタンをクリック</span>
+<span class="code-keyword">await</span> page.<span class="code-function">getByRole</span>(<span class="code-string">'button'</span>, { <span class="code-variable">name</span>: <span class="code-string">'検索'</span> }).<span class="code-function">click</span>();
+
+<span class="code-comment">// 「ホーム」というリンクをクリック</span>
+<span class="code-keyword">await</span> page.<span class="code-function">getByRole</span>(<span class="code-string">'link'</span>, { <span class="code-variable">name</span>: <span class="code-string">'ホーム'</span> }).<span class="code-function">click</span>();
+                </code>
+            </div>
+
+            <h3>方法3: CSSセレクタでクリック</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>
+<span class="code-comment">// IDで指定</span>
+<span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'#submit-button'</span>).<span class="code-function">click</span>();
+
+<span class="code-comment">// クラスで指定</span>
+<span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'.login-btn'</span>).<span class="code-function">click</span>();
+
+<span class="code-comment">// タグで指定</span>
+<span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'button'</span>).<span class="code-function">click</span>();
+                </code>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🔧 クリックのオプション</h2>
+
+            <table class="command-table">
+                <thead>
+                    <tr>
+                        <th>コード</th>
+                        <th>説明</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>.click()</td>
+                        <td>通常のクリック</td>
+                    </tr>
+                    <tr>
+                        <td>.dblclick()</td>
+                        <td>ダブルクリック</td>
+                    </tr>
+                    <tr>
+                        <td>.click({ button: 'right' })</td>
+                        <td>右クリック</td>
+                    </tr>
+                    <tr>
+                        <td>.click({ clickCount: 3 })</td>
+                        <td>トリプルクリック</td>
+                    </tr>
+                    <tr>
+                        <td>.hover()</td>
+                        <td>マウスを乗せる（クリックなし）</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>
+<span class="code-comment">// ダブルクリック</span>
+<span class="code-keyword">await</span> page.<span class="code-function">getByText</span>(<span class="code-string">'編集'</span>).<span class="code-function">dblclick</span>();
+
+<span class="code-comment">// 右クリック（コンテキストメニューを開く）</span>
+<span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'#target'</span>).<span class="code-function">click</span>({ <span class="code-variable">button</span>: <span class="code-string">'right'</span> });
+
+<span class="code-comment">// マウスを乗せる（ホバー）</span>
+<span class="code-keyword">await</span> page.<span class="code-function">getByText</span>(<span class="code-string">'メニュー'</span>).<span class="code-function">hover</span>();
+                </code>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>📖 実践例: Google検索</h2>
+
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>
+<span class="code-keyword">const</span> { chromium } = <span class="code-function">require</span>(<span class="code-string">'playwright'</span>);
+
+(<span class="code-keyword">async</span> () => {
+    <span class="code-keyword">const</span> browser = <span class="code-keyword">await</span> chromium.<span class="code-function">launch</span>({ <span class="code-variable">headless</span>: <span class="code-keyword">false</span> });
+    <span class="code-keyword">const</span> page = <span class="code-keyword">await</span> browser.<span class="code-function">newPage</span>();
+
+    <span class="code-comment">// Googleにアクセス</span>
+    <span class="code-keyword">await</span> page.<span class="code-function">goto</span>(<span class="code-string">'https://www.google.com'</span>);
+
+    <span class="code-comment">// 検索ボックスをクリック</span>
+    <span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'input[name="q"]'</span>).<span class="code-function">click</span>();
+
+    console.<span class="code-function">log</span>(<span class="code-string">'✅ 検索ボックスをクリックしました！'</span>);
+
+    <span class="code-keyword">await</span> page.<span class="code-function">waitForTimeout</span>(3000);
+    <span class="code-keyword">await</span> browser.<span class="code-function">close</span>();
+})();
+                </code>
+            </div>
+
+            <div class="info-box">
+                <h4>📝 ポイント</h4>
+                <p>クリック後は <code>waitForTimeout()</code> で少し待つと、結果を確認しやすいよ。</p>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>⚠️ クリックできない時は？</h2>
+
+            <h3>1. 要素が見つからない</h3>
+            <div class="code-block">
+                <code>
+<span class="code-comment">// 存在するか確認してからクリック</span>
+<span class="code-keyword">const</span> button = page.<span class="code-function">getByText</span>(<span class="code-string">'送信'</span>);
+<span class="code-keyword">if</span> (<span class="code-keyword">await</span> button.<span class="code-function">isVisible</span>()) {
+    <span class="code-keyword">await</span> button.<span class="code-function">click</span>();
+}
+                </code>
+            </div>
+
+            <h3>2. 要素が画面外にある</h3>
+            <div class="code-block">
+                <code>
+<span class="code-comment">// スクロールしてからクリック</span>
+<span class="code-keyword">await</span> page.<span class="code-function">getByText</span>(<span class="code-string">'もっと見る'</span>).<span class="code-function">scrollIntoViewIfNeeded</span>();
+<span class="code-keyword">await</span> page.<span class="code-function">getByText</span>(<span class="code-string">'もっと見る'</span>).<span class="code-function">click</span>();
+                </code>
+            </div>
+
+            <h3>3. 要素が読み込み中</h3>
+            <div class="code-block">
+                <code>
+<span class="code-comment">// 表示されるまで待ってからクリック</span>
+<span class="code-keyword">await</span> page.<span class="code-function">getByText</span>(<span class="code-string">'送信'</span>).<span class="code-function">waitFor</span>();
+<span class="code-keyword">await</span> page.<span class="code-function">getByText</span>(<span class="code-string">'送信'</span>).<span class="code-function">click</span>();
+                </code>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🏋️ 練習問題</h2>
+
+            <div class="exercise">
+                <h4>チャレンジ: Yahoo!のリンクをクリック</h4>
+                <p>Yahoo! JAPANのトップページにアクセスして、ニュースのリンクをクリックしてみよう！</p>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🎯 このレッスンのまとめ</h2>
+            <ul style="margin-left: 1.5rem;">
+                <li><strong>getByText()</strong> - テキストで要素を探してクリック</li>
+                <li><strong>getByRole()</strong> - ボタンやリンクなど役割で探す</li>
+                <li><strong>locator()</strong> - CSSセレクタで探す</li>
+                <li><strong>dblclick()</strong> - ダブルクリック</li>
+                <li><strong>hover()</strong> - マウスを乗せる</li>
+            </ul>
+
+            <div class="success-box">
+                <h4>🎉 よくできました！</h4>
+                <p>クリック操作をマスターしました！次はテキスト入力を学ぼう！</p>
+            </div>
+        </section>
+
+        <div class="navigation-buttons">
+            <a href="week1-lesson5.html" class="btn btn-primary">← 前のレッスン</a>
+            <a href="week2-lesson2.html" class="btn btn-secondary">次のレッスンへ →</a>
+        </div>
+    </main>
+
+    <script>
+        function copyCode(btn) {
+            const codeBlock = btn.parentElement;
+            const code = codeBlock.querySelector('code').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                btn.textContent = '✓ コピー完了';
+                setTimeout(() => { btn.textContent = 'コピー'; }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>

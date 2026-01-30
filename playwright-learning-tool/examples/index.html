@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>サンプル集 | Playwright マスター道場</title>
+    <style>
+        :root { --primary: #6366f1; --secondary: #10b981; --accent: #f59e0b; --bg: #0f172a; --bg-light: #1e293b; --text: #e2e8f0; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg); color: var(--text); line-height: 1.8; }
+        .nav { background: var(--bg-light); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .nav a { color: var(--text); text-decoration: none; }
+        .header { background: linear-gradient(135deg, var(--accent), #fbbf24); padding: 3rem 2rem; text-align: center; color: #1f2937; }
+        .header h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+        .content { max-width: 900px; margin: 0 auto; padding: 2rem; }
+        .sample-card { background: var(--bg-light); border-radius: 1rem; padding: 1.5rem; margin-bottom: 1.5rem; border: 2px solid transparent; transition: border-color 0.3s; }
+        .sample-card:hover { border-color: var(--primary); }
+        .sample-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .sample-title { font-size: 1.3rem; color: var(--accent); }
+        .sample-tags { display: flex; gap: 0.5rem; }
+        .tag { background: var(--primary); color: white; padding: 0.2rem 0.6rem; border-radius: 1rem; font-size: 0.75rem; }
+        .sample-desc { color: var(--text); margin-bottom: 1rem; }
+        .code-block { background: #0d1117; border-radius: 0.5rem; padding: 1.5rem; overflow-x: auto; font-family: 'Fira Code', 'Consolas', monospace; font-size: 0.85rem; border: 1px solid #30363d; position: relative; max-height: 400px; overflow-y: auto; }
+        .code-comment { color: #8b949e; }
+        .code-keyword { color: #ff7b72; }
+        .code-string { color: #a5d6ff; }
+        .code-function { color: #d2a8ff; }
+        .code-variable { color: #ffa657; }
+        .copy-btn { position: absolute; top: 0.5rem; right: 0.5rem; background: var(--primary); color: white; border: none; padding: 0.4rem 1rem; border-radius: 0.3rem; cursor: pointer; font-size: 0.85rem; }
+        .copy-btn:hover { background: var(--primary-dark); }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="../index.html">← ホームに戻る</a>
+        <span>サンプル集</span>
+    </nav>
+
+    <header class="header">
+        <h1>📁 コピペで使えるサンプル集</h1>
+        <p>実践的なコードをすぐに試せる！</p>
+    </header>
+
+    <main class="content">
+        <!-- サンプル1: Google検索 -->
+        <div class="sample-card">
+            <div class="sample-header">
+                <h2 class="sample-title">🔍 Google検索を自動化</h2>
+                <div class="sample-tags">
+                    <span class="tag">初級</span>
+                    <span class="tag">検索</span>
+                </div>
+            </div>
+            <p class="sample-desc">Googleで検索して結果のスクリーンショットを撮る基本的な例</p>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">📋 コピー</button>
+                <code><span class="code-keyword">const</span> { chromium } = <span class="code-function">require</span>(<span class="code-string">'playwright'</span>);
+
+(<span class="code-keyword">async</span> () => {
+    <span class="code-comment">// ブラウザを起動（画面を表示）</span>
+    <span class="code-keyword">const</span> browser = <span class="code-keyword">await</span> chromium.<span class="code-function">launch</span>({ <span class="code-variable">headless</span>: <span class="code-keyword">false</span> });
+    <span class="code-keyword">const</span> page = <span class="code-keyword">await</span> browser.<span class="code-function">newPage</span>();
+
+    <span class="code-comment">// Googleにアクセス</span>
+    <span class="code-keyword">await</span> page.<span class="code-function">goto</span>(<span class="code-string">'https://www.google.com'</span>);
+
+    <span class="code-comment">// 検索ボックスに入力</span>
+    <span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'input[name="q"]'</span>).<span class="code-function">fill</span>(<span class="code-string">'Playwright 入門'</span>);
+
+    <span class="code-comment">// Enterキーで検索実行</span>
+    <span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'input[name="q"]'</span>).<span class="code-function">press</span>(<span class="code-string">'Enter'</span>);
+
+    <span class="code-comment">// 結果が表示されるまで待つ</span>
+    <span class="code-keyword">await</span> page.<span class="code-function">waitForLoadState</span>(<span class="code-string">'networkidle'</span>);
+
+    <span class="code-comment">// スクリーンショットを撮影</span>
+    <span class="code-keyword">await</span> page.<span class="code-function">screenshot</span>({ <span class="code-variable">path</span>: <span class="code-string">'search-result.png'</span> });
+
+    console.<span class="code-function">log</span>(<span class="code-string">'✅ 検索完了！search-result.png を確認してね'</span>);
+
+    <span class="code-keyword">await</span> browser.<span class="code-function">close</span>();
+})();</code>
+            </div>
+        </div>
+
+        <!-- サンプル2: 複数サイト巡回 -->
+        <div class="sample-card">
+            <div class="sample-header">
+                <h2 class="sample-title">🌐 複数サイトを巡回してスクリーンショット</h2>
+                <div class="sample-tags">
+                    <span class="tag">初級</span>
+                    <span class="tag">繰り返し</span>
+                </div>
+            </div>
+            <p class="sample-desc">複数のWebサイトを順番に訪問してスクリーンショットを撮る</p>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">📋 コピー</button>
+                <code><span class="code-keyword">const</span> { chromium } = <span class="code-function">require</span>(<span class="code-string">'playwright'</span>);
+
+(<span class="code-keyword">async</span> () => {
+    <span class="code-keyword">const</span> browser = <span class="code-keyword">await</span> chromium.<span class="code-function">launch</span>();
+    <span class="code-keyword">const</span> page = <span class="code-keyword">await</span> browser.<span class="code-function">newPage</span>();
+
+    <span class="code-comment">// 訪問するサイトのリスト</span>
+    <span class="code-keyword">const</span> sites = [
+        { <span class="code-variable">url</span>: <span class="code-string">'https://www.google.com'</span>, <span class="code-variable">name</span>: <span class="code-string">'google'</span> },
+        { <span class="code-variable">url</span>: <span class="code-string">'https://www.yahoo.co.jp'</span>, <span class="code-variable">name</span>: <span class="code-string">'yahoo'</span> },
+        { <span class="code-variable">url</span>: <span class="code-string">'https://www.youtube.com'</span>, <span class="code-variable">name</span>: <span class="code-string">'youtube'</span> }
+    ];
+
+    <span class="code-keyword">for</span> (<span class="code-keyword">const</span> site <span class="code-keyword">of</span> sites) {
+        console.<span class="code-function">log</span>(<span class="code-string">`📸 ${site.name} を撮影中...`</span>);
+
+        <span class="code-keyword">await</span> page.<span class="code-function">goto</span>(site.<span class="code-variable">url</span>);
+        <span class="code-keyword">await</span> page.<span class="code-function">screenshot</span>({
+            <span class="code-variable">path</span>: <span class="code-string">`${site.name}.png`</span>,
+            <span class="code-variable">fullPage</span>: <span class="code-keyword">true</span>
+        });
+    }
+
+    console.<span class="code-function">log</span>(<span class="code-string">'🎉 全サイトの撮影完了！'</span>);
+    <span class="code-keyword">await</span> browser.<span class="code-function">close</span>();
+})();</code>
+            </div>
+        </div>
+
+        <!-- サンプル3: ニュース見出し収集 -->
+        <div class="sample-card">
+            <div class="sample-header">
+                <h2 class="sample-title">📰 ニュース見出しを収集</h2>
+                <div class="sample-tags">
+                    <span class="tag">中級</span>
+                    <span class="tag">スクレイピング</span>
+                </div>
+            </div>
+            <p class="sample-desc">ニュースサイトから見出しを自動収集してファイルに保存</p>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">📋 コピー</button>
+                <code><span class="code-keyword">const</span> { chromium } = <span class="code-function">require</span>(<span class="code-string">'playwright'</span>);
+<span class="code-keyword">const</span> fs = <span class="code-function">require</span>(<span class="code-string">'fs'</span>);
+
+(<span class="code-keyword">async</span> () => {
+    <span class="code-keyword">const</span> browser = <span class="code-keyword">await</span> chromium.<span class="code-function">launch</span>();
+    <span class="code-keyword">const</span> page = <span class="code-keyword">await</span> browser.<span class="code-function">newPage</span>();
+
+    <span class="code-comment">// Yahoo!ニュースにアクセス</span>
+    <span class="code-keyword">await</span> page.<span class="code-function">goto</span>(<span class="code-string">'https://news.yahoo.co.jp'</span>);
+
+    <span class="code-comment">// 見出しを全て取得</span>
+    <span class="code-keyword">const</span> headlines = <span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'article a'</span>).<span class="code-function">allTextContents</span>();
+
+    <span class="code-comment">// 空でないものだけフィルタリング</span>
+    <span class="code-keyword">const</span> validHeadlines = headlines
+        .<span class="code-function">filter</span>(h => h.<span class="code-function">trim</span>().length > 5)
+        .<span class="code-function">slice</span>(0, 10);
+
+    <span class="code-comment">// コンソールに表示</span>
+    console.<span class="code-function">log</span>(<span class="code-string">'📰 今日のニュース TOP 10:'</span>);
+    validHeadlines.<span class="code-function">forEach</span>((h, i) => {
+        console.<span class="code-function">log</span>(<span class="code-string">`${i + 1}. ${h}`</span>);
+    });
+
+    <span class="code-comment">// ファイルに保存</span>
+    <span class="code-keyword">const</span> content = validHeadlines.<span class="code-function">join</span>(<span class="code-string">'\n'</span>);
+    fs.<span class="code-function">writeFileSync</span>(<span class="code-string">'headlines.txt'</span>, content);
+    console.<span class="code-function">log</span>(<span class="code-string">'💾 headlines.txt に保存しました'</span>);
+
+    <span class="code-keyword">await</span> browser.<span class="code-function">close</span>();
+})();</code>
+            </div>
+        </div>
+
+        <!-- サンプル4: フォーム自動入力 -->
+        <div class="sample-card">
+            <div class="sample-header">
+                <h2 class="sample-title">📝 フォーム自動入力テンプレート</h2>
+                <div class="sample-tags">
+                    <span class="tag">中級</span>
+                    <span class="tag">フォーム</span>
+                </div>
+            </div>
+            <p class="sample-desc">会員登録フォームなどを自動入力するテンプレート</p>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">📋 コピー</button>
+                <code><span class="code-keyword">const</span> { chromium } = <span class="code-function">require</span>(<span class="code-string">'playwright'</span>);
+
+(<span class="code-keyword">async</span> () => {
+    <span class="code-keyword">const</span> browser = <span class="code-keyword">await</span> chromium.<span class="code-function">launch</span>({ <span class="code-variable">headless</span>: <span class="code-keyword">false</span> });
+    <span class="code-keyword">const</span> page = <span class="code-keyword">await</span> browser.<span class="code-function">newPage</span>();
+
+    <span class="code-comment">// 入力データ（ここを変更）</span>
+    <span class="code-keyword">const</span> formData = {
+        <span class="code-variable">name</span>: <span class="code-string">'山田 太郎'</span>,
+        <span class="code-variable">email</span>: <span class="code-string">'taro@example.com'</span>,
+        <span class="code-variable">password</span>: <span class="code-string">'SecurePass123!'</span>,
+        <span class="code-variable">phone</span>: <span class="code-string">'090-1234-5678'</span>
+    };
+
+    <span class="code-comment">// フォームページにアクセス（URLを変更）</span>
+    <span class="code-keyword">await</span> page.<span class="code-function">goto</span>(<span class="code-string">'https://example.com/register'</span>);
+
+    <span class="code-comment">// テキスト入力</span>
+    <span class="code-keyword">await</span> page.<span class="code-function">getByLabel</span>(<span class="code-string">'お名前'</span>).<span class="code-function">fill</span>(formData.<span class="code-variable">name</span>);
+    <span class="code-keyword">await</span> page.<span class="code-function">getByLabel</span>(<span class="code-string">'メールアドレス'</span>).<span class="code-function">fill</span>(formData.<span class="code-variable">email</span>);
+    <span class="code-keyword">await</span> page.<span class="code-function">getByLabel</span>(<span class="code-string">'パスワード'</span>).<span class="code-function">fill</span>(formData.<span class="code-variable">password</span>);
+    <span class="code-keyword">await</span> page.<span class="code-function">getByLabel</span>(<span class="code-string">'電話番号'</span>).<span class="code-function">fill</span>(formData.<span class="code-variable">phone</span>);
+
+    <span class="code-comment">// チェックボックス</span>
+    <span class="code-keyword">await</span> page.<span class="code-function">getByLabel</span>(<span class="code-string">'利用規約に同意する'</span>).<span class="code-function">check</span>();
+
+    <span class="code-comment">// スクリーンショットで確認</span>
+    <span class="code-keyword">await</span> page.<span class="code-function">screenshot</span>({ <span class="code-variable">path</span>: <span class="code-string">'form-filled.png'</span> });
+    console.<span class="code-function">log</span>(<span class="code-string">'✅ フォーム入力完了！'</span>);
+
+    <span class="code-comment">// 送信はコメントアウト（必要なら有効化）</span>
+    <span class="code-comment">// await page.getByRole('button', { name: '送信' }).click();</span>
+
+    <span class="code-keyword">await</span> page.<span class="code-function">waitForTimeout</span>(5000);
+    <span class="code-keyword">await</span> browser.<span class="code-function">close</span>();
+})();</code>
+            </div>
+        </div>
+
+        <!-- サンプル5: PDFダウンロード -->
+        <div class="sample-card">
+            <div class="sample-header">
+                <h2 class="sample-title">📄 ページをPDFとして保存</h2>
+                <div class="sample-tags">
+                    <span class="tag">中級</span>
+                    <span class="tag">PDF</span>
+                </div>
+            </div>
+            <p class="sample-desc">WebページをPDFファイルとして保存する</p>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">📋 コピー</button>
+                <code><span class="code-keyword">const</span> { chromium } = <span class="code-function">require</span>(<span class="code-string">'playwright'</span>);
+
+(<span class="code-keyword">async</span> () => {
+    <span class="code-keyword">const</span> browser = <span class="code-keyword">await</span> chromium.<span class="code-function">launch</span>();
+    <span class="code-keyword">const</span> page = <span class="code-keyword">await</span> browser.<span class="code-function">newPage</span>();
+
+    <span class="code-comment">// PDFにしたいページにアクセス</span>
+    <span class="code-keyword">await</span> page.<span class="code-function">goto</span>(<span class="code-string">'https://example.com'</span>);
+
+    <span class="code-comment">// PDFとして保存</span>
+    <span class="code-keyword">await</span> page.<span class="code-function">pdf</span>({
+        <span class="code-variable">path</span>: <span class="code-string">'page.pdf'</span>,
+        <span class="code-variable">format</span>: <span class="code-string">'A4'</span>,
+        <span class="code-variable">printBackground</span>: <span class="code-keyword">true</span>
+    });
+
+    console.<span class="code-function">log</span>(<span class="code-string">'📄 PDFを保存しました！'</span>);
+
+    <span class="code-keyword">await</span> browser.<span class="code-function">close</span>();
+})();</code>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        function copyCode(btn) {
+            const codeBlock = btn.parentElement;
+            const code = codeBlock.querySelector('code').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                btn.textContent = '✓ コピー完了！';
+                setTimeout(() => { btn.textContent = '📋 コピー'; }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>

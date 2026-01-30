@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Week 2 - レッスン5: フォーム自動入力 | Playwright マスター道場</title>
+    <style>
+        :root { --primary: #6366f1; --secondary: #10b981; --accent: #f59e0b; --bg: #0f172a; --bg-light: #1e293b; --text: #e2e8f0; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg); color: var(--text); line-height: 1.8; }
+        .nav { background: var(--bg-light); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .nav a { color: var(--text); text-decoration: none; }
+        .lesson-header { background: linear-gradient(135deg, #8b5cf6, #a78bfa); padding: 3rem 2rem; text-align: center; }
+        .lesson-badge { background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 2rem; font-size: 0.9rem; display: inline-block; margin-bottom: 1rem; }
+        .lesson-header h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+        .content { max-width: 800px; margin: 0 auto; padding: 2rem; }
+        .section { background: var(--bg-light); border-radius: 1rem; padding: 2rem; margin-bottom: 2rem; }
+        .section h2 { color: var(--primary); margin-bottom: 1rem; font-size: 1.5rem; }
+        .section h3 { color: var(--accent); margin: 1.5rem 0 1rem; }
+        .section p { margin-bottom: 1rem; }
+        .code-block { background: #0d1117; border-radius: 0.5rem; padding: 1.5rem; margin: 1rem 0; overflow-x: auto; font-family: 'Fira Code', 'Consolas', monospace; font-size: 0.9rem; border: 1px solid #30363d; position: relative; }
+        .code-comment { color: #8b949e; }
+        .code-keyword { color: #ff7b72; }
+        .code-string { color: #a5d6ff; }
+        .code-function { color: #d2a8ff; }
+        .code-variable { color: #ffa657; }
+        .copy-btn { position: absolute; top: 0.5rem; right: 0.5rem; background: var(--primary); color: white; border: none; padding: 0.3rem 0.8rem; border-radius: 0.3rem; cursor: pointer; font-size: 0.8rem; }
+        .hint-box { background: rgba(245, 158, 11, 0.2); border-left: 4px solid var(--accent); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 0.5rem 0.5rem 0; }
+        .hint-box h4 { color: var(--accent); margin-bottom: 0.5rem; }
+        .success-box { background: rgba(16, 185, 129, 0.2); border-left: 4px solid var(--secondary); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 0.5rem 0.5rem 0; }
+        .success-box h4 { color: var(--secondary); margin-bottom: 0.5rem; }
+        .command-table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+        .command-table th, .command-table td { padding: 0.8rem; text-align: left; border-bottom: 1px solid var(--bg); }
+        .command-table th { background: var(--bg); color: var(--accent); }
+        .command-table td:first-child { font-family: 'Fira Code', monospace; color: var(--primary); font-size: 0.8rem; }
+        .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-size: 1rem; font-weight: 600; cursor: pointer; border: none; text-decoration: none; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-secondary { background: var(--secondary); color: white; }
+        .navigation-buttons { display: flex; justify-content: space-between; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--bg-light); }
+        .progress-indicator { display: flex; justify-content: center; gap: 0.5rem; margin: 2rem 0; }
+        .progress-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--bg-light); }
+        .progress-dot.active { background: var(--primary); }
+        .progress-dot.completed { background: var(--secondary); }
+        .week-complete { background: linear-gradient(135deg, #8b5cf6, #a78bfa); padding: 2rem; border-radius: 1rem; text-align: center; margin: 2rem 0; }
+        .week-complete h3 { font-size: 1.5rem; margin-bottom: 1rem; }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="../index.html">← ホームに戻る</a>
+        <span>Week 2 / Lesson 5</span>
+    </nav>
+
+    <header class="lesson-header">
+        <span class="lesson-badge">Week 2 - レッスン 5/5</span>
+        <h1>📋 フォーム自動入力</h1>
+        <p>登録フォームを自動化しよう！</p>
+    </header>
+
+    <div class="progress-indicator">
+        <span class="progress-dot completed"></span>
+        <span class="progress-dot completed"></span>
+        <span class="progress-dot completed"></span>
+        <span class="progress-dot completed"></span>
+        <span class="progress-dot active"></span>
+    </div>
+
+    <main class="content">
+        <section class="section">
+            <h2>📝 フォーム要素の種類</h2>
+
+            <table class="command-table">
+                <thead>
+                    <tr><th>要素</th><th>操作方法</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>テキスト入力</td><td>fill('テキスト')</td></tr>
+                    <tr><td>チェックボックス</td><td>check() / uncheck()</td></tr>
+                    <tr><td>ラジオボタン</td><td>check()</td></tr>
+                    <tr><td>セレクトボックス</td><td>selectOption('値')</td></tr>
+                    <tr><td>ファイル選択</td><td>setInputFiles('path')</td></tr>
+                    <tr><td>送信ボタン</td><td>click()</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="section">
+            <h2>☑️ チェックボックスとラジオボタン</h2>
+
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>
+<span class="code-comment">// チェックボックスをチェック</span>
+<span class="code-keyword">await</span> page.<span class="code-function">getByLabel</span>(<span class="code-string">'利用規約に同意する'</span>).<span class="code-function">check</span>();
+
+<span class="code-comment">// チェックを外す</span>
+<span class="code-keyword">await</span> page.<span class="code-function">getByLabel</span>(<span class="code-string">'メール配信を希望'</span>).<span class="code-function">uncheck</span>();
+
+<span class="code-comment">// ラジオボタンを選択</span>
+<span class="code-keyword">await</span> page.<span class="code-function">getByLabel</span>(<span class="code-string">'男性'</span>).<span class="code-function">check</span>();
+
+<span class="code-comment">// チェック状態を確認</span>
+<span class="code-keyword">const</span> isChecked = <span class="code-keyword">await</span> page.<span class="code-function">getByLabel</span>(<span class="code-string">'利用規約'</span>).<span class="code-function">isChecked</span>();
+                </code>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>📋 セレクトボックス（ドロップダウン）</h2>
+
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>
+<span class="code-comment">// 値（value）で選択</span>
+<span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'select#country'</span>).<span class="code-function">selectOption</span>(<span class="code-string">'japan'</span>);
+
+<span class="code-comment">// 表示テキスト（label）で選択</span>
+<span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'select#country'</span>).<span class="code-function">selectOption</span>({ <span class="code-variable">label</span>: <span class="code-string">'日本'</span> });
+
+<span class="code-comment">// インデックスで選択（0から始まる）</span>
+<span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'select#month'</span>).<span class="code-function">selectOption</span>({ <span class="code-variable">index</span>: 0 });
+
+<span class="code-comment">// 複数選択</span>
+<span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'select#skills'</span>).<span class="code-function">selectOption</span>([<span class="code-string">'html'</span>, <span class="code-string">'css'</span>, <span class="code-string">'js'</span>]);
+                </code>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>📁 ファイルアップロード</h2>
+
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>
+<span class="code-comment">// 1つのファイルをアップロード</span>
+<span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'input[type="file"]'</span>).<span class="code-function">setInputFiles</span>(<span class="code-string">'./photo.jpg'</span>);
+
+<span class="code-comment">// 複数ファイルをアップロード</span>
+<span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'input[type="file"]'</span>).<span class="code-function">setInputFiles</span>([
+    <span class="code-string">'./doc1.pdf'</span>,
+    <span class="code-string">'./doc2.pdf'</span>
+]);
+
+<span class="code-comment">// ファイル選択をクリア</span>
+<span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'input[type="file"]'</span>).<span class="code-function">setInputFiles</span>([]);
+                </code>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🎯 実践: 会員登録フォーム</h2>
+
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>
+<span class="code-keyword">const</span> { chromium } = <span class="code-function">require</span>(<span class="code-string">'playwright'</span>);
+
+(<span class="code-keyword">async</span> () => {
+    <span class="code-keyword">const</span> browser = <span class="code-keyword">await</span> chromium.<span class="code-function">launch</span>({ <span class="code-variable">headless</span>: <span class="code-keyword">false</span> });
+    <span class="code-keyword">const</span> page = <span class="code-keyword">await</span> browser.<span class="code-function">newPage</span>();
+
+    <span class="code-comment">// フォームページにアクセス</span>
+    <span class="code-keyword">await</span> page.<span class="code-function">goto</span>(<span class="code-string">'https://example.com/register'</span>);
+
+    <span class="code-comment">// テキスト入力</span>
+    <span class="code-keyword">await</span> page.<span class="code-function">getByLabel</span>(<span class="code-string">'お名前'</span>).<span class="code-function">fill</span>(<span class="code-string">'山田 太郎'</span>);
+    <span class="code-keyword">await</span> page.<span class="code-function">getByLabel</span>(<span class="code-string">'メールアドレス'</span>).<span class="code-function">fill</span>(<span class="code-string">'taro@example.com'</span>);
+    <span class="code-keyword">await</span> page.<span class="code-function">getByLabel</span>(<span class="code-string">'パスワード'</span>).<span class="code-function">fill</span>(<span class="code-string">'SecurePass123!'</span>);
+
+    <span class="code-comment">// 生年月日（セレクト）</span>
+    <span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'select#year'</span>).<span class="code-function">selectOption</span>(<span class="code-string">'2010'</span>);
+    <span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'select#month'</span>).<span class="code-function">selectOption</span>(<span class="code-string">'4'</span>);
+    <span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'select#day'</span>).<span class="code-function">selectOption</span>(<span class="code-string">'15'</span>);
+
+    <span class="code-comment">// 性別（ラジオ）</span>
+    <span class="code-keyword">await</span> page.<span class="code-function">getByLabel</span>(<span class="code-string">'男性'</span>).<span class="code-function">check</span>();
+
+    <span class="code-comment">// 利用規約（チェックボックス）</span>
+    <span class="code-keyword">await</span> page.<span class="code-function">getByLabel</span>(<span class="code-string">'利用規約に同意する'</span>).<span class="code-function">check</span>();
+
+    <span class="code-comment">// スクリーンショット</span>
+    <span class="code-keyword">await</span> page.<span class="code-function">screenshot</span>({ <span class="code-variable">path</span>: <span class="code-string">'form-filled.png'</span> });
+
+    console.<span class="code-function">log</span>(<span class="code-string">'✅ フォーム入力完了！'</span>);
+
+    <span class="code-keyword">await</span> browser.<span class="code-function">close</span>();
+})();
+                </code>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🎯 Week 2 のまとめ</h2>
+            <ul style="margin-left: 1.5rem;">
+                <li>✅ click() でボタンやリンクをクリック</li>
+                <li>✅ fill() でテキストを入力</li>
+                <li>✅ セレクタで要素を見つける方法</li>
+                <li>✅ textContent() で情報を取得</li>
+                <li>✅ check() / selectOption() でフォーム操作</li>
+            </ul>
+        </section>
+
+        <div class="week-complete">
+            <h3>🎊 Week 2 完了！</h3>
+            <p>すばらしい！要素操作をマスターしました。<br>
+            Week 3 では待機処理、条件分岐、繰り返しなど<br>
+            より実践的なテクニックを学びます！</p>
+            <a href="../index.html" class="btn" style="background: white; color: #8b5cf6; margin-top: 1rem;">🏠 ホームに戻る</a>
+        </div>
+
+        <div class="navigation-buttons">
+            <a href="week2-lesson4.html" class="btn btn-primary">← 前のレッスン</a>
+            <a href="week3-lesson1.html" class="btn btn-secondary">Week 3 へ →</a>
+        </div>
+    </main>
+
+    <script>
+        function copyCode(btn) {
+            const codeBlock = btn.parentElement;
+            const code = codeBlock.querySelector('code').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                btn.textContent = '✓ コピー完了';
+                setTimeout(() => { btn.textContent = 'コピー'; }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
