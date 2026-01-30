@@ -1,0 +1,36 @@
+# インフルエンサー分析ツール設定ファイル
+
+# 分析対象のインフルエンサー
+influencers:
+  - name: "サンプルクリエイター"
+    x_username: "sample_creator"
+    note_username: "sample_creator"
+    categories:
+      - "動画クリエイター"
+      - "YouTuber"
+
+# 分析設定
+analysis:
+  max_posts: 100
+  include_retweets: false
+  keywords:
+    - "動画編集"
+    - "サムネイル"
+    - "再生数"
+    - "収益化"
+    - "アルゴリズム"
+    - "視聴維持"
+  skill_categories:
+    - "動画編集"
+    - "サムネイル作成"
+    - "タイトル・コピーライティング"
+    - "ストーリーテリング"
+    - "エンゲージメント戦略"
+    - "収益化"
+    - "機材・ツール"
+    - "撮影テクニック"
+    - "音声・BGM"
+    - "投稿タイミング"
+
+# 出力ディレクトリ
+output_dir: "./output"
