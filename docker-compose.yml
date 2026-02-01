@@ -1,0 +1,183 @@
+# ============================================
+# Playwright自動化基盤 - Docker Compose 設定
+# ============================================
+# このファイルでローカル開発環境を一括起動できます
+#
+# 【使い方】
+# 起動: docker-compose up -d
+# 停止: docker-compose down
+# ログ確認: docker-compose logs -f
+# 再ビルド: docker-compose up -d --build
+
+version: '3.8'
+
+services:
+  # ============================================
+  # Redis（キュー管理用）
+  # ============================================
+  redis:
+    # Redis公式イメージ
+    image: redis:7-alpine
+
+    # コンテナ名
+    container_name: playwright-redis
+
+    # ポート公開（ホスト:コンテナ）
+    ports:
+      - "6379:6379"
+
+    # データ永続化
+    volumes:
+      - redis-data:/data
+
+    # ヘルスチェック
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+    # 再起動ポリシー
+    restart: unless-stopped
+
+  # ============================================
+  # APIサーバー（Express）
+  # ============================================
+  api:
+    # Dockerfileからビルド
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    # コンテナ名
+    container_name: playwright-api
+
+    # ポート公開
+    ports:
+      - "3000:8080"
+
+    # 環境変数
+    environment:
+      # ポート
+      - PORT=8080
+      # Redis接続
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      # スプレッドシートID（実際の値に変更してください）
+      - GOOGLE_SPREADSHEET_ID=${GOOGLE_SPREADSHEET_ID:-your_spreadsheet_id}
+      # 認証情報パス
+      - GOOGLE_CREDENTIALS_PATH=/app/credentials/google-service-account.json
+
+    # ボリュームマウント
+    volumes:
+      # 認証情報をマウント
+      - ./credentials:/app/credentials:ro
+
+    # 依存関係（Redisが起動してから開始）
+    depends_on:
+      redis:
+        condition: service_healthy
+
+    # 再起動ポリシー
+    restart: unless-stopped
+
+    # ヘルスチェック
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ============================================
+  # ワーカー（Playwright実行）
+  # ============================================
+  worker:
+    # ワーカー用Dockerfileからビルド
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+
+    # コンテナ名
+    container_name: playwright-worker
+
+    # 環境変数
+    environment:
+      # Redis接続
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      # スプレッドシートID
+      - GOOGLE_SPREADSHEET_ID=${GOOGLE_SPREADSHEET_ID:-your_spreadsheet_id}
+      # 認証情報パス
+      - GOOGLE_CREDENTIALS_PATH=/app/credentials/google-service-account.json
+      # たまごリピート設定
+      - TAMAGO_BASE_URL=${TAMAGO_BASE_URL:-https://example.tamago-repeat.jp/admin}
+      - TAMAGO_LOGIN_ID=${TAMAGO_LOGIN_ID:-your_login_id}
+      - TAMAGO_LOGIN_PASSWORD=${TAMAGO_LOGIN_PASSWORD:-your_password}
+      # Playwright設定
+      - PLAYWRIGHT_HEADLESS=true
+      - PLAYWRIGHT_BROWSER=chromium
+      - PLAYWRIGHT_TIMEOUT=30000
+      # キュー設定
+      - QUEUE_CONCURRENCY=10
+      - JOB_MAX_ATTEMPTS=3
+      - JOB_BACKOFF_DELAY=5000
+
+    # ボリュームマウント
+    volumes:
+      # 認証情報をマウント
+      - ./credentials:/app/credentials:ro
+      # スクリーンショット保存先をマウント
+      - ./artifacts:/app/artifacts
+      # ストレージ状態をマウント（セッション保持用）
+      - ./storage:/app/storage
+
+    # 依存関係
+    depends_on:
+      redis:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+
+    # 再起動ポリシー
+    restart: unless-stopped
+
+    # 共有メモリサイズを増加（Playwrightが必要とする）
+    shm_size: '2gb'
+
+  # ============================================
+  # Redis Commander（Redis管理UI）- 開発用
+  # ============================================
+  redis-commander:
+    # Redis Commander公式イメージ
+    image: rediscommander/redis-commander:latest
+
+    # コンテナ名
+    container_name: playwright-redis-commander
+
+    # ポート公開
+    ports:
+      - "8081:8081"
+
+    # 環境変数
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+
+    # 依存関係
+    depends_on:
+      - redis
+
+    # プロファイル（明示的に起動が必要）
+    # docker-compose --profile tools up で起動
+    profiles:
+      - tools
+
+    # 再起動ポリシー
+    restart: unless-stopped
+
+# ============================================
+# ボリューム定義
+# ============================================
+volumes:
+  # Redisデータ永続化用
+  redis-data:
+    driver: local

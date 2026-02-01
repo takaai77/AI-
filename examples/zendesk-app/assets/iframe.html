@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>たまごリピート自動化</title>
+
+  <!-- Zendesk Garden CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@zendeskgarden/css-bedrock@8/dist/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@zendeskgarden/css-buttons@8/dist/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@zendeskgarden/css-forms@8/dist/index.min.css">
+
+  <style>
+    /* ============================================
+       カスタムスタイル
+       ============================================ */
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      padding: 16px;
+      margin: 0;
+      background: #fff;
+    }
+
+    .app-container {
+      max-width: 100%;
+    }
+
+    .section {
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #2f3941;
+      margin-bottom: 12px;
+      border-bottom: 1px solid #d8dcde;
+      padding-bottom: 8px;
+    }
+
+    .customer-info {
+      background: #f8f9f9;
+      border-radius: 4px;
+      padding: 12px;
+      margin-bottom: 16px;
+    }
+
+    .info-row {
+      display: flex;
+      margin-bottom: 8px;
+    }
+
+    .info-label {
+      font-size: 12px;
+      color: #68737d;
+      width: 80px;
+      flex-shrink: 0;
+    }
+
+    .info-value {
+      font-size: 12px;
+      color: #2f3941;
+      font-weight: 500;
+    }
+
+    .action-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .action-btn {
+      width: 100%;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .action-btn.primary {
+      background: #1f73b7;
+      color: #fff;
+    }
+
+    .action-btn.primary:hover {
+      background: #144a75;
+    }
+
+    .action-btn.secondary {
+      background: #e9ebed;
+      color: #2f3941;
+    }
+
+    .action-btn.secondary:hover {
+      background: #d8dcde;
+    }
+
+    .action-btn.danger {
+      background: #cc3340;
+      color: #fff;
+    }
+
+    .action-btn.danger:hover {
+      background: #8c232c;
+    }
+
+    .action-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* 進捗表示 */
+    .progress-section {
+      display: none;
+      margin-top: 16px;
+    }
+
+    .progress-section.active {
+      display: block;
+    }
+
+    .progress-bar-container {
+      background: #e9ebed;
+      border-radius: 4px;
+      height: 8px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .progress-bar {
+      background: #1f73b7;
+      height: 100%;
+      width: 0%;
+      transition: width 0.3s;
+    }
+
+    .progress-text {
+      font-size: 12px;
+      color: #68737d;
+    }
+
+    /* 結果表示 */
+    .result-section {
+      display: none;
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 4px;
+    }
+
+    .result-section.active {
+      display: block;
+    }
+
+    .result-section.success {
+      background: #edf8f4;
+      border: 1px solid #5eae91;
+    }
+
+    .result-section.error {
+      background: #fff0f1;
+      border: 1px solid #cc3340;
+    }
+
+    .result-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .result-section.success .result-title {
+      color: #186146;
+    }
+
+    .result-section.error .result-title {
+      color: #8c232c;
+    }
+
+    .result-message {
+      font-size: 12px;
+      color: #2f3941;
+    }
+
+    /* ジョブ履歴 */
+    .job-history {
+      margin-top: 16px;
+    }
+
+    .job-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px;
+      border-bottom: 1px solid #e9ebed;
+      font-size: 12px;
+    }
+
+    .job-item:last-child {
+      border-bottom: none;
+    }
+
+    .job-status {
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 500;
+    }
+
+    .job-status.pending {
+      background: #fff0db;
+      color: #ad5918;
+    }
+
+    .job-status.running {
+      background: #edf8f4;
+      color: #186146;
+    }
+
+    .job-status.completed {
+      background: #e9ebed;
+      color: #2f3941;
+    }
+
+    .job-status.failed {
+      background: #fff0f1;
+      color: #8c232c;
+    }
+
+    /* ローディング */
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #68737d;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid #e9ebed;
+      border-top-color: #1f73b7;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- 顧客情報セクション -->
+    <div class="section">
+      <div class="section-title">顧客情報</div>
+      <div class="customer-info">
+        <div class="info-row">
+          <span class="info-label">顧客ID:</span>
+          <span class="info-value" id="customer-id">-</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">注文番号:</span>
+          <span class="info-value" id="order-no">-</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">担当者:</span>
+          <span class="info-value" id="operator">-</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- アクションボタンセクション -->
+    <div class="section">
+      <div class="section-title">自動化アクション</div>
+      <div class="action-buttons">
+        <button class="action-btn primary" data-action="check_order_status">
+          📋 注文ステータス確認
+        </button>
+        <button class="action-btn primary" data-action="get_customer_info">
+          👤 顧客情報取得
+        </button>
+        <button class="action-btn secondary" data-action="skip_next_delivery">
+          ⏭️ 次回配送スキップ
+        </button>
+        <button class="action-btn secondary" data-action="pause_subscription">
+          ⏸️ 定期購入一時停止
+        </button>
+        <button class="action-btn secondary" data-action="resume_subscription">
+          ▶️ 定期購入再開
+        </button>
+        <button class="action-btn danger" data-action="cancel_order">
+          🚫 注文キャンセル
+        </button>
+      </div>
+    </div>
+
+    <!-- 進捗表示セクション -->
+    <div class="progress-section" id="progress-section">
+      <div class="section-title">実行中...</div>
+      <div class="progress-bar-container">
+        <div class="progress-bar" id="progress-bar"></div>
+      </div>
+      <div class="progress-text" id="progress-text">待機中...</div>
+    </div>
+
+    <!-- 結果表示セクション -->
+    <div class="result-section" id="result-section">
+      <div class="result-title" id="result-title">結果</div>
+      <div class="result-message" id="result-message"></div>
+    </div>
+
+    <!-- ジョブ履歴セクション -->
+    <div class="section job-history" id="job-history-section" style="display: none;">
+      <div class="section-title">実行履歴</div>
+      <div id="job-history-list"></div>
+    </div>
+  </div>
+
+  <!-- Zendesk Apps Framework SDK -->
+  <script src="https://static.zdassets.com/zendesk_app_framework_sdk/2.0/zaf_sdk.min.js"></script>
+
+  <!-- メインスクリプト -->
+  <script src="main.js"></script>
+</body>
+</html>

@@ -22,6 +22,10 @@ import { checkOrderStatus } from './check-order-status';
 import { cancelOrder } from './cancel-order';
 import { getCustomerInfo } from './get-customer-info';
 import { skipNextDelivery } from './skip-next-delivery';
+import { updateShipping } from './update-shipping';
+import { changeDeliveryDate } from './change-delivery-date';
+import { pauseSubscription } from './pause-subscription';
+import { resumeSubscription } from './resume-subscription';
 
 // ============================================
 // シナリオ登録マップ
@@ -47,11 +51,17 @@ const scenarioMap: {
   // 次回配送スキップシナリオ
   skip_next_delivery: skipNextDelivery,
 
-  // TODO: 以下のシナリオは未実装
-  // update_shipping: updateShipping,
-  // change_delivery_date: changeDeliveryDate,
-  // pause_subscription: pauseSubscription,
-  // resume_subscription: resumeSubscription,
+  // 配送情報更新シナリオ
+  update_shipping: updateShipping,
+
+  // 配送日変更シナリオ
+  change_delivery_date: changeDeliveryDate,
+
+  // 定期購入一時停止シナリオ
+  pause_subscription: pauseSubscription,
+
+  // 定期購入再開シナリオ
+  resume_subscription: resumeSubscription,
 };
 
 // ============================================

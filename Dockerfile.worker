@@ -1,0 +1,76 @@
+# ============================================
+# Playwright自動化基盤 - ワーカー用 Dockerfile
+# ============================================
+# このDockerfileはワーカー（Playwright実行）をビルドします
+# ブラウザ操作を行うため、Playwrightのブラウザが含まれます
+
+# ベースイメージ: PlaywrightのNode.js公式イメージ
+# Chromium, Firefox, WebKitがプリインストールされています
+FROM mcr.microsoft.com/playwright:v1.40.0-jammy
+
+# 作業ディレクトリを設定
+WORKDIR /app
+
+# ============================================
+# 依存パッケージのインストール
+# ============================================
+# package.json と package-lock.json をコピー
+COPY package*.json ./
+
+# 本番用の依存パッケージのみインストール
+RUN npm ci --only=production
+
+# TypeScriptコンパイラを一時的にインストール（ビルド用）
+RUN npm install -g typescript
+
+# ============================================
+# ソースコードのコピーとビルド
+# ============================================
+# ソースファイルをコピー
+COPY tsconfig.json ./
+COPY src/ ./src/
+
+# TypeScriptをコンパイル
+RUN tsc
+
+# ビルド後にTypeScriptコンパイラを削除
+RUN npm uninstall -g typescript
+
+# ============================================
+# ディレクトリの作成
+# ============================================
+# スクリーンショット保存用ディレクトリ
+RUN mkdir -p /app/artifacts
+
+# ストレージ状態保存用ディレクトリ
+RUN mkdir -p /app/storage
+
+# ============================================
+# 実行時設定
+# ============================================
+# 本番モード
+ENV NODE_ENV=production
+
+# Playwrightの設定
+# ヘッドレスモードを有効化（コンテナ内ではブラウザを表示できない）
+ENV PLAYWRIGHT_HEADLESS=true
+
+# スクリーンショット保存先
+ENV ARTIFACTS_DIR=/app/artifacts
+
+# ストレージ状態ファイルパス
+ENV STORAGE_STATE_PATH=/app/storage/storageState.json
+
+# ============================================
+# セキュリティ設定
+# ============================================
+# 非rootユーザーで実行（セキュリティ向上）
+# Note: Playwrightイメージにはpwuserが含まれています
+# ただし、Cloud Runでは特定のユーザー設定が必要な場合があります
+# USER pwuser
+
+# ============================================
+# ワーカー起動
+# ============================================
+# ワーカープロセスを起動
+CMD ["node", "dist/worker.js"]
