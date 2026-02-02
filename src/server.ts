@@ -60,6 +60,9 @@ import {
 // シナリオ関連をインポート
 import { getAvailableScenarios, isScenarioAvailable } from './scenarios';
 
+// 内部APIルーターをインポート
+import internalApiRouter from './internal-api';
+
 // ============================================
 // Express アプリケーションの作成
 // ============================================
@@ -498,6 +501,14 @@ app.get('/queue/status', async (req: Request, res: Response) => {
 });
 
 // ============================================
+// 内部APIルーターのマウント
+// ============================================
+
+// /internal/* へのリクエストを内部APIルーターに転送
+// 認証が必要な場合は INTERNAL_API_KEY 環境変数を設定
+app.use('/internal', internalApiRouter);
+
+// ============================================
 // エラーハンドリング
 // ============================================
 
@@ -545,13 +556,26 @@ const startServer = async (): Promise<void> => {
       console.log(`✅ サーバーが起動しました`);
       console.log(`   URL: http://localhost:${port}`);
       console.log('');
-      console.log('📌 エンドポイント一覧:');
+      console.log('📌 公開APIエンドポイント:');
       console.log(`   POST /jobs       - ジョブ作成`);
       console.log(`   GET  /jobs/:id   - ジョブ詳細`);
       console.log(`   GET  /jobs       - ジョブ一覧`);
       console.log(`   GET  /actions    - アクション一覧`);
       console.log(`   GET  /queue/status - キュー状態`);
       console.log(`   GET  /health     - ヘルスチェック`);
+      console.log('');
+      console.log('🔧 内部APIエンドポイント (/internal):');
+      console.log(`   POST /internal/execute     - 直接実行（キューバイパス）`);
+      console.log(`   POST /internal/batch       - バッチジョブ作成`);
+      console.log(`   POST /internal/queue/pause - キュー一時停止`);
+      console.log(`   POST /internal/queue/resume - キュー再開`);
+      console.log(`   POST /internal/queue/clean - キュークリーンアップ`);
+      console.log(`   DELETE /internal/queue/drain - キュードレイン`);
+      console.log(`   POST /internal/jobs/:id/retry - ジョブリトライ`);
+      console.log(`   DELETE /internal/jobs/:id  - ジョブ削除`);
+      console.log(`   GET  /internal/diagnostics - システム診断`);
+      console.log(`   GET  /internal/scenarios   - シナリオ詳細一覧`);
+      console.log(`   POST /internal/webhooks    - Webhook登録`);
       console.log('═'.repeat(60));
     });
 
