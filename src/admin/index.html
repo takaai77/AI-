@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Playwright自動化 - 管理画面</title>
+
+  <!-- スタイルシート -->
+  <link rel="stylesheet" href="/admin/css/style.css">
+
+  <!-- アイコン（Feather Icons） -->
+  <script src="https://unpkg.com/feather-icons"></script>
+</head>
+<body>
+  <!-- ============================================
+       サイドバー
+       ============================================ -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h1 class="logo">
+        <i data-feather="play-circle"></i>
+        <span>自動化管理</span>
+      </h1>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active" data-page="dashboard">
+        <i data-feather="grid"></i>
+        <span>ダッシュボード</span>
+      </a>
+      <a href="#" class="nav-item" data-page="jobs">
+        <i data-feather="list"></i>
+        <span>ジョブ一覧</span>
+      </a>
+      <a href="#" class="nav-item" data-page="queue">
+        <i data-feather="layers"></i>
+        <span>キュー状態</span>
+      </a>
+      <a href="#" class="nav-item" data-page="create">
+        <i data-feather="plus-circle"></i>
+        <span>ジョブ作成</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="connection-status" id="connection-status">
+        <i data-feather="wifi-off"></i>
+        <span>接続確認中...</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============================================
+       メインコンテンツ
+       ============================================ -->
+  <main class="main-content">
+    <!-- ヘッダー -->
+    <header class="main-header">
+      <div class="header-title">
+        <h2 id="page-title">ダッシュボード</h2>
+        <p id="page-subtitle">システムの概要を確認</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-icon" id="refresh-btn" title="更新">
+          <i data-feather="refresh-cw"></i>
+        </button>
+        <div class="auto-refresh">
+          <label>
+            <input type="checkbox" id="auto-refresh-toggle" checked>
+            自動更新（10秒）
+          </label>
+        </div>
+      </div>
+    </header>
+
+    <!-- ページコンテンツ -->
+    <div class="page-content">
+
+      <!-- ============================================
+           ダッシュボードページ
+           ============================================ -->
+      <section class="page" id="page-dashboard">
+        <!-- 統計カード -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon pending">
+              <i data-feather="clock"></i>
+            </div>
+            <div class="stat-info">
+              <span class="stat-value" id="stat-waiting">-</span>
+              <span class="stat-label">待機中</span>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon running">
+              <i data-feather="loader"></i>
+            </div>
+            <div class="stat-info">
+              <span class="stat-value" id="stat-active">-</span>
+              <span class="stat-label">実行中</span>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon completed">
+              <i data-feather="check-circle"></i>
+            </div>
+            <div class="stat-info">
+              <span class="stat-value" id="stat-completed">-</span>
+              <span class="stat-label">完了</span>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon failed">
+              <i data-feather="x-circle"></i>
+            </div>
+            <div class="stat-info">
+              <span class="stat-value" id="stat-failed">-</span>
+              <span class="stat-label">失敗</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 実行中のジョブ -->
+        <div class="card">
+          <div class="card-header">
+            <h3>実行中のジョブ</h3>
+          </div>
+          <div class="card-body">
+            <div id="active-jobs-list" class="job-list">
+              <div class="empty-state">
+                <i data-feather="inbox"></i>
+                <p>実行中のジョブはありません</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 最近のジョブ -->
+        <div class="card">
+          <div class="card-header">
+            <h3>最近のジョブ</h3>
+            <a href="#" class="link" data-page="jobs">すべて表示 →</a>
+          </div>
+          <div class="card-body">
+            <div id="recent-jobs-list" class="job-list">
+              <div class="loading">
+                <div class="spinner"></div>
+                <p>読み込み中...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================
+           ジョブ一覧ページ
+           ============================================ -->
+      <section class="page hidden" id="page-jobs">
+        <!-- フィルター -->
+        <div class="filter-bar">
+          <div class="filter-group">
+            <label>ステータス</label>
+            <select id="filter-status">
+              <option value="">すべて</option>
+              <option value="pending">待機中</option>
+              <option value="running">実行中</option>
+              <option value="completed">完了</option>
+              <option value="failed">失敗</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label>アクション</label>
+            <select id="filter-action">
+              <option value="">すべて</option>
+            </select>
+          </div>
+
+          <div class="filter-group search-group">
+            <label>検索</label>
+            <div class="search-input">
+              <i data-feather="search"></i>
+              <input type="text" id="filter-search" placeholder="ジョブID、顧客ID、オペレーター...">
+            </div>
+          </div>
+
+          <button class="btn btn-secondary" id="clear-filters">
+            クリア
+          </button>
+        </div>
+
+        <!-- ジョブテーブル -->
+        <div class="card">
+          <div class="card-body no-padding">
+            <table class="data-table" id="jobs-table">
+              <thead>
+                <tr>
+                  <th class="sortable" data-sort="created_at">作成日時</th>
+                  <th class="sortable" data-sort="job_id">ジョブID</th>
+                  <th class="sortable" data-sort="action">アクション</th>
+                  <th class="sortable" data-sort="customer_id">顧客ID</th>
+                  <th class="sortable" data-sort="operator">オペレーター</th>
+                  <th class="sortable" data-sort="status">ステータス</th>
+                  <th>進捗</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="jobs-table-body">
+                <tr>
+                  <td colspan="8" class="loading-cell">
+                    <div class="loading">
+                      <div class="spinner"></div>
+                      <p>読み込み中...</p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ページネーション -->
+        <div class="pagination" id="jobs-pagination">
+          <button class="btn btn-icon" id="prev-page" disabled>
+            <i data-feather="chevron-left"></i>
+          </button>
+          <span class="page-info" id="page-info">1 / 1</span>
+          <button class="btn btn-icon" id="next-page" disabled>
+            <i data-feather="chevron-right"></i>
+          </button>
+        </div>
+      </section>
+
+      <!-- ============================================
+           キュー状態ページ
+           ============================================ -->
+      <section class="page hidden" id="page-queue">
+        <div class="grid-2">
+          <!-- 待機中のジョブ -->
+          <div class="card">
+            <div class="card-header">
+              <h3>
+                <i data-feather="clock"></i>
+                待機中のジョブ
+              </h3>
+              <span class="badge badge-pending" id="waiting-count">0</span>
+            </div>
+            <div class="card-body">
+              <div id="waiting-jobs-list" class="queue-list">
+                <div class="empty-state">
+                  <i data-feather="inbox"></i>
+                  <p>待機中のジョブはありません</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 実行中のジョブ -->
+          <div class="card">
+            <div class="card-header">
+              <h3>
+                <i data-feather="loader"></i>
+                実行中のジョブ
+              </h3>
+              <span class="badge badge-running" id="active-count">0</span>
+            </div>
+            <div class="card-body">
+              <div id="running-jobs-list" class="queue-list">
+                <div class="empty-state">
+                  <i data-feather="inbox"></i>
+                  <p>実行中のジョブはありません</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- キュー情報 -->
+        <div class="card">
+          <div class="card-header">
+            <h3>キュー情報</h3>
+          </div>
+          <div class="card-body">
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="info-label">同時実行数</span>
+                <span class="info-value" id="queue-concurrency">10</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">最大リトライ</span>
+                <span class="info-value" id="queue-max-attempts">3</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">累計完了</span>
+                <span class="info-value" id="queue-total-completed">-</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">累計失敗</span>
+                <span class="info-value" id="queue-total-failed">-</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================
+           ジョブ作成ページ
+           ============================================ -->
+      <section class="page hidden" id="page-create">
+        <div class="card">
+          <div class="card-header">
+            <h3>新規ジョブ作成</h3>
+          </div>
+          <div class="card-body">
+            <form id="create-job-form">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="create-ticket-id">チケットID <span class="required">*</span></label>
+                  <input type="text" id="create-ticket-id" required placeholder="例: 12345">
+                </div>
+                <div class="form-group">
+                  <label for="create-customer-id">顧客ID <span class="required">*</span></label>
+                  <input type="text" id="create-customer-id" required placeholder="例: C-001">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="create-order-no">注文番号</label>
+                  <input type="text" id="create-order-no" placeholder="例: ORD-2024-001">
+                </div>
+                <div class="form-group">
+                  <label for="create-operator">オペレーター <span class="required">*</span></label>
+                  <input type="text" id="create-operator" required placeholder="例: 田中太郎">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="create-action">アクション <span class="required">*</span></label>
+                <select id="create-action" required>
+                  <option value="">選択してください</option>
+                </select>
+              </div>
+
+              <!-- 追加パラメータ -->
+              <div class="form-group" id="params-section" style="display: none;">
+                <label>追加パラメータ</label>
+                <div id="params-fields"></div>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                  <i data-feather="play"></i>
+                  ジョブを作成
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- 作成結果 -->
+        <div class="card hidden" id="create-result">
+          <div class="card-header">
+            <h3>作成結果</h3>
+          </div>
+          <div class="card-body">
+            <div id="create-result-content"></div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ============================================
+       ジョブ詳細モーダル
+       ============================================ -->
+  <div class="modal-overlay hidden" id="job-detail-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>ジョブ詳細</h3>
+        <button class="btn btn-icon modal-close">
+          <i data-feather="x"></i>
+        </button>
+      </div>
+      <div class="modal-body" id="job-detail-content">
+        <!-- 動的に生成 -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary modal-close">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================
+       トースト通知
+       ============================================ -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- スクリプト -->
+  <script src="/admin/js/api.js"></script>
+  <script src="/admin/js/app.js"></script>
+</body>
+</html>

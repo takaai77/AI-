@@ -28,6 +28,9 @@ import cors from 'cors';
 // UUID生成
 import { v4 as uuidv4 } from 'uuid';
 
+// パス操作（静的ファイル配信用）
+import * as path from 'path';
+
 // 型定義をインポート
 import {
   CreateJobRequest,
@@ -74,6 +77,24 @@ app.use(cors());
 app.use((req: Request, res: Response, next: NextFunction) => {
   console.log(`${new Date().toISOString()} ${req.method} ${req.path}`);
   next();
+});
+
+// ============================================
+// 管理画面の静的ファイル配信
+// ============================================
+
+// 管理画面用の静的ファイルを配信
+// /admin/* へのアクセスで src/admin/ のファイルを返す
+app.use('/admin', express.static(path.join(__dirname, 'admin')));
+
+// ルートアクセス（/）で管理画面にリダイレクト
+app.get('/', (req: Request, res: Response) => {
+  res.redirect('/admin/');
+});
+
+// /admin へのアクセスで index.html を返す
+app.get('/admin', (req: Request, res: Response) => {
+  res.sendFile(path.join(__dirname, 'admin', 'index.html'));
 });
 
 // ============================================
