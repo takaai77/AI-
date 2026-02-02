@@ -61,6 +61,16 @@ import {
 // シナリオ関連をインポート
 import { runScenario, getAvailableScenarios, isScenarioAvailable } from './scenarios';
 
+// セキュリティ関連をインポート
+import {
+  securityMiddleware,
+  requireScope,
+  issueTokenHandler,
+  refreshTokenHandler,
+  generateAPIKey,
+  AuthenticatedRequest,
+} from './security';
+
 // ============================================
 // ルーターの作成
 // ============================================
@@ -114,38 +124,92 @@ interface WebhookConfig {
 }
 
 // ============================================
-// 認証ミドルウェア（内部API用）
+// セキュリティミドルウェアの適用
+// ============================================
+
+// 全ルートにセキュリティミドルウェアを適用
+// - リクエストID付与
+// - IPホワイトリスト
+// - JWT認証
+// - APIキー認証
+// - レート制限
+// - 監査ログ
+router.use(securityMiddleware);
+
+// ============================================
+// トークン管理エンドポイント
 // ============================================
 
 /**
- * 内部APIの認証チェック
- * 環境変数 INTERNAL_API_KEY が設定されている場合、
- * リクエストヘッダーに同じキーが必要
+ * POST /internal/auth/token
+ * JWTトークンを発行する（管理者用）
+ *
+ * 注意: このエンドポイントは ADMIN_SECRET が必要
  */
-const authMiddleware = (req: Request, res: Response, next: Function): void => {
-  const apiKey = process.env.INTERNAL_API_KEY;
+router.post('/auth/token', (req: Request, res: Response) => {
+  // 管理者シークレットを検証
+  const adminSecret = process.env.ADMIN_SECRET;
+  const providedSecret = req.headers['x-admin-secret'] as string;
 
-  // APIキーが設定されていない場合はスキップ
-  if (!apiKey) {
-    return next();
-  }
-
-  // ヘッダーからAPIキーを取得
-  const providedKey = req.headers['x-internal-api-key'] as string;
-
-  if (!providedKey || providedKey !== apiKey) {
-    res.status(401).json({
+  if (!adminSecret) {
+    return res.status(501).json({
       success: false,
-      error: '認証が必要です。X-Internal-API-Key ヘッダーを設定してください。',
+      error: 'トークン発行機能は無効です（ADMIN_SECRET が未設定）',
     });
-    return;
   }
 
-  next();
-};
+  if (!providedSecret || providedSecret !== adminSecret) {
+    return res.status(403).json({
+      success: false,
+      error: '管理者権限が必要です',
+    });
+  }
 
-// 全ルートに認証ミドルウェアを適用
-router.use(authMiddleware);
+  return issueTokenHandler(req, res);
+});
+
+/**
+ * POST /internal/auth/refresh
+ * JWTトークンをリフレッシュする
+ */
+router.post('/auth/refresh', refreshTokenHandler);
+
+/**
+ * POST /internal/auth/generate-api-key
+ * 新しいAPIキーを生成する（管理者用）
+ */
+router.post('/auth/generate-api-key', (req: Request, res: Response) => {
+  // 管理者シークレットを検証
+  const adminSecret = process.env.ADMIN_SECRET;
+  const providedSecret = req.headers['x-admin-secret'] as string;
+
+  if (!adminSecret) {
+    return res.status(501).json({
+      success: false,
+      error: 'APIキー生成機能は無効です（ADMIN_SECRET が未設定）',
+    });
+  }
+
+  if (!providedSecret || providedSecret !== adminSecret) {
+    return res.status(403).json({
+      success: false,
+      error: '管理者権限が必要です',
+    });
+  }
+
+  const { length = 32 } = req.body;
+  const apiKey = generateAPIKey(length);
+
+  res.json({
+    success: true,
+    apiKey,
+    message: 'このAPIキーは一度しか表示されません。安全に保管してください。',
+    usage: {
+      header: 'X-Internal-API-Key',
+      example: `curl -H "X-Internal-API-Key: ${apiKey}" ...`,
+    },
+  });
+});
 
 // ============================================
 // 直接実行エンドポイント（キューバイパス）
@@ -584,8 +648,10 @@ router.post('/queue/clean', async (req: Request, res: Response) => {
 /**
  * DELETE /internal/queue/drain
  * キューをドレイン（すべての待機ジョブを削除）する
+ *
+ * 注意: 危険な操作のため internal:admin スコープが必要
  */
-router.delete('/queue/drain', async (req: Request, res: Response) => {
+router.delete('/queue/drain', requireScope('internal:admin'), async (req: Request, res: Response) => {
   console.log('🚿 [内部API] キュードレインリクエスト');
 
   try {

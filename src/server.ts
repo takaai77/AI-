@@ -63,12 +63,32 @@ import { getAvailableScenarios, isScenarioAvailable } from './scenarios';
 // 内部APIルーターをインポート
 import internalApiRouter from './internal-api';
 
+// セキュリティ関連をインポート
+import {
+  securityHeadersMiddleware,
+  httpsRedirectMiddleware,
+  requestIdMiddleware,
+} from './security';
+
 // ============================================
 // Express アプリケーションの作成
 // ============================================
 
 // Expressアプリを作成
 const app = express();
+
+// ============================================
+// セキュリティミドルウェア
+// ============================================
+
+// 本番環境ではHTTPSにリダイレクト
+app.use(httpsRedirectMiddleware);
+
+// セキュリティヘッダーを設定
+app.use(securityHeadersMiddleware);
+
+// リクエストIDを付与
+app.use(requestIdMiddleware);
 
 // JSONリクエストボディをパース
 app.use(express.json());
@@ -78,7 +98,8 @@ app.use(cors());
 
 // リクエストログ
 app.use((req: Request, res: Response, next: NextFunction) => {
-  console.log(`${new Date().toISOString()} ${req.method} ${req.path}`);
+  const requestId = res.getHeader('X-Request-ID') || 'unknown';
+  console.log(`${new Date().toISOString()} [${requestId}] ${req.method} ${req.path}`);
   next();
 });
 
@@ -565,17 +586,26 @@ const startServer = async (): Promise<void> => {
       console.log(`   GET  /health     - ヘルスチェック`);
       console.log('');
       console.log('🔧 内部APIエンドポイント (/internal):');
+      console.log(`   POST /internal/auth/token  - JWTトークン発行（要管理者権限）`);
+      console.log(`   POST /internal/auth/refresh - トークンリフレッシュ`);
+      console.log(`   POST /internal/auth/generate-api-key - APIキー生成（要管理者権限）`);
       console.log(`   POST /internal/execute     - 直接実行（キューバイパス）`);
       console.log(`   POST /internal/batch       - バッチジョブ作成`);
       console.log(`   POST /internal/queue/pause - キュー一時停止`);
       console.log(`   POST /internal/queue/resume - キュー再開`);
       console.log(`   POST /internal/queue/clean - キュークリーンアップ`);
-      console.log(`   DELETE /internal/queue/drain - キュードレイン`);
+      console.log(`   DELETE /internal/queue/drain - キュードレイン（要adminスコープ）`);
       console.log(`   POST /internal/jobs/:id/retry - ジョブリトライ`);
       console.log(`   DELETE /internal/jobs/:id  - ジョブ削除`);
       console.log(`   GET  /internal/diagnostics - システム診断`);
       console.log(`   GET  /internal/scenarios   - シナリオ詳細一覧`);
       console.log(`   POST /internal/webhooks    - Webhook登録`);
+      console.log('');
+      console.log('🔐 セキュリティ設定:');
+      console.log(`   JWT認証: ${process.env.JWT_SECRET ? '有効' : '無効'}`);
+      console.log(`   APIキー認証: ${process.env.INTERNAL_API_KEY ? '有効' : '無効'}`);
+      console.log(`   IPホワイトリスト: ${process.env.IP_WHITELIST ? '有効' : '無効'}`);
+      console.log(`   レート制限: ${process.env.RATE_LIMIT_ENABLED !== 'false' ? '有効' : '無効'}`);
       console.log('═'.repeat(60));
     });
 
