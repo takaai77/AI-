@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Playwright マスター道場 - 中学生からはじめるブラウザ自動化</title>
+    <title>Playwright マスター道場 Pro - EC100億事業を支えるエンジニアへ</title>
     <style>
         :root {
             --primary: #6366f1;
@@ -11,17 +11,17 @@
             --secondary: #10b981;
             --accent: #f59e0b;
             --danger: #ef4444;
+            --enterprise: #dc2626;
             --bg: #0f172a;
             --bg-light: #1e293b;
+            --bg-card: #334155;
             --text: #e2e8f0;
             --text-muted: #94a3b8;
+            --gold: #fbbf24;
+            --platinum: #e5e7eb;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif;
@@ -31,10 +31,45 @@
             line-height: 1.6;
         }
 
+        /* ナビゲーション */
+        .top-nav {
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid #334155;
+        }
+
+        .nav-brand {
+            font-size: 1.3rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover { color: var(--primary); }
+
         /* ヘッダー */
         .header {
-            background: linear-gradient(135deg, var(--primary), #8b5cf6);
-            padding: 2rem;
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%);
+            padding: 4rem 2rem;
             text-align: center;
             position: relative;
             overflow: hidden;
@@ -43,92 +78,157 @@
         .header::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-            opacity: 0.3;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M54.627 0l.83.828-1.415 1.415L51.8 0h2.827zM5.373 0l-.83.828L5.96 2.243 8.2 0H5.374zM48.97 0l3.657 3.657-1.414 1.414L46.143 0h2.828zM11.03 0L7.372 3.657 8.787 5.07 13.857 0H11.03zm32.284 0L49.8 6.485 48.384 7.9l-7.9-7.9h2.83zM16.686 0L10.2 6.485 11.616 7.9l7.9-7.9h-2.83zM22.344 0L13.858 8.485 15.272 9.9l9.9-9.9h-2.828zM32 0l-3.486 3.485 1.415 1.414 4.9-4.9H32zM0 5.373l.828-.83 1.415 1.415L0 8.2V5.374zm0 5.656l.828-.829 5.072 5.071-1.415 1.415L0 11.03v2.828zm0 5.656l.828-.828 8.728 8.729-1.414 1.414L0 16.686v2.83z' fill='%23ffffff' fill-opacity='0.03'/%3E%3C/svg%3E");
+        }
+
+        .header-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--enterprise), #991b1b);
+            padding: 0.5rem 1.5rem;
+            border-radius: 2rem;
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            position: relative;
         }
 
         .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
+            font-size: 3rem;
+            margin-bottom: 1rem;
             position: relative;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
 
-        .header p {
-            font-size: 1.2rem;
+        .header-subtitle {
+            font-size: 1.4rem;
             opacity: 0.9;
             position: relative;
+            margin-bottom: 0.5rem;
         }
 
-        .robot-icon {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-            display: block;
-            animation: bounce 2s infinite;
+        .header-desc {
+            font-size: 1rem;
+            color: var(--text-muted);
+            position: relative;
+            max-width: 700px;
+            margin: 0 auto;
         }
 
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-
-        /* 進捗バー */
-        .progress-section {
+        /* レベルシステム */
+        .level-system {
             background: var(--bg-light);
             padding: 2rem;
             margin: 2rem;
             border-radius: 1rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
 
-        .progress-header {
+        .level-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
         }
 
-        .progress-title {
-            font-size: 1.3rem;
-            color: var(--accent);
+        .current-level {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
         }
 
-        .level-badge {
-            background: linear-gradient(135deg, var(--accent), #fbbf24);
-            padding: 0.5rem 1rem;
-            border-radius: 2rem;
-            font-weight: bold;
+        .level-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, var(--primary), #8b5cf6);
+        }
+
+        .level-info h2 { font-size: 1.5rem; }
+        .level-info p { color: var(--text-muted); font-size: 0.9rem; }
+
+        .salary-indicator {
+            background: linear-gradient(135deg, var(--gold), #f59e0b);
             color: #1f2937;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: bold;
+            text-align: center;
         }
 
-        .progress-bar-container {
-            background: var(--bg);
-            border-radius: 1rem;
-            height: 2rem;
-            overflow: hidden;
+        .salary-indicator span { display: block; font-size: 0.8rem; opacity: 0.8; }
+
+        .progress-track {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
             position: relative;
         }
 
-        .progress-bar {
-            background: linear-gradient(90deg, var(--secondary), #34d399);
-            height: 100%;
-            width: 0%;
-            border-radius: 1rem;
-            transition: width 0.5s ease;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            padding-right: 1rem;
-            font-weight: bold;
+        .progress-track::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--bg);
+            transform: translateY(-50%);
+            z-index: 0;
         }
 
-        .stats {
+        .track-point {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--bg);
+            border: 3px solid var(--bg-card);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            z-index: 1;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .track-point.completed {
+            background: var(--secondary);
+            border-color: var(--secondary);
+        }
+
+        .track-point.current {
+            background: var(--primary);
+            border-color: var(--primary);
+            animation: pulse 2s infinite;
+        }
+
+        .track-point:hover {
+            transform: scale(1.2);
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7); }
+            50% { box-shadow: 0 0 0 10px rgba(99, 102, 241, 0); }
+        }
+
+        .level-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        /* 統計カード */
+        .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
             gap: 1rem;
             margin-top: 1.5rem;
         }
@@ -138,105 +238,129 @@
             padding: 1rem;
             border-radius: 0.5rem;
             text-align: center;
-            border: 2px solid transparent;
-            transition: border-color 0.3s;
-        }
-
-        .stat-card:hover {
-            border-color: var(--primary);
         }
 
         .stat-number {
-            font-size: 2rem;
+            font-size: 1.8rem;
             font-weight: bold;
-            color: var(--primary);
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
-        .stat-label {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-        }
+        .stat-label { font-size: 0.8rem; color: var(--text-muted); }
 
         /* メインコンテンツ */
         .main-content {
             padding: 2rem;
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
         }
 
         .section-title {
             font-size: 1.8rem;
-            margin-bottom: 1.5rem;
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
 
-        /* 週間カリキュラム */
-        .curriculum {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 3rem;
+        .section-badge {
+            font-size: 0.75rem;
+            padding: 0.3rem 0.8rem;
+            border-radius: 1rem;
+            background: var(--primary);
         }
 
-        .week-card {
+        /* コース選択タブ */
+        .course-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .course-tab {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            border: 2px solid var(--bg-card);
+            background: transparent;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .course-tab:hover { border-color: var(--primary); }
+
+        .course-tab.active {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .course-tab.enterprise {
+            border-color: var(--enterprise);
+        }
+
+        .course-tab.enterprise.active {
+            background: var(--enterprise);
+            border-color: var(--enterprise);
+        }
+
+        /* カリキュラムグリッド */
+        .curriculum-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .month-card {
             background: var(--bg-light);
             border-radius: 1rem;
             overflow: hidden;
-            transition: transform 0.3s, box-shadow 0.3s;
-            cursor: pointer;
             border: 2px solid transparent;
+            transition: all 0.3s;
+            cursor: pointer;
         }
 
-        .week-card:hover {
+        .month-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
         }
 
-        .week-card.locked {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
+        .month-card.locked { opacity: 0.5; }
 
-        .week-card.active {
-            border-color: var(--secondary);
-        }
-
-        .week-card.completed {
-            border-color: var(--accent);
-        }
-
-        .week-header {
+        .month-header {
             padding: 1.5rem;
             position: relative;
         }
 
-        .week-1 .week-header { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
-        .week-2 .week-header { background: linear-gradient(135deg, #8b5cf6, #a78bfa); }
-        .week-3 .week-header { background: linear-gradient(135deg, #10b981, #34d399); }
-        .week-4 .week-header { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+        .beginner .month-header { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
+        .intermediate .month-header { background: linear-gradient(135deg, #8b5cf6, #a78bfa); }
+        .advanced .month-header { background: linear-gradient(135deg, #10b981, #34d399); }
+        .expert .month-header { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+        .enterprise .month-header { background: linear-gradient(135deg, #dc2626, #ef4444); }
 
-        .week-number {
-            font-size: 3rem;
-            font-weight: bold;
-            opacity: 0.3;
+        .month-badge {
             position: absolute;
+            top: 1rem;
             right: 1rem;
-            top: 0.5rem;
+            background: rgba(255,255,255,0.2);
+            padding: 0.3rem 0.8rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
         }
 
-        .week-title {
-            font-size: 1.3rem;
-            margin-bottom: 0.5rem;
-        }
+        .month-title { font-size: 1.3rem; margin-bottom: 0.3rem; }
+        .month-subtitle { font-size: 0.9rem; opacity: 0.9; }
 
-        .week-subtitle {
-            font-size: 0.9rem;
-            opacity: 0.9;
-        }
-
-        .week-content {
+        .month-content {
             padding: 1.5rem;
         }
 
@@ -248,99 +372,35 @@
             display: flex;
             align-items: center;
             gap: 0.75rem;
-            padding: 0.75rem;
-            margin-bottom: 0.5rem;
+            padding: 0.6rem;
+            margin-bottom: 0.3rem;
             background: var(--bg);
             border-radius: 0.5rem;
+            font-size: 0.9rem;
             transition: background 0.3s;
         }
 
-        .lesson-item:hover {
-            background: rgba(99, 102, 241, 0.2);
-        }
+        .lesson-item:hover { background: rgba(99, 102, 241, 0.2); }
 
-        .lesson-status {
-            width: 24px;
-            height: 24px;
+        .lesson-icon {
+            width: 20px;
+            height: 20px;
             border-radius: 50%;
+            background: var(--bg-card);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             flex-shrink: 0;
         }
 
-        .lesson-status.pending {
-            background: var(--bg-light);
-            border: 2px solid var(--text-muted);
-        }
+        .lesson-icon.done { background: var(--secondary); }
 
-        .lesson-status.completed {
-            background: var(--secondary);
-            color: white;
-        }
-
-        .lesson-status.current {
-            background: var(--primary);
-            color: white;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7); }
-            50% { box-shadow: 0 0 0 10px rgba(99, 102, 241, 0); }
-        }
-
-        /* クイックスタート */
-        .quick-start {
-            background: var(--bg-light);
-            border-radius: 1rem;
-            padding: 2rem;
-            margin-bottom: 3rem;
-        }
-
-        .code-block {
-            background: #0d1117;
-            border-radius: 0.5rem;
-            padding: 1.5rem;
-            margin: 1rem 0;
-            overflow-x: auto;
-            font-family: 'Fira Code', 'Consolas', monospace;
-            font-size: 0.9rem;
-            border: 1px solid #30363d;
-        }
-
-        .code-block code {
-            color: #c9d1d9;
-        }
-
-        .code-comment { color: #8b949e; }
-        .code-keyword { color: #ff7b72; }
-        .code-string { color: #a5d6ff; }
-        .code-function { color: #d2a8ff; }
-        .code-variable { color: #ffa657; }
-
-        .copy-btn {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: background 0.3s;
-        }
-
-        .copy-btn:hover {
-            background: var(--primary-dark);
-        }
-
-        /* ツールパネル */
+        /* ツールグリッド */
         .tools-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 3rem;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
         }
 
         .tool-card {
@@ -348,39 +408,104 @@
             border-radius: 1rem;
             padding: 1.5rem;
             text-align: center;
-            transition: transform 0.3s;
-            cursor: pointer;
             border: 2px solid transparent;
+            transition: all 0.3s;
+            cursor: pointer;
         }
 
         .tool-card:hover {
-            transform: scale(1.02);
             border-color: var(--primary);
+            transform: translateY(-3px);
         }
 
-        .tool-icon {
-            font-size: 3rem;
+        .tool-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+        .tool-name { font-size: 1rem; margin-bottom: 0.3rem; }
+        .tool-desc { font-size: 0.8rem; color: var(--text-muted); }
+
+        /* スキルマップ */
+        .skill-map {
+            background: var(--bg-light);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .skill-categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .skill-category h4 {
+            color: var(--accent);
             margin-bottom: 1rem;
+            font-size: 1rem;
         }
 
-        .tool-name {
-            font-size: 1.2rem;
-            margin-bottom: 0.5rem;
+        .skill-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
         }
 
-        .tool-desc {
-            color: var(--text-muted);
-            font-size: 0.9rem;
+        .skill-bar {
+            flex: 1;
+            height: 8px;
+            background: var(--bg);
+            border-radius: 4px;
+            overflow: hidden;
         }
+
+        .skill-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .skill-name { width: 120px; font-size: 0.85rem; }
+        .skill-level { width: 40px; font-size: 0.8rem; color: var(--text-muted); text-align: right; }
+
+        /* キャリアパス */
+        .career-path {
+            background: linear-gradient(135deg, var(--bg-light), var(--bg-card));
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .career-timeline {
+            display: flex;
+            overflow-x: auto;
+            gap: 1rem;
+            padding: 1rem 0;
+        }
+
+        .career-stage {
+            min-width: 200px;
+            background: var(--bg);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            text-align: center;
+            border: 2px solid var(--bg-card);
+            transition: all 0.3s;
+        }
+
+        .career-stage:hover { border-color: var(--primary); }
+
+        .career-stage.current { border-color: var(--secondary); background: rgba(16, 185, 129, 0.1); }
+
+        .career-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+        .career-title { font-size: 1rem; font-weight: bold; margin-bottom: 0.3rem; }
+        .career-salary { font-size: 0.9rem; color: var(--gold); margin-bottom: 0.5rem; }
+        .career-desc { font-size: 0.8rem; color: var(--text-muted); }
 
         /* モーダル */
         .modal {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0,0,0,0.8);
             z-index: 1000;
             align-items: center;
@@ -388,9 +513,7 @@
             padding: 2rem;
         }
 
-        .modal.active {
-            display: flex;
-        }
+        .modal.active { display: flex; }
 
         .modal-content {
             background: var(--bg-light);
@@ -399,13 +522,11 @@
             width: 100%;
             max-height: 90vh;
             overflow-y: auto;
-            position: relative;
         }
 
         .modal-header {
             background: var(--primary);
             padding: 1.5rem;
-            border-radius: 1rem 1rem 0 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -419,9 +540,7 @@
             cursor: pointer;
         }
 
-        .modal-body {
-            padding: 2rem;
-        }
+        .modal-body { padding: 2rem; }
 
         /* ボタン */
         .btn {
@@ -435,376 +554,427 @@
             cursor: pointer;
             border: none;
             transition: all 0.3s;
+            text-decoration: none;
         }
 
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: var(--primary-dark);
-        }
-
-        .btn-secondary {
-            background: var(--secondary);
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background: #059669;
-        }
-
-        .btn-large {
-            padding: 1rem 2rem;
-            font-size: 1.2rem;
-        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-enterprise { background: var(--enterprise); color: white; }
 
         /* フッター */
         .footer {
             background: var(--bg-light);
-            padding: 2rem;
+            padding: 3rem 2rem;
             text-align: center;
             margin-top: 3rem;
         }
 
-        .footer p {
-            color: var(--text-muted);
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
         }
+
+        .footer-links a { color: var(--text-muted); text-decoration: none; }
+        .footer-links a:hover { color: var(--primary); }
 
         /* レスポンシブ */
         @media (max-width: 768px) {
-            .header h1 {
-                font-size: 1.8rem;
-            }
-
-            .curriculum {
-                grid-template-columns: 1fr;
-            }
-
-            .stats {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        /* アニメーション */
-        .fade-in {
-            animation: fadeIn 0.5s ease forwards;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* ヒントボックス */
-        .hint-box {
-            background: rgba(245, 158, 11, 0.2);
-            border-left: 4px solid var(--accent);
-            padding: 1rem 1.5rem;
-            margin: 1rem 0;
-            border-radius: 0 0.5rem 0.5rem 0;
-        }
-
-        .hint-box h4 {
-            color: var(--accent);
-            margin-bottom: 0.5rem;
-        }
-
-        /* 成功メッセージ */
-        .success-box {
-            background: rgba(16, 185, 129, 0.2);
-            border-left: 4px solid var(--secondary);
-            padding: 1rem 1.5rem;
-            margin: 1rem 0;
-            border-radius: 0 0.5rem 0.5rem 0;
-        }
-
-        .success-box h4 {
-            color: var(--secondary);
-            margin-bottom: 0.5rem;
+            .header h1 { font-size: 2rem; }
+            .nav-links { display: none; }
+            .curriculum-grid { grid-template-columns: 1fr; }
+            .career-timeline { flex-direction: column; }
+            .career-stage { min-width: auto; }
         }
     </style>
 </head>
 <body>
-    <!-- ヘッダー -->
+    <nav class="top-nav">
+        <div class="nav-brand">Playwright マスター道場 Pro</div>
+        <div class="nav-links">
+            <a href="#curriculum">カリキュラム</a>
+            <a href="#skills">スキルマップ</a>
+            <a href="#career">キャリアパス</a>
+            <a href="#tools">ツール</a>
+        </div>
+    </nav>
+
     <header class="header">
-        <span class="robot-icon">🤖</span>
-        <h1>Playwright マスター道場</h1>
-        <p>中学生からはじめる！1ヶ月でブラウザ自動化をマスターしよう</p>
+        <span class="header-badge">EC100億事業対応</span>
+        <h1>Playwright マスター道場 Pro</h1>
+        <p class="header-subtitle">中学生から始めて、EC100億事業を支えるエンジニアへ</p>
+        <p class="header-desc">基礎から始めて、エンタープライズレベルのE2Eテスト・監視・自動化まで。<br>売上100億規模のEC事業で求められるスキルを段階的に習得。</p>
     </header>
 
-    <!-- 進捗セクション -->
-    <section class="progress-section">
-        <div class="progress-header">
-            <h2 class="progress-title">🎮 あなたの学習進捗</h2>
-            <span class="level-badge" id="level-badge">Lv.1 見習い</span>
+    <section class="level-system">
+        <div class="level-header">
+            <div class="current-level">
+                <div class="level-icon" id="level-icon">🌱</div>
+                <div class="level-info">
+                    <h2 id="level-name">Lv.1 見習いエンジニア</h2>
+                    <p id="level-desc">Playwrightの基礎を学習中</p>
+                </div>
+            </div>
+            <div class="salary-indicator">
+                <span>想定年収レンジ</span>
+                <span id="salary-range">300-400万円</span>
+            </div>
         </div>
-        <div class="progress-bar-container">
-            <div class="progress-bar" id="progress-bar">0%</div>
+
+        <div class="progress-track">
+            <div class="track-point completed" title="Lv.1 見習い">1</div>
+            <div class="track-point" title="Lv.2 初級">2</div>
+            <div class="track-point" title="Lv.3 中級">3</div>
+            <div class="track-point" title="Lv.4 上級">4</div>
+            <div class="track-point" title="Lv.5 シニア">5</div>
+            <div class="track-point" title="Lv.6 エキスパート">6</div>
+            <div class="track-point" title="Lv.7 スペシャリスト">7</div>
+            <div class="track-point" title="Lv.8 アーキテクト">8</div>
+            <div class="track-point" title="Lv.9 リード">9</div>
+            <div class="track-point" title="Lv.10 マスター">10</div>
         </div>
-        <div class="stats">
+        <div class="level-labels">
+            <span>見習い</span>
+            <span>初級</span>
+            <span>中級</span>
+            <span>上級</span>
+            <span>シニア</span>
+            <span>Expert</span>
+            <span>Specialist</span>
+            <span>Architect</span>
+            <span>Lead</span>
+            <span>Master</span>
+        </div>
+
+        <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-number" id="lessons-completed">0</div>
-                <div class="stat-label">クリアしたレッスン</div>
+                <div class="stat-label">完了レッスン</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number" id="code-written">0</div>
-                <div class="stat-label">書いたコード行数</div>
+                <div class="stat-number" id="projects-done">0</div>
+                <div class="stat-label">完了プロジェクト</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number" id="exercises-done">0</div>
-                <div class="stat-label">完了した練習問題</div>
+                <div class="stat-number" id="tests-written">0</div>
+                <div class="stat-label">作成テスト数</div>
             </div>
             <div class="stat-card">
                 <div class="stat-number" id="streak-days">0</div>
-                <div class="stat-label">連続学習日数</div>
+                <div class="stat-label">連続学習日</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="skill-points">0</div>
+                <div class="stat-label">スキルポイント</div>
             </div>
         </div>
     </section>
 
-    <!-- メインコンテンツ -->
     <main class="main-content">
-        <!-- クイックスタート -->
-        <section class="quick-start fade-in">
-            <h2 class="section-title">⚡ 5分でスタート！セットアップガイド</h2>
+        <!-- コースタブ -->
+        <div class="course-tabs">
+            <button class="course-tab active" onclick="showCourse('beginner')">初級コース</button>
+            <button class="course-tab" onclick="showCourse('intermediate')">中級コース</button>
+            <button class="course-tab" onclick="showCourse('advanced')">上級コース</button>
+            <button class="course-tab enterprise" onclick="showCourse('enterprise')">エンタープライズ</button>
+            <button class="course-tab enterprise" onclick="showCourse('ec')">EC特化コース</button>
+        </div>
 
-            <div class="hint-box">
-                <h4>💡 まずはここから！</h4>
-                <p>Playwrightを使うには、まずNode.jsをインストールする必要があります。下のコマンドを順番に実行してね！</p>
+        <!-- カリキュラム -->
+        <section id="curriculum">
+            <div class="section-header">
+                <h2 class="section-title">📚 カリキュラム</h2>
+                <span class="section-badge">全60+レッスン</span>
             </div>
 
-            <h3>ステップ1: Node.jsをインストール</h3>
-            <p>Node.jsの公式サイト（<a href="https://nodejs.org" target="_blank" style="color: var(--primary);">https://nodejs.org</a>）からLTS版をダウンロードしてインストールしてね。</p>
+            <div class="curriculum-grid" id="curriculum-content">
+                <!-- 初級コース -->
+                <div class="month-card beginner" onclick="openMonth('month1')">
+                    <div class="month-header">
+                        <span class="month-badge">Month 1</span>
+                        <h3 class="month-title">基礎マスター</h3>
+                        <p class="month-subtitle">Playwrightの基本操作</p>
+                    </div>
+                    <div class="month-content">
+                        <ul class="lesson-list">
+                            <li class="lesson-item"><span class="lesson-icon done">✓</span>プログラミング基礎</li>
+                            <li class="lesson-item"><span class="lesson-icon">○</span>ブラウザ操作の基本</li>
+                            <li class="lesson-item"><span class="lesson-icon">○</span>要素の操作（クリック・入力）</li>
+                            <li class="lesson-item"><span class="lesson-icon">○</span>待機処理と同期</li>
+                            <li class="lesson-item"><span class="lesson-icon">○</span>スクリーンショット・PDF</li>
+                        </ul>
+                    </div>
+                </div>
 
-            <h3 style="margin-top: 1.5rem;">ステップ2: プロジェクトを作成</h3>
-            <div class="code-block">
-                <button class="copy-btn" onclick="copyCode(this)">📋 コピー</button>
-                <code>
-<span class="code-comment"># フォルダを作成して移動</span>
-mkdir my-first-automation
-cd my-first-automation
+                <div class="month-card intermediate" onclick="openMonth('month2')">
+                    <div class="month-header">
+                        <span class="month-badge">Month 2</span>
+                        <h3 class="month-title">テスト設計</h3>
+                        <p class="month-subtitle">構造化されたテストコード</p>
+                    </div>
+                    <div class="month-content">
+                        <ul class="lesson-list">
+                            <li class="lesson-item"><span class="lesson-icon">○</span>Page Object Model (POM)</li>
+                            <li class="lesson-item"><span class="lesson-icon">○</span>Fixtureパターン</li>
+                            <li class="lesson-item"><span class="lesson-icon">○</span>テストデータ管理</li>
+                            <li class="lesson-item"><span class="lesson-icon">○</span>環境別設定</li>
+                            <li class="lesson-item"><span class="lesson-icon">○</span>レポーティング</li>
+                        </ul>
+                    </div>
+                </div>
 
-<span class="code-comment"># プロジェクトを初期化</span>
-npm init -y
+                <div class="month-card advanced" onclick="openMonth('month3')">
+                    <div class="month-header">
+                        <span class="month-badge">Month 3</span>
+                        <h3 class="month-title">CI/CD統合</h3>
+                        <p class="month-subtitle">自動化パイプライン構築</p>
+                    </div>
+                    <div class="month-content">
+                        <ul class="lesson-list">
+                            <li class="lesson-item"><span class="lesson-icon">○</span>GitHub Actions連携</li>
+                            <li class="lesson-item"><span class="lesson-icon">○</span>並列実行・シャーディング</li>
+                            <li class="lesson-item"><span class="lesson-icon">○</span>Visual Regression Testing</li>
+                            <li class="lesson-item"><span class="lesson-icon">○</span>テスト戦略設計</li>
+                            <li class="lesson-item"><span class="lesson-icon">○</span>障害分析・改善</li>
+                        </ul>
+                    </div>
+                </div>
 
-<span class="code-comment"># Playwrightをインストール</span>
-npm install playwright
-                </code>
-            </div>
-
-            <h3>ステップ3: はじめてのスクリプトを作成</h3>
-            <div class="code-block">
-                <button class="copy-btn" onclick="copyCode(this)">📋 コピー</button>
-                <code>
-<span class="code-comment">// hello-playwright.js</span>
-<span class="code-keyword">const</span> { chromium } = <span class="code-function">require</span>(<span class="code-string">'playwright'</span>);
-
-(<span class="code-keyword">async</span> () => {
-    <span class="code-comment">// ブラウザを起動（headless: false で画面表示）</span>
-    <span class="code-keyword">const</span> browser = <span class="code-keyword">await</span> chromium.<span class="code-function">launch</span>({
-        <span class="code-variable">headless</span>: <span class="code-keyword">false</span>
-    });
-
-    <span class="code-comment">// 新しいページを開く</span>
-    <span class="code-keyword">const</span> page = <span class="code-keyword">await</span> browser.<span class="code-function">newPage</span>();
-
-    <span class="code-comment">// Googleにアクセス</span>
-    <span class="code-keyword">await</span> page.<span class="code-function">goto</span>(<span class="code-string">'https://www.google.com'</span>);
-
-    <span class="code-comment">// 3秒待つ（結果を見るため）</span>
-    <span class="code-keyword">await</span> page.<span class="code-function">waitForTimeout</span>(3000);
-
-    <span class="code-comment">// ブラウザを閉じる</span>
-    <span class="code-keyword">await</span> browser.<span class="code-function">close</span>();
-
-    console.<span class="code-function">log</span>(<span class="code-string">'🎉 おめでとう！はじめてのPlaywrightが動いたよ！'</span>);
-})();
-                </code>
-            </div>
-
-            <h3>ステップ4: 実行してみよう！</h3>
-            <div class="code-block">
-                <button class="copy-btn" onclick="copyCode(this)">📋 コピー</button>
-                <code>node hello-playwright.js</code>
-            </div>
-
-            <div class="success-box">
-                <h4>✨ 成功！</h4>
-                <p>ブラウザが自動で開いてGoogleにアクセスしたら成功だよ！これであなたもPlaywright使いの仲間入り！</p>
+                <div class="month-card enterprise" onclick="openMonth('month4')">
+                    <div class="month-header">
+                        <span class="month-badge">Month 4-6</span>
+                        <h3 class="month-title">エンタープライズ</h3>
+                        <p class="month-subtitle">大規模システム対応</p>
+                    </div>
+                    <div class="month-content">
+                        <ul class="lesson-list">
+                            <li class="lesson-item"><span class="lesson-icon">○</span>本番監視・合成監視</li>
+                            <li class="lesson-item"><span class="lesson-icon">○</span>パフォーマンステスト</li>
+                            <li class="lesson-item"><span class="lesson-icon">○</span>セキュリティテスト基礎</li>
+                            <li class="lesson-item"><span class="lesson-icon">○</span>マイクロサービス対応</li>
+                            <li class="lesson-item"><span class="lesson-icon">○</span>チーム運用・ガバナンス</li>
+                        </ul>
+                    </div>
+                </div>
             </div>
         </section>
 
-        <!-- 週間カリキュラム -->
-        <h2 class="section-title">📚 4週間マスターカリキュラム</h2>
-        <div class="curriculum">
-            <!-- Week 1 -->
-            <div class="week-card week-1 active" onclick="openLesson('week1')">
-                <div class="week-header">
-                    <span class="week-number">01</span>
-                    <h3 class="week-title">Week 1: 基礎をマスター</h3>
-                    <p class="week-subtitle">プログラミングとPlaywrightの基本</p>
+        <!-- EC特化カリキュラム（非表示） -->
+        <div id="ec-curriculum" style="display: none;">
+            <div class="curriculum-grid">
+                <div class="month-card enterprise" onclick="openMonth('ec1')">
+                    <div class="month-header">
+                        <span class="month-badge">EC基礎</span>
+                        <h3 class="month-title">ECサイトテスト基礎</h3>
+                        <p class="month-subtitle">購買フロー完全網羅</p>
+                    </div>
+                    <div class="month-content">
+                        <ul class="lesson-list">
+                            <li class="lesson-item"><span class="lesson-icon">○</span>商品検索・絞り込みテスト</li>
+                            <li class="lesson-item"><span class="lesson-icon">○</span>カート操作テスト</li>
+                            <li class="lesson-item"><span class="lesson-icon">○</span>会員登録・ログインテスト</li>
+                            <li class="lesson-item"><span class="lesson-icon">○</span>決済フローテスト</li>
+                            <li class="lesson-item"><span class="lesson-icon">○</span>注文完了〜メール確認</li>
+                        </ul>
+                    </div>
                 </div>
-                <div class="week-content">
-                    <ul class="lesson-list">
-                        <li class="lesson-item">
-                            <span class="lesson-status current">▶</span>
-                            プログラミングって何？
-                        </li>
-                        <li class="lesson-item">
-                            <span class="lesson-status pending"></span>
-                            Playwrightのしくみを理解しよう
-                        </li>
-                        <li class="lesson-item">
-                            <span class="lesson-status pending"></span>
-                            ブラウザを操作してみよう
-                        </li>
-                        <li class="lesson-item">
-                            <span class="lesson-status pending"></span>
-                            ページを移動してみよう
-                        </li>
-                        <li class="lesson-item">
-                            <span class="lesson-status pending"></span>
-                            スクリーンショットを撮ろう
-                        </li>
-                    </ul>
-                </div>
-            </div>
 
-            <!-- Week 2 -->
-            <div class="week-card week-2" onclick="openLesson('week2')">
-                <div class="week-header">
-                    <span class="week-number">02</span>
-                    <h3 class="week-title">Week 2: 要素を操作</h3>
-                    <p class="week-subtitle">クリック・入力・取得をマスター</p>
+                <div class="month-card enterprise" onclick="openMonth('ec2')">
+                    <div class="month-header">
+                        <span class="month-badge">EC応用</span>
+                        <h3 class="month-title">高度なECテスト</h3>
+                        <p class="month-subtitle">売上100億を支える品質</p>
+                    </div>
+                    <div class="month-content">
+                        <ul class="lesson-list">
+                            <li class="lesson-item"><span class="lesson-icon">○</span>在庫連動テスト</li>
+                            <li class="lesson-item"><span class="lesson-icon">○</span>クーポン・キャンペーン</li>
+                            <li class="lesson-item"><span class="lesson-icon">○</span>ポイント計算テスト</li>
+                            <li class="lesson-item"><span class="lesson-icon">○</span>配送料・日時計算</li>
+                            <li class="lesson-item"><span class="lesson-icon">○</span>外部API連携テスト</li>
+                        </ul>
+                    </div>
                 </div>
-                <div class="week-content">
-                    <ul class="lesson-list">
-                        <li class="lesson-item">
-                            <span class="lesson-status pending"></span>
-                            ボタンをクリックしよう
-                        </li>
-                        <li class="lesson-item">
-                            <span class="lesson-status pending"></span>
-                            テキストを入力しよう
-                        </li>
-                        <li class="lesson-item">
-                            <span class="lesson-status pending"></span>
-                            要素を見つける方法（セレクタ）
-                        </li>
-                        <li class="lesson-item">
-                            <span class="lesson-status pending"></span>
-                            ページの情報を取得しよう
-                        </li>
-                        <li class="lesson-item">
-                            <span class="lesson-status pending"></span>
-                            フォームを自動入力しよう
-                        </li>
-                    </ul>
-                </div>
-            </div>
 
-            <!-- Week 3 -->
-            <div class="week-card week-3" onclick="openLesson('week3')">
-                <div class="week-header">
-                    <span class="week-number">03</span>
-                    <h3 class="week-title">Week 3: 実践テクニック</h3>
-                    <p class="week-subtitle">待機・条件分岐・繰り返し</p>
-                </div>
-                <div class="week-content">
-                    <ul class="lesson-list">
-                        <li class="lesson-item">
-                            <span class="lesson-status pending"></span>
-                            待機処理を理解しよう
-                        </li>
-                        <li class="lesson-item">
-                            <span class="lesson-status pending"></span>
-                            条件によって動きを変えよう
-                        </li>
-                        <li class="lesson-item">
-                            <span class="lesson-status pending"></span>
-                            繰り返し処理をマスター
-                        </li>
-                        <li class="lesson-item">
-                            <span class="lesson-status pending"></span>
-                            エラーに対処しよう
-                        </li>
-                        <li class="lesson-item">
-                            <span class="lesson-status pending"></span>
-                            データを保存しよう
-                        </li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- Week 4 -->
-            <div class="week-card week-4" onclick="openLesson('week4')">
-                <div class="week-header">
-                    <span class="week-number">04</span>
-                    <h3 class="week-title">Week 4: プロジェクト実践</h3>
-                    <p class="week-subtitle">実際のプロジェクトを作ろう</p>
-                </div>
-                <div class="week-content">
-                    <ul class="lesson-list">
-                        <li class="lesson-item">
-                            <span class="lesson-status pending"></span>
-                            天気情報を自動取得
-                        </li>
-                        <li class="lesson-item">
-                            <span class="lesson-status pending"></span>
-                            画像を一括ダウンロード
-                        </li>
-                        <li class="lesson-item">
-                            <span class="lesson-status pending"></span>
-                            フォーム自動テスト
-                        </li>
-                        <li class="lesson-item">
-                            <span class="lesson-status pending"></span>
-                            定期実行の設定
-                        </li>
-                        <li class="lesson-item">
-                            <span class="lesson-status pending"></span>
-                            オリジナルプロジェクト発表
-                        </li>
-                    </ul>
+                <div class="month-card enterprise" onclick="openMonth('ec3')">
+                    <div class="month-header">
+                        <span class="month-badge">EC運用</span>
+                        <h3 class="month-title">EC本番運用</h3>
+                        <p class="month-subtitle">24/365監視体制</p>
+                    </div>
+                    <div class="month-content">
+                        <ul class="lesson-list">
+                            <li class="lesson-item"><span class="lesson-icon">○</span>合成監視（Synthetic）</li>
+                            <li class="lesson-item"><span class="lesson-icon">○</span>セール時負荷対策</li>
+                            <li class="lesson-item"><span class="lesson-icon">○</span>障害検知・アラート</li>
+                            <li class="lesson-item"><span class="lesson-icon">○</span>A/Bテスト品質保証</li>
+                            <li class="lesson-item"><span class="lesson-icon">○</span>リリース前回帰テスト</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- ツールパネル -->
-        <h2 class="section-title">🛠️ 学習ツール</h2>
-        <div class="tools-grid">
-            <div class="tool-card" onclick="openTool('playground')">
-                <div class="tool-icon">💻</div>
-                <h3 class="tool-name">コードプレイグラウンド</h3>
-                <p class="tool-desc">ブラウザ上でコードを書いて試せる！</p>
+        <!-- スキルマップ -->
+        <section id="skills" class="skill-map">
+            <div class="section-header">
+                <h2 class="section-title">📊 スキルマップ</h2>
             </div>
-            <div class="tool-card" onclick="openTool('selector')">
-                <div class="tool-icon">🎯</div>
-                <h3 class="tool-name">セレクタ練習場</h3>
-                <p class="tool-desc">要素の見つけ方を練習しよう</p>
+            <div class="skill-categories">
+                <div class="skill-category">
+                    <h4>🔧 基礎スキル</h4>
+                    <div class="skill-item">
+                        <span class="skill-name">JavaScript</span>
+                        <div class="skill-bar"><div class="skill-fill" style="width: 20%"></div></div>
+                        <span class="skill-level">20%</span>
+                    </div>
+                    <div class="skill-item">
+                        <span class="skill-name">セレクタ</span>
+                        <div class="skill-bar"><div class="skill-fill" style="width: 15%"></div></div>
+                        <span class="skill-level">15%</span>
+                    </div>
+                    <div class="skill-item">
+                        <span class="skill-name">非同期処理</span>
+                        <div class="skill-bar"><div class="skill-fill" style="width: 10%"></div></div>
+                        <span class="skill-level">10%</span>
+                    </div>
+                </div>
+                <div class="skill-category">
+                    <h4>🏗️ 設計スキル</h4>
+                    <div class="skill-item">
+                        <span class="skill-name">POM</span>
+                        <div class="skill-bar"><div class="skill-fill" style="width: 0%"></div></div>
+                        <span class="skill-level">0%</span>
+                    </div>
+                    <div class="skill-item">
+                        <span class="skill-name">Fixture</span>
+                        <div class="skill-bar"><div class="skill-fill" style="width: 0%"></div></div>
+                        <span class="skill-level">0%</span>
+                    </div>
+                    <div class="skill-item">
+                        <span class="skill-name">テスト戦略</span>
+                        <div class="skill-bar"><div class="skill-fill" style="width: 0%"></div></div>
+                        <span class="skill-level">0%</span>
+                    </div>
+                </div>
+                <div class="skill-category">
+                    <h4>🚀 DevOps</h4>
+                    <div class="skill-item">
+                        <span class="skill-name">CI/CD</span>
+                        <div class="skill-bar"><div class="skill-fill" style="width: 0%"></div></div>
+                        <span class="skill-level">0%</span>
+                    </div>
+                    <div class="skill-item">
+                        <span class="skill-name">Docker</span>
+                        <div class="skill-bar"><div class="skill-fill" style="width: 0%"></div></div>
+                        <span class="skill-level">0%</span>
+                    </div>
+                    <div class="skill-item">
+                        <span class="skill-name">監視</span>
+                        <div class="skill-bar"><div class="skill-fill" style="width: 0%"></div></div>
+                        <span class="skill-level">0%</span>
+                    </div>
+                </div>
+                <div class="skill-category">
+                    <h4>🛒 EC専門</h4>
+                    <div class="skill-item">
+                        <span class="skill-name">決済テスト</span>
+                        <div class="skill-bar"><div class="skill-fill" style="width: 0%"></div></div>
+                        <span class="skill-level">0%</span>
+                    </div>
+                    <div class="skill-item">
+                        <span class="skill-name">在庫連携</span>
+                        <div class="skill-bar"><div class="skill-fill" style="width: 0%"></div></div>
+                        <span class="skill-level">0%</span>
+                    </div>
+                    <div class="skill-item">
+                        <span class="skill-name">負荷対策</span>
+                        <div class="skill-bar"><div class="skill-fill" style="width: 0%"></div></div>
+                        <span class="skill-level">0%</span>
+                    </div>
+                </div>
             </div>
-            <div class="tool-card" onclick="openTool('quiz')">
-                <div class="tool-icon">❓</div>
-                <h3 class="tool-name">クイズチャレンジ</h3>
-                <p class="tool-desc">学んだことをクイズで確認！</p>
+        </section>
+
+        <!-- キャリアパス -->
+        <section id="career" class="career-path">
+            <div class="section-header">
+                <h2 class="section-title">🎯 キャリアパス</h2>
             </div>
-            <div class="tool-card" onclick="openTool('reference')">
-                <div class="tool-icon">📖</div>
-                <h3 class="tool-name">コマンド辞典</h3>
-                <p class="tool-desc">よく使うコマンドをすぐ調べられる</p>
+            <div class="career-timeline">
+                <div class="career-stage current">
+                    <div class="career-icon">🌱</div>
+                    <div class="career-title">ジュニア</div>
+                    <div class="career-salary">300-450万</div>
+                    <div class="career-desc">基礎習得<br>テスト作成補助</div>
+                </div>
+                <div class="career-stage">
+                    <div class="career-icon">💻</div>
+                    <div class="career-title">ミドル</div>
+                    <div class="career-salary">450-600万</div>
+                    <div class="career-desc">独力でテスト設計<br>CI/CD構築</div>
+                </div>
+                <div class="career-stage">
+                    <div class="career-icon">⚡</div>
+                    <div class="career-title">シニア</div>
+                    <div class="career-salary">600-800万</div>
+                    <div class="career-desc">テスト戦略策定<br>チーム指導</div>
+                </div>
+                <div class="career-stage">
+                    <div class="career-icon">🏆</div>
+                    <div class="career-title">リード</div>
+                    <div class="career-salary">800-1000万</div>
+                    <div class="career-desc">QA組織設計<br>技術選定</div>
+                </div>
+                <div class="career-stage">
+                    <div class="career-icon">👑</div>
+                    <div class="career-title">アーキテクト</div>
+                    <div class="career-salary">1000-1500万</div>
+                    <div class="career-desc">全社テスト戦略<br>100億EC品質保証</div>
+                </div>
             </div>
-            <div class="tool-card" onclick="openTool('examples')">
-                <div class="tool-icon">📁</div>
-                <h3 class="tool-name">サンプル集</h3>
-                <p class="tool-desc">コピペで使えるサンプルコード</p>
+        </section>
+
+        <!-- ツール -->
+        <section id="tools">
+            <div class="section-header">
+                <h2 class="section-title">🛠️ 学習ツール</h2>
             </div>
-            <div class="tool-card" onclick="openTool('debug')">
-                <div class="tool-icon">🔍</div>
-                <h3 class="tool-name">デバッグガイド</h3>
-                <p class="tool-desc">エラーの解決方法を学ぼう</p>
+            <div class="tools-grid">
+                <div class="tool-card" onclick="location.href='playground.html'">
+                    <div class="tool-icon">💻</div>
+                    <h3 class="tool-name">コードプレイグラウンド</h3>
+                    <p class="tool-desc">インタラクティブにコード練習</p>
+                </div>
+                <div class="tool-card" onclick="location.href='lessons/reference.html'">
+                    <div class="tool-icon">📖</div>
+                    <h3 class="tool-name">APIリファレンス</h3>
+                    <p class="tool-desc">コマンド検索・逆引き</p>
+                </div>
+                <div class="tool-card" onclick="location.href='examples/index.html'">
+                    <div class="tool-icon">📁</div>
+                    <h3 class="tool-name">サンプル集</h3>
+                    <p class="tool-desc">コピペで使えるコード</p>
+                </div>
+                <div class="tool-card" onclick="location.href='advanced/pom-generator.html'">
+                    <div class="tool-icon">🏗️</div>
+                    <h3 class="tool-name">POMジェネレータ</h3>
+                    <p class="tool-desc">PageObjectを自動生成</p>
+                </div>
+                <div class="tool-card" onclick="location.href='advanced/ci-templates.html'">
+                    <div class="tool-icon">🔄</div>
+                    <h3 class="tool-name">CI/CDテンプレート</h3>
+                    <p class="tool-desc">GitHub Actions設定集</p>
+                </div>
+                <div class="tool-card" onclick="location.href='ec/test-scenarios.html'">
+                    <div class="tool-icon">🛒</div>
+                    <h3 class="tool-name">ECテストシナリオ</h3>
+                    <p class="tool-desc">EC特化テストケース</p>
+                </div>
             </div>
-        </div>
+        </section>
     </main>
 
     <!-- モーダル -->
@@ -814,241 +984,206 @@ npm install playwright
                 <h2 id="modal-title">レッスン</h2>
                 <button class="modal-close" onclick="closeModal()">&times;</button>
             </div>
-            <div class="modal-body" id="modal-body">
-                <!-- コンテンツがここに動的に入る -->
-            </div>
+            <div class="modal-body" id="modal-body"></div>
         </div>
     </div>
 
-    <!-- フッター -->
     <footer class="footer">
-        <p>🚀 Playwright マスター道場 - 中学生からはじめるブラウザ自動化</p>
-        <p style="margin-top: 0.5rem;">Made with ❤️ for Future Engineers</p>
+        <div class="footer-links">
+            <a href="lessons/week1-lesson1.html">初級レッスン</a>
+            <a href="advanced/index.html">上級コース</a>
+            <a href="ec/index.html">EC特化</a>
+            <a href="playground.html">プレイグラウンド</a>
+        </div>
+        <p style="color: var(--text-muted);">Playwright マスター道場 Pro - EC100億事業を支えるエンジニアを育成</p>
     </footer>
 
     <script>
-        // ローカルストレージから進捗を読み込み
-        let progress = JSON.parse(localStorage.getItem('playwright-progress')) || {
+        // 進捗データ
+        let progress = JSON.parse(localStorage.getItem('playwright-pro-progress')) || {
+            level: 1,
             lessonsCompleted: 0,
-            codeWritten: 0,
-            exercisesDone: 0,
+            projectsDone: 0,
+            testsWritten: 0,
             streakDays: 0,
-            currentWeek: 1,
-            currentLesson: 1,
-            completedLessons: []
+            skillPoints: 0,
+            completedLessons: [],
+            skills: {
+                javascript: 20, selector: 15, async: 10,
+                pom: 0, fixture: 0, strategy: 0,
+                cicd: 0, docker: 0, monitoring: 0,
+                payment: 0, inventory: 0, loadtest: 0
+            }
         };
 
-        // 進捗を更新
-        function updateProgress() {
-            const totalLessons = 20;
-            const percentage = Math.round((progress.lessonsCompleted / totalLessons) * 100);
+        const levels = [
+            { name: '見習いエンジニア', icon: '🌱', salary: '300-400万円', desc: 'Playwrightの基礎を学習中' },
+            { name: '初級エンジニア', icon: '📘', salary: '350-450万円', desc: '基本的なテストが書ける' },
+            { name: '中級エンジニア', icon: '💻', salary: '400-550万円', desc: 'POMを使った設計ができる' },
+            { name: '上級エンジニア', icon: '⚡', salary: '500-650万円', desc: 'CI/CD構築ができる' },
+            { name: 'シニアエンジニア', icon: '🔥', salary: '600-800万円', desc: 'テスト戦略を策定できる' },
+            { name: 'エキスパート', icon: '💎', salary: '700-900万円', desc: 'エンタープライズ対応' },
+            { name: 'スペシャリスト', icon: '🎯', salary: '800-1000万円', desc: 'EC専門テスト設計' },
+            { name: 'アーキテクト', icon: '🏛️', salary: '900-1200万円', desc: '全社テスト基盤設計' },
+            { name: 'テックリード', icon: '👑', salary: '1000-1300万円', desc: 'QAチームをリード' },
+            { name: 'マスター', icon: '🏆', salary: '1200-1500万円', desc: '100億EC品質保証' }
+        ];
 
-            document.getElementById('progress-bar').style.width = percentage + '%';
-            document.getElementById('progress-bar').textContent = percentage + '%';
+        function updateUI() {
+            const level = levels[progress.level - 1];
+            document.getElementById('level-icon').textContent = level.icon;
+            document.getElementById('level-name').textContent = `Lv.${progress.level} ${level.name}`;
+            document.getElementById('level-desc').textContent = level.desc;
+            document.getElementById('salary-range').textContent = level.salary;
+
             document.getElementById('lessons-completed').textContent = progress.lessonsCompleted;
-            document.getElementById('code-written').textContent = progress.codeWritten;
-            document.getElementById('exercises-done').textContent = progress.exercisesDone;
+            document.getElementById('projects-done').textContent = progress.projectsDone;
+            document.getElementById('tests-written').textContent = progress.testsWritten;
             document.getElementById('streak-days').textContent = progress.streakDays;
+            document.getElementById('skill-points').textContent = progress.skillPoints;
 
-            // レベル更新
-            let level = 'Lv.1 見習い';
-            if (percentage >= 25) level = 'Lv.2 初心者';
-            if (percentage >= 50) level = 'Lv.3 中級者';
-            if (percentage >= 75) level = 'Lv.4 上級者';
-            if (percentage >= 100) level = 'Lv.5 マスター';
-            document.getElementById('level-badge').textContent = level;
+            // 進捗ポイント更新
+            document.querySelectorAll('.track-point').forEach((point, i) => {
+                point.classList.remove('completed', 'current');
+                if (i < progress.level - 1) point.classList.add('completed');
+                if (i === progress.level - 1) point.classList.add('current');
+            });
 
-            localStorage.setItem('playwright-progress', JSON.stringify(progress));
+            localStorage.setItem('playwright-pro-progress', JSON.stringify(progress));
         }
 
-        // レッスンを開く
-        function openLesson(week) {
+        function showCourse(course) {
+            document.querySelectorAll('.course-tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+
+            const main = document.getElementById('curriculum-content');
+            const ec = document.getElementById('ec-curriculum');
+
+            if (course === 'ec') {
+                main.style.display = 'none';
+                ec.style.display = 'block';
+            } else {
+                main.style.display = 'grid';
+                ec.style.display = 'none';
+            }
+        }
+
+        function openMonth(month) {
             const modal = document.getElementById('lesson-modal');
             const title = document.getElementById('modal-title');
             const body = document.getElementById('modal-body');
 
-            const lessons = {
-                week1: {
-                    title: 'Week 1: 基礎をマスター',
-                    content: `
-                        <h3>🎯 この週の目標</h3>
-                        <p>プログラミングの基本とPlaywrightの仕組みを理解して、はじめてのブラウザ自動化を体験しよう！</p>
-
-                        <h3 style="margin-top: 1.5rem;">📝 レッスン一覧</h3>
-                        <div style="margin-top: 1rem;">
-                            <a href="lessons/week1-lesson1.html" class="btn btn-primary" style="margin: 0.5rem 0; display: block; text-align: center; text-decoration: none;">
-                                レッスン1: プログラミングって何？
-                            </a>
-                            <a href="lessons/week1-lesson2.html" class="btn btn-primary" style="margin: 0.5rem 0; display: block; text-align: center; text-decoration: none;">
-                                レッスン2: Playwrightのしくみ
-                            </a>
-                            <a href="lessons/week1-lesson3.html" class="btn btn-primary" style="margin: 0.5rem 0; display: block; text-align: center; text-decoration: none;">
-                                レッスン3: ブラウザを操作しよう
-                            </a>
-                            <a href="lessons/week1-lesson4.html" class="btn btn-primary" style="margin: 0.5rem 0; display: block; text-align: center; text-decoration: none;">
-                                レッスン4: ページを移動しよう
-                            </a>
-                            <a href="lessons/week1-lesson5.html" class="btn btn-primary" style="margin: 0.5rem 0; display: block; text-align: center; text-decoration: none;">
-                                レッスン5: スクリーンショットを撮ろう
-                            </a>
-                        </div>
-
-                        <div class="hint-box" style="margin-top: 1.5rem;">
-                            <h4>💡 ヒント</h4>
-                            <p>わからないことがあっても大丈夫！一つずつゆっくり進めていこう。</p>
+            const content = {
+                month1: {
+                    title: 'Month 1: 基礎マスター',
+                    html: `
+                        <h3>🎯 このコースの目標</h3>
+                        <p>Playwrightの基本操作を完全にマスターし、簡単なテストスクリプトを書けるようになる。</p>
+                        <h3 style="margin-top:1.5rem">📝 レッスン一覧</h3>
+                        <div style="margin-top:1rem">
+                            <a href="lessons/week1-lesson1.html" class="btn btn-primary" style="margin:0.5rem 0;display:block;text-decoration:none">Week1: プログラミング基礎</a>
+                            <a href="lessons/week1-lesson3.html" class="btn btn-primary" style="margin:0.5rem 0;display:block;text-decoration:none">Week1: ブラウザ操作</a>
+                            <a href="lessons/week2-lesson1.html" class="btn btn-primary" style="margin:0.5rem 0;display:block;text-decoration:none">Week2: クリック・入力</a>
+                            <a href="lessons/week2-lesson3.html" class="btn btn-primary" style="margin:0.5rem 0;display:block;text-decoration:none">Week2: セレクタ</a>
+                            <a href="lessons/week3-lesson1.html" class="btn btn-primary" style="margin:0.5rem 0;display:block;text-decoration:none">Week3: 待機処理</a>
                         </div>
                     `
                 },
-                week2: {
-                    title: 'Week 2: 要素を操作',
-                    content: `
-                        <h3>🎯 この週の目標</h3>
-                        <p>ボタンのクリック、テキストの入力、情報の取得など、Webページの要素を自在に操作できるようになろう！</p>
-
-                        <h3 style="margin-top: 1.5rem;">📝 レッスン一覧</h3>
-                        <div style="margin-top: 1rem;">
-                            <a href="lessons/week2-lesson1.html" class="btn btn-primary" style="margin: 0.5rem 0; display: block; text-align: center; text-decoration: none;">
-                                レッスン1: ボタンをクリックしよう
-                            </a>
-                            <a href="lessons/week2-lesson2.html" class="btn btn-primary" style="margin: 0.5rem 0; display: block; text-align: center; text-decoration: none;">
-                                レッスン2: テキストを入力しよう
-                            </a>
-                            <a href="lessons/week2-lesson3.html" class="btn btn-primary" style="margin: 0.5rem 0; display: block; text-align: center; text-decoration: none;">
-                                レッスン3: セレクタをマスター
-                            </a>
-                            <a href="lessons/week2-lesson4.html" class="btn btn-primary" style="margin: 0.5rem 0; display: block; text-align: center; text-decoration: none;">
-                                レッスン4: ページ情報を取得
-                            </a>
-                            <a href="lessons/week2-lesson5.html" class="btn btn-primary" style="margin: 0.5rem 0; display: block; text-align: center; text-decoration: none;">
-                                レッスン5: フォーム自動入力
-                            </a>
+                month2: {
+                    title: 'Month 2: テスト設計',
+                    html: `
+                        <h3>🎯 このコースの目標</h3>
+                        <p>Page Object Modelを使った保守性の高いテストコードを書けるようになる。</p>
+                        <h3 style="margin-top:1.5rem">📝 レッスン一覧</h3>
+                        <div style="margin-top:1rem">
+                            <a href="advanced/pom-basics.html" class="btn btn-primary" style="margin:0.5rem 0;display:block;text-decoration:none">POMの基礎</a>
+                            <a href="advanced/fixture-pattern.html" class="btn btn-primary" style="margin:0.5rem 0;display:block;text-decoration:none">Fixtureパターン</a>
+                            <a href="advanced/test-data.html" class="btn btn-primary" style="margin:0.5rem 0;display:block;text-decoration:none">テストデータ管理</a>
+                            <a href="advanced/config-management.html" class="btn btn-primary" style="margin:0.5rem 0;display:block;text-decoration:none">環境別設定</a>
+                            <a href="advanced/reporting.html" class="btn btn-primary" style="margin:0.5rem 0;display:block;text-decoration:none">レポーティング</a>
                         </div>
                     `
                 },
-                week3: {
-                    title: 'Week 3: 実践テクニック',
-                    content: `
-                        <h3>🎯 この週の目標</h3>
-                        <p>待機処理、条件分岐、繰り返しなど、実践的なテクニックを身につけよう！</p>
-
-                        <h3 style="margin-top: 1.5rem;">📝 レッスン一覧</h3>
-                        <div style="margin-top: 1rem;">
-                            <a href="lessons/week3-lesson1.html" class="btn btn-primary" style="margin: 0.5rem 0; display: block; text-align: center; text-decoration: none;">
-                                レッスン1: 待機処理を理解しよう
-                            </a>
-                            <a href="lessons/week3-lesson2.html" class="btn btn-primary" style="margin: 0.5rem 0; display: block; text-align: center; text-decoration: none;">
-                                レッスン2: 条件分岐
-                            </a>
-                            <a href="lessons/week3-lesson3.html" class="btn btn-primary" style="margin: 0.5rem 0; display: block; text-align: center; text-decoration: none;">
-                                レッスン3: 繰り返し処理
-                            </a>
-                            <a href="lessons/week3-lesson4.html" class="btn btn-primary" style="margin: 0.5rem 0; display: block; text-align: center; text-decoration: none;">
-                                レッスン4: エラー対処
-                            </a>
-                            <a href="lessons/week3-lesson5.html" class="btn btn-primary" style="margin: 0.5rem 0; display: block; text-align: center; text-decoration: none;">
-                                レッスン5: データ保存
-                            </a>
+                month3: {
+                    title: 'Month 3: CI/CD統合',
+                    html: `
+                        <h3>🎯 このコースの目標</h3>
+                        <p>GitHub Actionsと連携し、自動テストパイプラインを構築できるようになる。</p>
+                        <h3 style="margin-top:1.5rem">📝 レッスン一覧</h3>
+                        <div style="margin-top:1rem">
+                            <a href="advanced/github-actions.html" class="btn btn-primary" style="margin:0.5rem 0;display:block;text-decoration:none">GitHub Actions入門</a>
+                            <a href="advanced/parallel-testing.html" class="btn btn-primary" style="margin:0.5rem 0;display:block;text-decoration:none">並列実行・シャーディング</a>
+                            <a href="advanced/visual-regression.html" class="btn btn-primary" style="margin:0.5rem 0;display:block;text-decoration:none">Visual Regression</a>
+                            <a href="advanced/test-strategy.html" class="btn btn-primary" style="margin:0.5rem 0;display:block;text-decoration:none">テスト戦略設計</a>
                         </div>
                     `
                 },
-                week4: {
-                    title: 'Week 4: プロジェクト実践',
-                    content: `
-                        <h3>🎯 この週の目標</h3>
-                        <p>学んだことを活かして、実際に役立つプロジェクトを作ろう！</p>
-
-                        <h3 style="margin-top: 1.5rem;">📝 レッスン一覧</h3>
-                        <div style="margin-top: 1rem;">
-                            <a href="lessons/week4-lesson1.html" class="btn btn-primary" style="margin: 0.5rem 0; display: block; text-align: center; text-decoration: none;">
-                                プロジェクト1: 天気情報自動取得
-                            </a>
-                            <a href="lessons/week4-lesson2.html" class="btn btn-primary" style="margin: 0.5rem 0; display: block; text-align: center; text-decoration: none;">
-                                プロジェクト2: 画像一括ダウンロード
-                            </a>
-                            <a href="lessons/week4-lesson3.html" class="btn btn-primary" style="margin: 0.5rem 0; display: block; text-align: center; text-decoration: none;">
-                                プロジェクト3: フォームテスト
-                            </a>
-                            <a href="lessons/week4-lesson4.html" class="btn btn-primary" style="margin: 0.5rem 0; display: block; text-align: center; text-decoration: none;">
-                                プロジェクト4: 定期実行
-                            </a>
-                            <a href="lessons/week4-lesson5.html" class="btn btn-primary" style="margin: 0.5rem 0; display: block; text-align: center; text-decoration: none;">
-                                最終プロジェクト発表
-                            </a>
+                month4: {
+                    title: 'Month 4-6: エンタープライズ',
+                    html: `
+                        <h3>🎯 このコースの目標</h3>
+                        <p>売上100億規模のEC事業を支える品質保証体制を構築できるようになる。</p>
+                        <h3 style="margin-top:1.5rem">📝 レッスン一覧</h3>
+                        <div style="margin-top:1rem">
+                            <a href="enterprise/synthetic-monitoring.html" class="btn btn-enterprise" style="margin:0.5rem 0;display:block;text-decoration:none">本番監視・合成監視</a>
+                            <a href="enterprise/performance-testing.html" class="btn btn-enterprise" style="margin:0.5rem 0;display:block;text-decoration:none">パフォーマンステスト</a>
+                            <a href="enterprise/security-basics.html" class="btn btn-enterprise" style="margin:0.5rem 0;display:block;text-decoration:none">セキュリティテスト</a>
+                            <a href="enterprise/microservices.html" class="btn btn-enterprise" style="margin:0.5rem 0;display:block;text-decoration:none">マイクロサービス対応</a>
+                            <a href="enterprise/governance.html" class="btn btn-enterprise" style="margin:0.5rem 0;display:block;text-decoration:none">チーム運用・ガバナンス</a>
                         </div>
-
-                        <div class="success-box" style="margin-top: 1.5rem;">
-                            <h4>🎉 おめでとう！</h4>
-                            <p>ここまで来たあなたは、もう立派なPlaywrightエンジニアだ！</p>
+                    `
+                },
+                ec1: {
+                    title: 'ECサイトテスト基礎',
+                    html: `
+                        <h3>🎯 このコースの目標</h3>
+                        <p>ECサイトの購買フローを完全にテストできるようになる。</p>
+                        <h3 style="margin-top:1.5rem">📝 レッスン一覧</h3>
+                        <div style="margin-top:1rem">
+                            <a href="ec/product-search.html" class="btn btn-enterprise" style="margin:0.5rem 0;display:block;text-decoration:none">商品検索・絞り込みテスト</a>
+                            <a href="ec/cart-operations.html" class="btn btn-enterprise" style="margin:0.5rem 0;display:block;text-decoration:none">カート操作テスト</a>
+                            <a href="ec/auth-flow.html" class="btn btn-enterprise" style="margin:0.5rem 0;display:block;text-decoration:none">会員登録・ログインテスト</a>
+                            <a href="ec/payment-flow.html" class="btn btn-enterprise" style="margin:0.5rem 0;display:block;text-decoration:none">決済フローテスト</a>
+                            <a href="ec/order-complete.html" class="btn btn-enterprise" style="margin:0.5rem 0;display:block;text-decoration:none">注文完了〜メール確認</a>
                         </div>
                     `
                 }
             };
 
-            title.textContent = lessons[week].title;
-            body.innerHTML = lessons[week].content;
+            const c = content[month] || content.month1;
+            title.textContent = c.title;
+            body.innerHTML = c.html;
             modal.classList.add('active');
         }
 
-        // ツールを開く
-        function openTool(tool) {
-            const tools = {
-                playground: 'playground.html',
-                selector: 'exercises/selector-practice.html',
-                quiz: 'exercises/quiz.html',
-                reference: 'lessons/reference.html',
-                examples: 'examples/index.html',
-                debug: 'lessons/debug-guide.html'
-            };
-
-            window.location.href = tools[tool];
-        }
-
-        // モーダルを閉じる
         function closeModal() {
             document.getElementById('lesson-modal').classList.remove('active');
         }
 
-        // コードをコピー
-        function copyCode(btn) {
-            const codeBlock = btn.parentElement;
-            const code = codeBlock.querySelector('code').innerText;
-            navigator.clipboard.writeText(code).then(() => {
-                btn.textContent = '✓ コピーしました！';
-                setTimeout(() => {
-                    btn.textContent = '📋 コピー';
-                }, 2000);
-            });
-        }
-
-        // 外部クリックでモーダルを閉じる
         document.getElementById('lesson-modal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeModal();
-            }
+            if (e.target === this) closeModal();
         });
 
-        // 連続学習日数を更新
+        // 連続学習日数
         function updateStreak() {
             const today = new Date().toDateString();
-            const lastVisit = localStorage.getItem('last-visit');
-
+            const lastVisit = localStorage.getItem('last-visit-pro');
             if (lastVisit !== today) {
                 const yesterday = new Date();
                 yesterday.setDate(yesterday.getDate() - 1);
-
                 if (lastVisit === yesterday.toDateString()) {
                     progress.streakDays++;
-                } else if (lastVisit !== today) {
+                } else if (lastVisit) {
+                    progress.streakDays = 1;
+                } else {
                     progress.streakDays = 1;
                 }
-
-                localStorage.setItem('last-visit', today);
+                localStorage.setItem('last-visit-pro', today);
             }
         }
 
-        // 初期化
         updateStreak();
-        updateProgress();
+        updateUI();
     </script>
 </body>
 </html>

@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CI/CDテンプレート集 | Playwright マスター道場 Pro</title>
+    <style>
+        :root { --primary: #6366f1; --secondary: #10b981; --accent: #f59e0b; --bg: #0f172a; --bg-light: #1e293b; --text: #e2e8f0; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg); color: var(--text); line-height: 1.8; }
+        .nav { background: var(--bg-light); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .nav a { color: var(--text); text-decoration: none; }
+        .lesson-header { background: linear-gradient(135deg, #10b981, #34d399); padding: 3rem 2rem; text-align: center; }
+        .lesson-badge { background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 2rem; font-size: 0.85rem; display: inline-block; margin-bottom: 1rem; }
+        .lesson-header h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+        .content { max-width: 1000px; margin: 0 auto; padding: 2rem; }
+        .template-card { background: var(--bg-light); border-radius: 1rem; padding: 0; margin-bottom: 2rem; overflow: hidden; }
+        .template-header { background: var(--bg); padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        .template-title { font-size: 1.3rem; display: flex; align-items: center; gap: 0.75rem; }
+        .template-tags { display: flex; gap: 0.5rem; }
+        .tag { background: var(--primary); color: white; padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.75rem; }
+        .tag.github { background: #333; }
+        .tag.advanced { background: var(--accent); }
+        .template-body { padding: 1.5rem; }
+        .template-desc { margin-bottom: 1rem; color: var(--text-muted); }
+        .code-block { background: #0d1117; border-radius: 0.5rem; padding: 1.5rem; margin: 1rem 0; overflow-x: auto; font-family: 'Fira Code', 'Consolas', monospace; font-size: 0.8rem; border: 1px solid #30363d; position: relative; max-height: 500px; overflow-y: auto; }
+        .code-comment { color: #8b949e; }
+        .code-keyword { color: #ff7b72; }
+        .code-string { color: #a5d6ff; }
+        .code-key { color: #7ee787; }
+        .copy-btn { position: absolute; top: 0.5rem; right: 0.5rem; background: var(--primary); color: white; border: none; padding: 0.4rem 1rem; border-radius: 0.3rem; cursor: pointer; font-size: 0.8rem; z-index: 10; }
+        .tip-box { background: rgba(16, 185, 129, 0.2); border-left: 4px solid var(--secondary); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 0.5rem 0.5rem 0; }
+        .tip-box h4 { color: var(--secondary); margin-bottom: 0.5rem; }
+        .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 1rem 0; }
+        .feature { background: var(--bg); padding: 1rem; border-radius: 0.5rem; }
+        .feature-icon { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .feature-title { font-weight: bold; margin-bottom: 0.3rem; }
+        .feature-desc { font-size: 0.85rem; color: var(--text-muted); }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="../index.html">← ホームに戻る</a>
+        <span>CI/CDテンプレート集</span>
+    </nav>
+
+    <header class="lesson-header">
+        <span class="lesson-badge">Month 3: CI/CD統合</span>
+        <h1>🔄 CI/CDテンプレート集</h1>
+        <p>コピペですぐ使える GitHub Actions 設定</p>
+    </header>
+
+    <main class="content">
+        <!-- 基本テンプレート -->
+        <div class="template-card">
+            <div class="template-header">
+                <div class="template-title">
+                    <span>📦</span>
+                    <span>基本テンプレート</span>
+                </div>
+                <div class="template-tags">
+                    <span class="tag github">GitHub Actions</span>
+                    <span class="tag">初級</span>
+                </div>
+            </div>
+            <div class="template-body">
+                <p class="template-desc">PRごとにPlaywrightテストを実行する基本的な設定です。</p>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                    <code><span class="code-comment"># .github/workflows/playwright.yml</span>
+<span class="code-key">name</span>: <span class="code-string">Playwright Tests</span>
+
+<span class="code-key">on</span>:
+  <span class="code-key">push</span>:
+    <span class="code-key">branches</span>: [main, develop]
+  <span class="code-key">pull_request</span>:
+    <span class="code-key">branches</span>: [main, develop]
+
+<span class="code-key">jobs</span>:
+  <span class="code-key">test</span>:
+    <span class="code-key">runs-on</span>: <span class="code-string">ubuntu-latest</span>
+    <span class="code-key">timeout-minutes</span>: <span class="code-string">30</span>
+
+    <span class="code-key">steps</span>:
+      - <span class="code-key">uses</span>: <span class="code-string">actions/checkout@v4</span>
+
+      - <span class="code-key">uses</span>: <span class="code-string">actions/setup-node@v4</span>
+        <span class="code-key">with</span>:
+          <span class="code-key">node-version</span>: <span class="code-string">20</span>
+          <span class="code-key">cache</span>: <span class="code-string">'npm'</span>
+
+      - <span class="code-key">name</span>: <span class="code-string">Install dependencies</span>
+        <span class="code-key">run</span>: <span class="code-string">npm ci</span>
+
+      - <span class="code-key">name</span>: <span class="code-string">Install Playwright browsers</span>
+        <span class="code-key">run</span>: <span class="code-string">npx playwright install --with-deps</span>
+
+      - <span class="code-key">name</span>: <span class="code-string">Run Playwright tests</span>
+        <span class="code-key">run</span>: <span class="code-string">npx playwright test</span>
+
+      - <span class="code-key">name</span>: <span class="code-string">Upload test results</span>
+        <span class="code-key">if</span>: <span class="code-string">always()</span>
+        <span class="code-key">uses</span>: <span class="code-string">actions/upload-artifact@v4</span>
+        <span class="code-key">with</span>:
+          <span class="code-key">name</span>: <span class="code-string">playwright-report</span>
+          <span class="code-key">path</span>: <span class="code-string">playwright-report/</span>
+          <span class="code-key">retention-days</span>: <span class="code-string">7</span></code>
+                </div>
+            </div>
+        </div>
+
+        <!-- 並列実行テンプレート -->
+        <div class="template-card">
+            <div class="template-header">
+                <div class="template-title">
+                    <span>⚡</span>
+                    <span>並列実行（シャーディング）</span>
+                </div>
+                <div class="template-tags">
+                    <span class="tag github">GitHub Actions</span>
+                    <span class="tag advanced">上級</span>
+                </div>
+            </div>
+            <div class="template-body">
+                <p class="template-desc">テストを4並列で実行し、実行時間を大幅に短縮します。</p>
+                <div class="features">
+                    <div class="feature">
+                        <div class="feature-icon">🚀</div>
+                        <div class="feature-title">4倍速</div>
+                        <div class="feature-desc">テスト時間を1/4に短縮</div>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">📊</div>
+                        <div class="feature-title">レポート統合</div>
+                        <div class="feature-desc">結果を1つにマージ</div>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">💰</div>
+                        <div class="feature-title">コスト効率</div>
+                        <div class="feature-desc">並列実行で総時間削減</div>
+                    </div>
+                </div>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                    <code><span class="code-comment"># .github/workflows/playwright-sharding.yml</span>
+<span class="code-key">name</span>: <span class="code-string">Playwright Sharded Tests</span>
+
+<span class="code-key">on</span>:
+  <span class="code-key">push</span>:
+    <span class="code-key">branches</span>: [main]
+  <span class="code-key">pull_request</span>:
+
+<span class="code-key">jobs</span>:
+  <span class="code-key">test</span>:
+    <span class="code-key">runs-on</span>: <span class="code-string">ubuntu-latest</span>
+    <span class="code-key">timeout-minutes</span>: <span class="code-string">60</span>
+    <span class="code-key">strategy</span>:
+      <span class="code-key">fail-fast</span>: <span class="code-string">false</span>
+      <span class="code-key">matrix</span>:
+        <span class="code-key">shardIndex</span>: [1, 2, 3, 4]
+        <span class="code-key">shardTotal</span>: [4]
+
+    <span class="code-key">steps</span>:
+      - <span class="code-key">uses</span>: <span class="code-string">actions/checkout@v4</span>
+
+      - <span class="code-key">uses</span>: <span class="code-string">actions/setup-node@v4</span>
+        <span class="code-key">with</span>:
+          <span class="code-key">node-version</span>: <span class="code-string">20</span>
+          <span class="code-key">cache</span>: <span class="code-string">'npm'</span>
+
+      - <span class="code-key">run</span>: <span class="code-string">npm ci</span>
+      - <span class="code-key">run</span>: <span class="code-string">npx playwright install --with-deps</span>
+
+      - <span class="code-key">name</span>: <span class="code-string">Run tests (shard ${{ matrix.shardIndex }}/${{ matrix.shardTotal }})</span>
+        <span class="code-key">run</span>: <span class="code-string">npx playwright test --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}</span>
+
+      - <span class="code-key">name</span>: <span class="code-string">Upload blob report</span>
+        <span class="code-key">if</span>: <span class="code-string">always()</span>
+        <span class="code-key">uses</span>: <span class="code-string">actions/upload-artifact@v4</span>
+        <span class="code-key">with</span>:
+          <span class="code-key">name</span>: <span class="code-string">blob-report-${{ matrix.shardIndex }}</span>
+          <span class="code-key">path</span>: <span class="code-string">blob-report</span>
+          <span class="code-key">retention-days</span>: <span class="code-string">1</span>
+
+  <span class="code-key">merge-reports</span>:
+    <span class="code-key">if</span>: <span class="code-string">always()</span>
+    <span class="code-key">needs</span>: [test]
+    <span class="code-key">runs-on</span>: <span class="code-string">ubuntu-latest</span>
+
+    <span class="code-key">steps</span>:
+      - <span class="code-key">uses</span>: <span class="code-string">actions/checkout@v4</span>
+      - <span class="code-key">uses</span>: <span class="code-string">actions/setup-node@v4</span>
+        <span class="code-key">with</span>:
+          <span class="code-key">node-version</span>: <span class="code-string">20</span>
+
+      - <span class="code-key">run</span>: <span class="code-string">npm ci</span>
+
+      - <span class="code-key">name</span>: <span class="code-string">Download blob reports</span>
+        <span class="code-key">uses</span>: <span class="code-string">actions/download-artifact@v4</span>
+        <span class="code-key">with</span>:
+          <span class="code-key">path</span>: <span class="code-string">all-blob-reports</span>
+          <span class="code-key">pattern</span>: <span class="code-string">blob-report-*</span>
+          <span class="code-key">merge-multiple</span>: <span class="code-string">true</span>
+
+      - <span class="code-key">name</span>: <span class="code-string">Merge reports</span>
+        <span class="code-key">run</span>: <span class="code-string">npx playwright merge-reports --reporter html ./all-blob-reports</span>
+
+      - <span class="code-key">name</span>: <span class="code-string">Upload merged report</span>
+        <span class="code-key">uses</span>: <span class="code-string">actions/upload-artifact@v4</span>
+        <span class="code-key">with</span>:
+          <span class="code-key">name</span>: <span class="code-string">playwright-report</span>
+          <span class="code-key">path</span>: <span class="code-string">playwright-report</span>
+          <span class="code-key">retention-days</span>: <span class="code-string">14</span></code>
+                </div>
+            </div>
+        </div>
+
+        <!-- EC本番監視テンプレート -->
+        <div class="template-card">
+            <div class="template-header">
+                <div class="template-title">
+                    <span>🛒</span>
+                    <span>EC本番監視（合成監視）</span>
+                </div>
+                <div class="template-tags">
+                    <span class="tag github">GitHub Actions</span>
+                    <span class="tag" style="background: #dc2626;">EC特化</span>
+                </div>
+            </div>
+            <div class="template-body">
+                <p class="template-desc">5分ごとに本番ECサイトの購買フローを監視し、障害を即座に検知します。</p>
+                <div class="tip-box">
+                    <h4>💡 売上100億ECでの活用</h4>
+                    <p>この合成監視により、ユーザーからの問い合わせ前に障害を検知し、ダウンタイムを最小化できます。</p>
+                </div>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                    <code><span class="code-comment"># .github/workflows/ec-synthetic-monitoring.yml</span>
+<span class="code-key">name</span>: <span class="code-string">EC Synthetic Monitoring</span>
+
+<span class="code-key">on</span>:
+  <span class="code-key">schedule</span>:
+    <span class="code-comment"># 5分ごとに実行</span>
+    - <span class="code-key">cron</span>: <span class="code-string">'*/5 * * * *'</span>
+  <span class="code-key">workflow_dispatch</span>: <span class="code-comment"># 手動実行も可能</span>
+
+<span class="code-key">env</span>:
+  <span class="code-key">BASE_URL</span>: <span class="code-string">${{ secrets.PRODUCTION_URL }}</span>
+  <span class="code-key">SLACK_WEBHOOK</span>: <span class="code-string">${{ secrets.SLACK_ALERT_WEBHOOK }}</span>
+
+<span class="code-key">jobs</span>:
+  <span class="code-key">monitor</span>:
+    <span class="code-key">runs-on</span>: <span class="code-string">ubuntu-latest</span>
+    <span class="code-key">timeout-minutes</span>: <span class="code-string">10</span>
+
+    <span class="code-key">steps</span>:
+      - <span class="code-key">uses</span>: <span class="code-string">actions/checkout@v4</span>
+
+      - <span class="code-key">uses</span>: <span class="code-string">actions/setup-node@v4</span>
+        <span class="code-key">with</span>:
+          <span class="code-key">node-version</span>: <span class="code-string">20</span>
+          <span class="code-key">cache</span>: <span class="code-string">'npm'</span>
+
+      - <span class="code-key">run</span>: <span class="code-string">npm ci</span>
+      - <span class="code-key">run</span>: <span class="code-string">npx playwright install chromium</span>
+
+      - <span class="code-key">name</span>: <span class="code-string">Run monitoring tests</span>
+        <span class="code-key">id</span>: <span class="code-string">test</span>
+        <span class="code-key">continue-on-error</span>: <span class="code-string">true</span>
+        <span class="code-key">run</span>: |
+          npx playwright test tests/monitoring/ \
+            --project=chromium \
+            --reporter=json \
+            --output=results.json
+
+      - <span class="code-key">name</span>: <span class="code-string">Send Slack alert on failure</span>
+        <span class="code-key">if</span>: <span class="code-string">steps.test.outcome == 'failure'</span>
+        <span class="code-key">run</span>: |
+          curl -X POST $SLACK_WEBHOOK \
+            -H 'Content-type: application/json' \
+            -d '{
+              "text": "🚨 *EC監視アラート*",
+              "attachments": [{
+                "color": "danger",
+                "fields": [
+                  {"title": "環境", "value": "本番", "short": true},
+                  {"title": "時刻", "value": "'$(date +%Y-%m-%d\ %H:%M:%S)'", "short": true},
+                  {"title": "詳細", "value": "購買フローテストが失敗しました。至急確認してください。"}
+                ]
+              }]
+            }'
+
+      - <span class="code-key">name</span>: <span class="code-string">Upload failure screenshots</span>
+        <span class="code-key">if</span>: <span class="code-string">steps.test.outcome == 'failure'</span>
+        <span class="code-key">uses</span>: <span class="code-string">actions/upload-artifact@v4</span>
+        <span class="code-key">with</span>:
+          <span class="code-key">name</span>: <span class="code-string">failure-screenshots-${{ github.run_id }}</span>
+          <span class="code-key">path</span>: <span class="code-string">test-results/</span>
+          <span class="code-key">retention-days</span>: <span class="code-string">3</span></code>
+                </div>
+            </div>
+        </div>
+
+        <!-- デプロイ前テスト -->
+        <div class="template-card">
+            <div class="template-header">
+                <div class="template-title">
+                    <span>🚀</span>
+                    <span>デプロイ前E2Eテスト</span>
+                </div>
+                <div class="template-tags">
+                    <span class="tag github">GitHub Actions</span>
+                    <span class="tag advanced">上級</span>
+                </div>
+            </div>
+            <div class="template-body">
+                <p class="template-desc">ステージング環境へのデプロイ後、本番デプロイ前にE2Eテストを実行します。テスト失敗時は本番デプロイをブロックします。</p>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                    <code><span class="code-comment"># .github/workflows/deploy-with-e2e.yml</span>
+<span class="code-key">name</span>: <span class="code-string">Deploy with E2E Gate</span>
+
+<span class="code-key">on</span>:
+  <span class="code-key">push</span>:
+    <span class="code-key">branches</span>: [main]
+
+<span class="code-key">jobs</span>:
+  <span class="code-key">deploy-staging</span>:
+    <span class="code-key">runs-on</span>: <span class="code-string">ubuntu-latest</span>
+    <span class="code-key">environment</span>: <span class="code-string">staging</span>
+    <span class="code-key">outputs</span>:
+      <span class="code-key">url</span>: <span class="code-string">${{ steps.deploy.outputs.url }}</span>
+
+    <span class="code-key">steps</span>:
+      - <span class="code-key">uses</span>: <span class="code-string">actions/checkout@v4</span>
+
+      - <span class="code-key">name</span>: <span class="code-string">Deploy to staging</span>
+        <span class="code-key">id</span>: <span class="code-string">deploy</span>
+        <span class="code-key">run</span>: |
+          <span class="code-comment"># デプロイコマンド（例: Vercel）</span>
+          DEPLOY_URL=$(vercel --token=${{ secrets.VERCEL_TOKEN }})
+          echo "url=$DEPLOY_URL" >> $GITHUB_OUTPUT
+
+  <span class="code-key">e2e-tests</span>:
+    <span class="code-key">needs</span>: <span class="code-string">deploy-staging</span>
+    <span class="code-key">runs-on</span>: <span class="code-string">ubuntu-latest</span>
+    <span class="code-key">timeout-minutes</span>: <span class="code-string">30</span>
+
+    <span class="code-key">steps</span>:
+      - <span class="code-key">uses</span>: <span class="code-string">actions/checkout@v4</span>
+      - <span class="code-key">uses</span>: <span class="code-string">actions/setup-node@v4</span>
+        <span class="code-key">with</span>:
+          <span class="code-key">node-version</span>: <span class="code-string">20</span>
+
+      - <span class="code-key">run</span>: <span class="code-string">npm ci</span>
+      - <span class="code-key">run</span>: <span class="code-string">npx playwright install --with-deps</span>
+
+      - <span class="code-key">name</span>: <span class="code-string">Run E2E tests against staging</span>
+        <span class="code-key">env</span>:
+          <span class="code-key">BASE_URL</span>: <span class="code-string">${{ needs.deploy-staging.outputs.url }}</span>
+        <span class="code-key">run</span>: <span class="code-string">npx playwright test</span>
+
+      - <span class="code-key">uses</span>: <span class="code-string">actions/upload-artifact@v4</span>
+        <span class="code-key">if</span>: <span class="code-string">always()</span>
+        <span class="code-key">with</span>:
+          <span class="code-key">name</span>: <span class="code-string">e2e-report</span>
+          <span class="code-key">path</span>: <span class="code-string">playwright-report/</span>
+
+  <span class="code-key">deploy-production</span>:
+    <span class="code-key">needs</span>: <span class="code-string">e2e-tests</span>
+    <span class="code-key">runs-on</span>: <span class="code-string">ubuntu-latest</span>
+    <span class="code-key">environment</span>: <span class="code-string">production</span>
+
+    <span class="code-key">steps</span>:
+      - <span class="code-key">uses</span>: <span class="code-string">actions/checkout@v4</span>
+
+      - <span class="code-key">name</span>: <span class="code-string">Deploy to production</span>
+        <span class="code-key">run</span>: |
+          echo "E2Eテスト成功！本番デプロイを実行します"
+          <span class="code-comment"># vercel --prod --token=${{ secrets.VERCEL_TOKEN }}</span></code>
+                </div>
+            </div>
+        </div>
+
+        <div class="tip-box">
+            <h4>🏆 EC100億事業での運用実績</h4>
+            <p>これらのCI/CDテンプレートは、実際の大規模EC事業で使用されているパターンです。特に合成監視は、セール時の障害を30秒以内に検知し、売上損失を最小化するために不可欠です。</p>
+        </div>
+    </main>
+
+    <script>
+        function copyCode(btn) {
+            const codeBlock = btn.parentElement;
+            const code = codeBlock.querySelector('code').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                btn.textContent = '✓ コピー完了';
+                setTimeout(() => { btn.textContent = 'コピー'; }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>

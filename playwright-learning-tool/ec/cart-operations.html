@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>カート操作テスト | EC特化コース | Playwright マスター道場 Pro</title>
+    <style>
+        :root { --primary: #6366f1; --secondary: #10b981; --accent: #f59e0b; --enterprise: #dc2626; --bg: #0f172a; --bg-light: #1e293b; --text: #e2e8f0; --text-muted: #94a3b8; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg); color: var(--text); line-height: 1.8; }
+        .nav { background: var(--bg-light); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .nav a { color: var(--text); text-decoration: none; }
+        .lesson-header { background: linear-gradient(135deg, var(--enterprise), #b91c1c); padding: 3rem 2rem; text-align: center; }
+        .lesson-badge { background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 2rem; font-size: 0.85rem; display: inline-block; margin-bottom: 1rem; }
+        .lesson-header h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+        .content { max-width: 900px; margin: 0 auto; padding: 2rem; }
+        .section { background: var(--bg-light); border-radius: 1rem; padding: 2rem; margin-bottom: 2rem; }
+        .section h2 { color: var(--enterprise); margin-bottom: 1rem; font-size: 1.5rem; border-bottom: 2px solid var(--enterprise); padding-bottom: 0.5rem; }
+        .section h3 { color: var(--accent); margin: 1.5rem 0 1rem; }
+        .section p { margin-bottom: 1rem; }
+        .code-block { background: #0d1117; border-radius: 0.5rem; padding: 1.5rem; margin: 1rem 0; overflow-x: auto; font-family: 'Fira Code', 'Consolas', monospace; font-size: 0.85rem; border: 1px solid #30363d; position: relative; }
+        .code-comment { color: #8b949e; }
+        .code-keyword { color: #ff7b72; }
+        .code-string { color: #a5d6ff; }
+        .code-function { color: #d2a8ff; }
+        .code-variable { color: #ffa657; }
+        .code-class { color: #7ee787; }
+        .copy-btn { position: absolute; top: 0.5rem; right: 0.5rem; background: var(--primary); color: white; border: none; padding: 0.4rem 1rem; border-radius: 0.3rem; cursor: pointer; font-size: 0.8rem; }
+        .checklist { background: var(--bg); border-radius: 0.5rem; padding: 1.5rem; margin: 1rem 0; }
+        .checklist h4 { color: var(--secondary); margin-bottom: 1rem; }
+        .checklist-item { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.5rem 0; border-bottom: 1px solid var(--bg-light); }
+        .checklist-item:last-child { border-bottom: none; }
+        .check-icon { color: var(--secondary); font-size: 1.2rem; }
+        .warning-box { background: rgba(239, 68, 68, 0.2); border-left: 4px solid var(--enterprise); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 0.5rem 0.5rem 0; }
+        .warning-box h4 { color: var(--enterprise); margin-bottom: 0.5rem; }
+        .tip-box { background: rgba(16, 185, 129, 0.2); border-left: 4px solid var(--secondary); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 0.5rem 0.5rem 0; }
+        .tip-box h4 { color: var(--secondary); margin-bottom: 0.5rem; }
+        .scenario-card { background: var(--bg); border-radius: 0.5rem; padding: 1.5rem; margin: 1rem 0; border-left: 4px solid var(--accent); }
+        .scenario-card h4 { color: var(--accent); margin-bottom: 0.5rem; }
+        .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-size: 1rem; font-weight: 600; cursor: pointer; border: none; text-decoration: none; color: white; }
+        .btn-primary { background: var(--primary); }
+        .btn-enterprise { background: var(--enterprise); }
+        .navigation-buttons { display: flex; justify-content: space-between; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--bg-light); }
+        .test-matrix { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+        .test-matrix th, .test-matrix td { padding: 0.75rem; text-align: left; border: 1px solid var(--bg); }
+        .test-matrix th { background: var(--bg); color: var(--accent); }
+        .test-matrix tr:nth-child(even) { background: rgba(99, 102, 241, 0.05); }
+        .priority-high { color: var(--enterprise); font-weight: bold; }
+        .priority-medium { color: var(--accent); }
+        .priority-low { color: var(--text-muted); }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="../index.html">← ホームに戻る</a>
+        <span>EC特化コース / カート操作</span>
+    </nav>
+
+    <header class="lesson-header">
+        <span class="lesson-badge">EC特化コース</span>
+        <h1>🛒 カート操作テスト</h1>
+        <p>売上に直結する最重要フローを完全網羅</p>
+    </header>
+
+    <main class="content">
+        <section class="section">
+            <h2>📋 このレッスンで学ぶこと</h2>
+            <p>ECサイトの<strong>売上に直結するカート機能</strong>のテストを徹底的に学びます。100億規模のEC事業では、カートのバグは即座に売上損失につながります。</p>
+
+            <div class="checklist">
+                <h4>✅ 習得スキル</h4>
+                <div class="checklist-item"><span class="check-icon">✓</span><span>商品追加・削除・数量変更のテスト</span></div>
+                <div class="checklist-item"><span class="check-icon">✓</span><span>在庫上限・購入制限のテスト</span></div>
+                <div class="checklist-item"><span class="check-icon">✓</span><span>価格計算（税込・税抜・割引）のテスト</span></div>
+                <div class="checklist-item"><span class="check-icon">✓</span><span>カートセッション管理のテスト</span></div>
+                <div class="checklist-item"><span class="check-icon">✓</span><span>複数商品・大量商品のパフォーマンステスト</span></div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🎯 テストシナリオ一覧</h2>
+
+            <table class="test-matrix">
+                <thead>
+                    <tr>
+                        <th>シナリオ</th>
+                        <th>優先度</th>
+                        <th>影響度</th>
+                        <th>テスト頻度</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>カートに商品追加</td>
+                        <td class="priority-high">高</td>
+                        <td>売上直結</td>
+                        <td>毎リリース</td>
+                    </tr>
+                    <tr>
+                        <td>数量変更・削除</td>
+                        <td class="priority-high">高</td>
+                        <td>売上直結</td>
+                        <td>毎リリース</td>
+                    </tr>
+                    <tr>
+                        <td>価格計算（税・割引）</td>
+                        <td class="priority-high">高</td>
+                        <td>法的リスク</td>
+                        <td>毎リリース</td>
+                    </tr>
+                    <tr>
+                        <td>在庫切れ時の挙動</td>
+                        <td class="priority-high">高</td>
+                        <td>UX・信頼</td>
+                        <td>毎リリース</td>
+                    </tr>
+                    <tr>
+                        <td>購入数量制限</td>
+                        <td class="priority-medium">中</td>
+                        <td>転売対策</td>
+                        <td>週次</td>
+                    </tr>
+                    <tr>
+                        <td>カート永続化（ログイン前後）</td>
+                        <td class="priority-medium">中</td>
+                        <td>UX</td>
+                        <td>週次</td>
+                    </tr>
+                    <tr>
+                        <td>同時アクセス時の整合性</td>
+                        <td class="priority-medium">中</td>
+                        <td>データ整合</td>
+                        <td>月次</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="section">
+            <h2>🏗️ Page Object設計</h2>
+            <p>カートのテストでは、保守性を高めるためにPage Object Modelを使用します。</p>
+
+            <h3>CartPage クラス</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code><span class="code-comment">// pages/CartPage.js</span>
+<span class="code-keyword">class</span> <span class="code-class">CartPage</span> {
+    <span class="code-function">constructor</span>(page) {
+        <span class="code-keyword">this</span>.page = page;
+
+        <span class="code-comment">// セレクタ定義</span>
+        <span class="code-keyword">this</span>.cartItems = <span class="code-string">'[data-testid="cart-item"]'</span>;
+        <span class="code-keyword">this</span>.quantityInput = <span class="code-string">'[data-testid="quantity-input"]'</span>;
+        <span class="code-keyword">this</span>.removeButton = <span class="code-string">'[data-testid="remove-item"]'</span>;
+        <span class="code-keyword">this</span>.subtotal = <span class="code-string">'[data-testid="subtotal"]'</span>;
+        <span class="code-keyword">this</span>.tax = <span class="code-string">'[data-testid="tax"]'</span>;
+        <span class="code-keyword">this</span>.total = <span class="code-string">'[data-testid="total"]'</span>;
+        <span class="code-keyword">this</span>.checkoutButton = <span class="code-string">'[data-testid="checkout-btn"]'</span>;
+        <span class="code-keyword">this</span>.emptyCartMessage = <span class="code-string">'[data-testid="empty-cart"]'</span>;
+    }
+
+    <span class="code-comment">// カートページに移動</span>
+    <span class="code-keyword">async</span> <span class="code-function">goto</span>() {
+        <span class="code-keyword">await</span> <span class="code-keyword">this</span>.page.<span class="code-function">goto</span>(<span class="code-string">'/cart'</span>);
+        <span class="code-keyword">await</span> <span class="code-keyword">this</span>.page.<span class="code-function">waitForLoadState</span>(<span class="code-string">'networkidle'</span>);
+    }
+
+    <span class="code-comment">// カート内の商品数を取得</span>
+    <span class="code-keyword">async</span> <span class="code-function">getItemCount</span>() {
+        <span class="code-keyword">return await</span> <span class="code-keyword">this</span>.page.<span class="code-function">locator</span>(<span class="code-keyword">this</span>.cartItems).<span class="code-function">count</span>();
+    }
+
+    <span class="code-comment">// 商品の数量を変更</span>
+    <span class="code-keyword">async</span> <span class="code-function">changeQuantity</span>(itemIndex, quantity) {
+        <span class="code-keyword">const</span> item = <span class="code-keyword">this</span>.page.<span class="code-function">locator</span>(<span class="code-keyword">this</span>.cartItems).<span class="code-function">nth</span>(itemIndex);
+        <span class="code-keyword">await</span> item.<span class="code-function">locator</span>(<span class="code-keyword">this</span>.quantityInput).<span class="code-function">fill</span>(String(quantity));
+        <span class="code-keyword">await</span> item.<span class="code-function">locator</span>(<span class="code-keyword">this</span>.quantityInput).<span class="code-function">press</span>(<span class="code-string">'Enter'</span>);
+        <span class="code-comment">// 価格更新を待つ</span>
+        <span class="code-keyword">await</span> <span class="code-keyword">this</span>.page.<span class="code-function">waitForResponse</span>(resp =>
+            resp.<span class="code-function">url</span>().<span class="code-function">includes</span>(<span class="code-string">'/api/cart'</span>) && resp.<span class="code-function">status</span>() === 200
+        );
+    }
+
+    <span class="code-comment">// 商品を削除</span>
+    <span class="code-keyword">async</span> <span class="code-function">removeItem</span>(itemIndex) {
+        <span class="code-keyword">const</span> item = <span class="code-keyword">this</span>.page.<span class="code-function">locator</span>(<span class="code-keyword">this</span>.cartItems).<span class="code-function">nth</span>(itemIndex);
+        <span class="code-keyword">await</span> item.<span class="code-function">locator</span>(<span class="code-keyword">this</span>.removeButton).<span class="code-function">click</span>();
+        <span class="code-keyword">await</span> <span class="code-keyword">this</span>.page.<span class="code-function">waitForResponse</span>(resp =>
+            resp.<span class="code-function">url</span>().<span class="code-function">includes</span>(<span class="code-string">'/api/cart'</span>)
+        );
+    }
+
+    <span class="code-comment">// 合計金額を取得</span>
+    <span class="code-keyword">async</span> <span class="code-function">getTotal</span>() {
+        <span class="code-keyword">const</span> text = <span class="code-keyword">await</span> <span class="code-keyword">this</span>.page.<span class="code-function">locator</span>(<span class="code-keyword">this</span>.total).<span class="code-function">textContent</span>();
+        <span class="code-keyword">return</span> parseInt(text.<span class="code-function">replace</span>(<span class="code-string">/[^0-9]/g</span>, <span class="code-string">''</span>));
+    }
+
+    <span class="code-comment">// 税額を取得</span>
+    <span class="code-keyword">async</span> <span class="code-function">getTax</span>() {
+        <span class="code-keyword">const</span> text = <span class="code-keyword">await</span> <span class="code-keyword">this</span>.page.<span class="code-function">locator</span>(<span class="code-keyword">this</span>.tax).<span class="code-function">textContent</span>();
+        <span class="code-keyword">return</span> parseInt(text.<span class="code-function">replace</span>(<span class="code-string">/[^0-9]/g</span>, <span class="code-string">''</span>));
+    }
+
+    <span class="code-comment">// 購入手続きへ</span>
+    <span class="code-keyword">async</span> <span class="code-function">proceedToCheckout</span>() {
+        <span class="code-keyword">await</span> <span class="code-keyword">this</span>.page.<span class="code-function">locator</span>(<span class="code-keyword">this</span>.checkoutButton).<span class="code-function">click</span>();
+        <span class="code-keyword">await</span> <span class="code-keyword">this</span>.page.<span class="code-function">waitForURL</span>(<span class="code-string">'**/checkout**'</span>);
+    }
+
+    <span class="code-comment">// カートが空かチェック</span>
+    <span class="code-keyword">async</span> <span class="code-function">isEmpty</span>() {
+        <span class="code-keyword">return await</span> <span class="code-keyword">this</span>.page.<span class="code-function">locator</span>(<span class="code-keyword">this</span>.emptyCartMessage).<span class="code-function">isVisible</span>();
+    }
+}
+
+module.exports = { <span class="code-class">CartPage</span> };</code>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🧪 テストコード実装</h2>
+
+            <h3>1. 基本的なカート操作テスト</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code><span class="code-comment">// tests/cart.spec.js</span>
+<span class="code-keyword">const</span> { test, expect } = <span class="code-function">require</span>(<span class="code-string">'@playwright/test'</span>);
+<span class="code-keyword">const</span> { <span class="code-class">CartPage</span> } = <span class="code-function">require</span>(<span class="code-string">'../pages/CartPage'</span>);
+<span class="code-keyword">const</span> { <span class="code-class">ProductPage</span> } = <span class="code-function">require</span>(<span class="code-string">'../pages/ProductPage'</span>);
+
+test.<span class="code-function">describe</span>(<span class="code-string">'カート操作テスト'</span>, () => {
+    <span class="code-keyword">let</span> cartPage;
+    <span class="code-keyword">let</span> productPage;
+
+    test.<span class="code-function">beforeEach</span>(<span class="code-keyword">async</span> ({ page }) => {
+        cartPage = <span class="code-keyword">new</span> <span class="code-class">CartPage</span>(page);
+        productPage = <span class="code-keyword">new</span> <span class="code-class">ProductPage</span>(page);
+    });
+
+    test(<span class="code-string">'商品をカートに追加できる'</span>, <span class="code-keyword">async</span> ({ page }) => {
+        <span class="code-comment">// 商品ページにアクセス</span>
+        <span class="code-keyword">await</span> productPage.<span class="code-function">goto</span>(<span class="code-string">'SKU-12345'</span>);
+
+        <span class="code-comment">// カートに追加</span>
+        <span class="code-keyword">await</span> productPage.<span class="code-function">addToCart</span>();
+
+        <span class="code-comment">// カートページで確認</span>
+        <span class="code-keyword">await</span> cartPage.<span class="code-function">goto</span>();
+        <span class="code-keyword">const</span> itemCount = <span class="code-keyword">await</span> cartPage.<span class="code-function">getItemCount</span>();
+
+        <span class="code-function">expect</span>(itemCount).<span class="code-function">toBe</span>(1);
+    });
+
+    test(<span class="code-string">'数量を変更すると金額が正しく再計算される'</span>, <span class="code-keyword">async</span> ({ page }) => {
+        <span class="code-comment">// 事前に商品をカートに追加</span>
+        <span class="code-keyword">await</span> productPage.<span class="code-function">goto</span>(<span class="code-string">'SKU-12345'</span>); <span class="code-comment">// 単価1,000円の商品</span>
+        <span class="code-keyword">await</span> productPage.<span class="code-function">addToCart</span>();
+
+        <span class="code-keyword">await</span> cartPage.<span class="code-function">goto</span>();
+
+        <span class="code-comment">// 数量を3に変更</span>
+        <span class="code-keyword">await</span> cartPage.<span class="code-function">changeQuantity</span>(0, 3);
+
+        <span class="code-comment">// 合計金額を検証（税込10%）</span>
+        <span class="code-keyword">const</span> total = <span class="code-keyword">await</span> cartPage.<span class="code-function">getTotal</span>();
+        <span class="code-function">expect</span>(total).<span class="code-function">toBe</span>(3300); <span class="code-comment">// 1000 × 3 × 1.1</span>
+    });
+
+    test(<span class="code-string">'商品を削除するとカートから消える'</span>, <span class="code-keyword">async</span> ({ page }) => {
+        <span class="code-comment">// 2つの商品を追加</span>
+        <span class="code-keyword">await</span> productPage.<span class="code-function">goto</span>(<span class="code-string">'SKU-12345'</span>);
+        <span class="code-keyword">await</span> productPage.<span class="code-function">addToCart</span>();
+        <span class="code-keyword">await</span> productPage.<span class="code-function">goto</span>(<span class="code-string">'SKU-67890'</span>);
+        <span class="code-keyword">await</span> productPage.<span class="code-function">addToCart</span>();
+
+        <span class="code-keyword">await</span> cartPage.<span class="code-function">goto</span>();
+        <span class="code-function">expect</span>(<span class="code-keyword">await</span> cartPage.<span class="code-function">getItemCount</span>()).<span class="code-function">toBe</span>(2);
+
+        <span class="code-comment">// 1つ削除</span>
+        <span class="code-keyword">await</span> cartPage.<span class="code-function">removeItem</span>(0);
+
+        <span class="code-function">expect</span>(<span class="code-keyword">await</span> cartPage.<span class="code-function">getItemCount</span>()).<span class="code-function">toBe</span>(1);
+    });
+
+    test(<span class="code-string">'全商品削除でカートが空になる'</span>, <span class="code-keyword">async</span> ({ page }) => {
+        <span class="code-keyword">await</span> productPage.<span class="code-function">goto</span>(<span class="code-string">'SKU-12345'</span>);
+        <span class="code-keyword">await</span> productPage.<span class="code-function">addToCart</span>();
+
+        <span class="code-keyword">await</span> cartPage.<span class="code-function">goto</span>();
+        <span class="code-keyword">await</span> cartPage.<span class="code-function">removeItem</span>(0);
+
+        <span class="code-function">expect</span>(<span class="code-keyword">await</span> cartPage.<span class="code-function">isEmpty</span>()).<span class="code-function">toBe</span>(<span class="code-keyword">true</span>);
+    });
+});</code>
+            </div>
+
+            <h3>2. 在庫・購入制限テスト</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>test.<span class="code-function">describe</span>(<span class="code-string">'在庫・購入制限テスト'</span>, () => {
+    test(<span class="code-string">'在庫数以上は追加できない'</span>, <span class="code-keyword">async</span> ({ page }) => {
+        <span class="code-comment">// 在庫5個の商品</span>
+        <span class="code-keyword">await</span> productPage.<span class="code-function">goto</span>(<span class="code-string">'SKU-LIMITED'</span>);
+        <span class="code-keyword">await</span> productPage.<span class="code-function">addToCart</span>();
+
+        <span class="code-keyword">await</span> cartPage.<span class="code-function">goto</span>();
+
+        <span class="code-comment">// 在庫を超える数量に変更</span>
+        <span class="code-keyword">await</span> cartPage.<span class="code-function">changeQuantity</span>(0, 10);
+
+        <span class="code-comment">// エラーメッセージを確認</span>
+        <span class="code-keyword">const</span> errorMsg = page.<span class="code-function">locator</span>(<span class="code-string">'[data-testid="stock-error"]'</span>);
+        <span class="code-keyword">await</span> <span class="code-function">expect</span>(errorMsg).<span class="code-function">toContainText</span>(<span class="code-string">'在庫が不足'</span>);
+
+        <span class="code-comment">// 数量が在庫上限に戻ることを確認</span>
+        <span class="code-keyword">const</span> quantity = <span class="code-keyword">await</span> cartPage.<span class="code-function">getQuantity</span>(0);
+        <span class="code-function">expect</span>(quantity).<span class="code-function">toBeLessThanOrEqual</span>(5);
+    });
+
+    test(<span class="code-string">'購入個数制限が機能する'</span>, <span class="code-keyword">async</span> ({ page }) => {
+        <span class="code-comment">// 1人2個までの商品</span>
+        <span class="code-keyword">await</span> productPage.<span class="code-function">goto</span>(<span class="code-string">'SKU-LIMIT2'</span>);
+        <span class="code-keyword">await</span> productPage.<span class="code-function">addToCart</span>();
+
+        <span class="code-keyword">await</span> cartPage.<span class="code-function">goto</span>();
+        <span class="code-keyword">await</span> cartPage.<span class="code-function">changeQuantity</span>(0, 5);
+
+        <span class="code-comment">// 制限メッセージを確認</span>
+        <span class="code-keyword">const</span> limitMsg = page.<span class="code-function">locator</span>(<span class="code-string">'[data-testid="limit-warning"]'</span>);
+        <span class="code-keyword">await</span> <span class="code-function">expect</span>(limitMsg).<span class="code-function">toContainText</span>(<span class="code-string">'お一人様2点まで'</span>);
+    });
+
+    test(<span class="code-string">'カート保持中に在庫切れになった場合の挙動'</span>, <span class="code-keyword">async</span> ({ page, context }) => {
+        <span class="code-comment">// 商品をカートに追加</span>
+        <span class="code-keyword">await</span> productPage.<span class="code-function">goto</span>(<span class="code-string">'SKU-LASTONELEFT'</span>);
+        <span class="code-keyword">await</span> productPage.<span class="code-function">addToCart</span>();
+
+        <span class="code-comment">// 別のブラウザで同じ商品を購入（在庫切れを模擬）</span>
+        <span class="code-keyword">const</span> page2 = <span class="code-keyword">await</span> context.<span class="code-function">newPage</span>();
+        <span class="code-keyword">await</span> page2.<span class="code-function">goto</span>(<span class="code-string">'/api/test/deplete-stock/SKU-LASTONELEFT'</span>);
+
+        <span class="code-comment">// 元のページでカートをリロード</span>
+        <span class="code-keyword">await</span> cartPage.<span class="code-function">goto</span>();
+
+        <span class="code-comment">// 在庫切れ通知を確認</span>
+        <span class="code-keyword">const</span> outOfStockBadge = page.<span class="code-function">locator</span>(<span class="code-string">'[data-testid="out-of-stock-badge"]'</span>);
+        <span class="code-keyword">await</span> <span class="code-function">expect</span>(outOfStockBadge).<span class="code-function">toBeVisible</span>();
+
+        <span class="code-comment">// 購入ボタンが無効になっていることを確認</span>
+        <span class="code-keyword">const</span> checkoutBtn = page.<span class="code-function">locator</span>(<span class="code-string">'[data-testid="checkout-btn"]'</span>);
+        <span class="code-keyword">await</span> <span class="code-function">expect</span>(checkoutBtn).<span class="code-function">toBeDisabled</span>();
+    });
+});</code>
+            </div>
+
+            <h3>3. 価格計算テスト（税・割引）</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>test.<span class="code-function">describe</span>(<span class="code-string">'価格計算テスト'</span>, () => {
+    test(<span class="code-string">'消費税が正しく計算される（10%）'</span>, <span class="code-keyword">async</span> ({ page }) => {
+        <span class="code-comment">// 税抜1,000円の商品</span>
+        <span class="code-keyword">await</span> productPage.<span class="code-function">goto</span>(<span class="code-string">'SKU-TAX10'</span>);
+        <span class="code-keyword">await</span> productPage.<span class="code-function">addToCart</span>();
+
+        <span class="code-keyword">await</span> cartPage.<span class="code-function">goto</span>();
+
+        <span class="code-keyword">const</span> subtotal = <span class="code-keyword">await</span> cartPage.<span class="code-function">getSubtotal</span>();
+        <span class="code-keyword">const</span> tax = <span class="code-keyword">await</span> cartPage.<span class="code-function">getTax</span>();
+        <span class="code-keyword">const</span> total = <span class="code-keyword">await</span> cartPage.<span class="code-function">getTotal</span>();
+
+        <span class="code-function">expect</span>(subtotal).<span class="code-function">toBe</span>(1000);
+        <span class="code-function">expect</span>(tax).<span class="code-function">toBe</span>(100);
+        <span class="code-function">expect</span>(total).<span class="code-function">toBe</span>(1100);
+    });
+
+    test(<span class="code-string">'軽減税率が正しく計算される（8%）'</span>, <span class="code-keyword">async</span> ({ page }) => {
+        <span class="code-comment">// 食品（軽減税率8%）</span>
+        <span class="code-keyword">await</span> productPage.<span class="code-function">goto</span>(<span class="code-string">'SKU-FOOD'</span>); <span class="code-comment">// 税抜1,000円</span>
+        <span class="code-keyword">await</span> productPage.<span class="code-function">addToCart</span>();
+
+        <span class="code-keyword">await</span> cartPage.<span class="code-function">goto</span>();
+
+        <span class="code-keyword">const</span> tax = <span class="code-keyword">await</span> cartPage.<span class="code-function">getTax</span>();
+        <span class="code-function">expect</span>(tax).<span class="code-function">toBe</span>(80);
+    });
+
+    test(<span class="code-string">'クーポン割引が正しく適用される'</span>, <span class="code-keyword">async</span> ({ page }) => {
+        <span class="code-keyword">await</span> productPage.<span class="code-function">goto</span>(<span class="code-string">'SKU-12345'</span>); <span class="code-comment">// 10,000円</span>
+        <span class="code-keyword">await</span> productPage.<span class="code-function">addToCart</span>();
+
+        <span class="code-keyword">await</span> cartPage.<span class="code-function">goto</span>();
+
+        <span class="code-comment">// 10%OFFクーポンを適用</span>
+        <span class="code-keyword">await</span> cartPage.<span class="code-function">applyCoupon</span>(<span class="code-string">'SAVE10'</span>);
+
+        <span class="code-keyword">const</span> discount = <span class="code-keyword">await</span> cartPage.<span class="code-function">getDiscount</span>();
+        <span class="code-function">expect</span>(discount).<span class="code-function">toBe</span>(1000);
+
+        <span class="code-keyword">const</span> total = <span class="code-keyword">await</span> cartPage.<span class="code-function">getTotal</span>();
+        <span class="code-function">expect</span>(total).<span class="code-function">toBe</span>(9900); <span class="code-comment">// (10000 - 1000) × 1.1</span>
+    });
+
+    test(<span class="code-string">'ポイント利用が正しく計算される'</span>, <span class="code-keyword">async</span> ({ page }) => {
+        <span class="code-comment">// ログインしてポイントを持っているユーザー</span>
+        <span class="code-keyword">await</span> loginAsUser(<span class="code-string">'user-with-points@test.com'</span>);
+
+        <span class="code-keyword">await</span> productPage.<span class="code-function">goto</span>(<span class="code-string">'SKU-12345'</span>); <span class="code-comment">// 10,000円</span>
+        <span class="code-keyword">await</span> productPage.<span class="code-function">addToCart</span>();
+
+        <span class="code-keyword">await</span> cartPage.<span class="code-function">goto</span>();
+
+        <span class="code-comment">// 500ポイント使用</span>
+        <span class="code-keyword">await</span> cartPage.<span class="code-function">usePoints</span>(500);
+
+        <span class="code-keyword">const</span> total = <span class="code-keyword">await</span> cartPage.<span class="code-function">getTotal</span>();
+        <span class="code-function">expect</span>(total).<span class="code-function">toBe</span>(10500); <span class="code-comment">// 11000 - 500</span>
+    });
+});</code>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>⚠️ 実務でよくあるバグと対策</h2>
+
+            <div class="warning-box">
+                <h4>バグ1: 並行操作での数量不整合</h4>
+                <p>複数タブで同時にカート操作すると、数量が正しく反映されないことがある。</p>
+                <p><strong>対策:</strong> APIレスポンスの待機、楽観的ロックのテストを追加</p>
+            </div>
+
+            <div class="warning-box">
+                <h4>バグ2: 小数点以下の金額計算</h4>
+                <p>消費税計算で小数点が発生した際の丸め処理が不正確。</p>
+                <p><strong>対策:</strong> 端数処理（切り捨て/切り上げ/四捨五入）のテストケースを網羅</p>
+            </div>
+
+            <div class="warning-box">
+                <h4>バグ3: セッション切れ後のカート消失</h4>
+                <p>ログイン前に追加した商品が、ログイン後に消えてしまう。</p>
+                <p><strong>対策:</strong> ログイン前後のカートマージテストを追加</p>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🏆 本番運用でのベストプラクティス</h2>
+
+            <div class="tip-box">
+                <h4>1. 定期的な合成監視</h4>
+                <p>本番環境で5分ごとにカート追加→削除のテストを自動実行し、障害を早期検知。</p>
+            </div>
+
+            <div class="tip-box">
+                <h4>2. セール前の負荷テスト</h4>
+                <p>大型セール前に、想定アクセス数の3倍でカート操作の負荷テストを実施。</p>
+            </div>
+
+            <div class="tip-box">
+                <h4>3. A/Bテストとの連携</h4>
+                <p>カートUIのA/Bテスト時は、両パターンで同じテストが通ることを確認。</p>
+            </div>
+        </section>
+
+        <div class="navigation-buttons">
+            <a href="product-search.html" class="btn btn-enterprise">← 商品検索テスト</a>
+            <a href="payment-flow.html" class="btn btn-enterprise">決済フローテスト →</a>
+        </div>
+    </main>
+
+    <script>
+        function copyCode(btn) {
+            const codeBlock = btn.parentElement;
+            const code = codeBlock.querySelector('code').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                btn.textContent = '✓ コピー完了';
+                setTimeout(() => { btn.textContent = 'コピー'; }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
