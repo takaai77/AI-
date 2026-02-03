@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Git Quest - Gitを冒険しながら学ぼう!</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- ローディング画面 -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-content">
+            <div class="loading-icon">🚀</div>
+            <h1>Git Quest</h1>
+            <p>冒険の準備中...</p>
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- メイン画面 -->
+    <div id="app" class="app hidden">
+        <!-- ヘッダー -->
+        <header class="header">
+            <div class="logo">
+                <span class="logo-icon">🎮</span>
+                <span class="logo-text">Git Quest</span>
+            </div>
+            <div class="player-stats">
+                <div class="stat-item level">
+                    <span class="stat-icon">⭐</span>
+                    <span class="stat-label">レベル</span>
+                    <span class="stat-value" id="player-level">1</span>
+                </div>
+                <div class="stat-item xp">
+                    <span class="stat-icon">✨</span>
+                    <span class="stat-label">XP</span>
+                    <span class="stat-value" id="player-xp">0</span>
+                    <div class="xp-bar">
+                        <div class="xp-progress" id="xp-progress"></div>
+                    </div>
+                </div>
+                <div class="stat-item coins">
+                    <span class="stat-icon">🪙</span>
+                    <span class="stat-label">コイン</span>
+                    <span class="stat-value" id="player-coins">0</span>
+                </div>
+            </div>
+            <button class="menu-btn" onclick="toggleMenu()">☰</button>
+        </header>
+
+        <!-- サイドメニュー -->
+        <nav id="side-menu" class="side-menu">
+            <div class="menu-header">
+                <h2>メニュー</h2>
+                <button class="close-btn" onclick="toggleMenu()">✕</button>
+            </div>
+            <ul class="menu-list">
+                <li onclick="showSection('home')">🏠 ホーム</li>
+                <li onclick="showSection('stages')">🗺️ ステージ選択</li>
+                <li onclick="showSection('achievements')">🏆 実績</li>
+                <li onclick="showSection('glossary')">📚 Git用語集</li>
+                <li onclick="showSection('settings')">⚙️ 設定</li>
+            </ul>
+        </nav>
+
+        <!-- メインコンテンツ -->
+        <main class="main-content">
+            <!-- ホーム画面 -->
+            <section id="home-section" class="section active">
+                <div class="welcome-card">
+                    <div class="mascot">
+                        <div class="mascot-image">🐙</div>
+                        <div class="speech-bubble">
+                            <p id="mascot-message">やあ！僕はギット君！<br>一緒にGitの世界を冒険しよう！</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="progress-overview">
+                    <h2>🎯 今日の目標</h2>
+                    <div class="daily-quest">
+                        <div class="quest-item" id="daily-quest-1">
+                            <span class="quest-check">☐</span>
+                            <span class="quest-text">1つのレッスンをクリアする</span>
+                            <span class="quest-reward">+50 XP</span>
+                        </div>
+                        <div class="quest-item" id="daily-quest-2">
+                            <span class="quest-check">☐</span>
+                            <span class="quest-text">クイズで80%以上正解する</span>
+                            <span class="quest-reward">+30 XP</span>
+                        </div>
+                        <div class="quest-item" id="daily-quest-3">
+                            <span class="quest-check">☐</span>
+                            <span class="quest-text">Git用語を3つ覚える</span>
+                            <span class="quest-reward">+20 XP</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="quick-actions">
+                    <button class="action-btn primary" onclick="continueLastStage()">
+                        <span class="btn-icon">▶️</span>
+                        <span class="btn-text">続きから始める</span>
+                    </button>
+                    <button class="action-btn secondary" onclick="showSection('stages')">
+                        <span class="btn-icon">🗺️</span>
+                        <span class="btn-text">ステージ選択</span>
+                    </button>
+                </div>
+
+                <div class="streak-card">
+                    <div class="streak-icon">🔥</div>
+                    <div class="streak-info">
+                        <span class="streak-count" id="streak-count">0</span>
+                        <span class="streak-label">日連続学習中!</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ステージ選択画面 -->
+            <section id="stages-section" class="section">
+                <h1 class="section-title">🗺️ 冒険マップ</h1>
+                <p class="section-subtitle">5時間でGitマスターになろう!</p>
+
+                <div class="stage-map">
+                    <!-- ステージ1: Gitの基本 -->
+                    <div class="stage-node unlocked" data-stage="1" onclick="startStage(1)">
+                        <div class="stage-icon">🌱</div>
+                        <div class="stage-info">
+                            <h3>ステージ1</h3>
+                            <p>Gitって何?</p>
+                            <span class="stage-time">⏱️ 約45分</span>
+                        </div>
+                        <div class="stage-stars" id="stage-1-stars">
+                            <span>☆</span><span>☆</span><span>☆</span>
+                        </div>
+                    </div>
+                    <div class="stage-path"></div>
+
+                    <!-- ステージ2: リポジトリ -->
+                    <div class="stage-node locked" data-stage="2" onclick="startStage(2)">
+                        <div class="stage-icon">📦</div>
+                        <div class="stage-info">
+                            <h3>ステージ2</h3>
+                            <p>リポジトリを作ろう</p>
+                            <span class="stage-time">⏱️ 約50分</span>
+                        </div>
+                        <div class="stage-stars" id="stage-2-stars">
+                            <span>☆</span><span>☆</span><span>☆</span>
+                        </div>
+                        <div class="lock-overlay">🔒</div>
+                    </div>
+                    <div class="stage-path"></div>
+
+                    <!-- ステージ3: コミット -->
+                    <div class="stage-node locked" data-stage="3" onclick="startStage(3)">
+                        <div class="stage-icon">💾</div>
+                        <div class="stage-info">
+                            <h3>ステージ3</h3>
+                            <p>変更を保存しよう</p>
+                            <span class="stage-time">⏱️ 約60分</span>
+                        </div>
+                        <div class="stage-stars" id="stage-3-stars">
+                            <span>☆</span><span>☆</span><span>☆</span>
+                        </div>
+                        <div class="lock-overlay">🔒</div>
+                    </div>
+                    <div class="stage-path"></div>
+
+                    <!-- ステージ4: ブランチ -->
+                    <div class="stage-node locked" data-stage="4" onclick="startStage(4)">
+                        <div class="stage-icon">🌿</div>
+                        <div class="stage-info">
+                            <h3>ステージ4</h3>
+                            <p>ブランチで分岐</p>
+                            <span class="stage-time">⏱️ 約70分</span>
+                        </div>
+                        <div class="stage-stars" id="stage-4-stars">
+                            <span>☆</span><span>☆</span><span>☆</span>
+                        </div>
+                        <div class="lock-overlay">🔒</div>
+                    </div>
+                    <div class="stage-path"></div>
+
+                    <!-- ステージ5: チーム開発 -->
+                    <div class="stage-node locked" data-stage="5" onclick="startStage(5)">
+                        <div class="stage-icon">👥</div>
+                        <div class="stage-info">
+                            <h3>ステージ5</h3>
+                            <p>みんなで開発</p>
+                            <span class="stage-time">⏱️ 約75分</span>
+                        </div>
+                        <div class="stage-stars" id="stage-5-stars">
+                            <span>☆</span><span>☆</span><span>☆</span>
+                        </div>
+                        <div class="lock-overlay">🔒</div>
+                    </div>
+
+                    <!-- ボスステージ -->
+                    <div class="stage-path boss-path"></div>
+                    <div class="stage-node boss locked" data-stage="boss" onclick="startStage('boss')">
+                        <div class="stage-icon">👑</div>
+                        <div class="stage-info">
+                            <h3>最終試験</h3>
+                            <p>Gitマスターへの道</p>
+                        </div>
+                        <div class="lock-overlay">🔒</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 学習画面 -->
+            <section id="lesson-section" class="section">
+                <div class="lesson-header">
+                    <button class="back-btn" onclick="showSection('stages')">← 戻る</button>
+                    <div class="lesson-progress">
+                        <span id="lesson-current">1</span> / <span id="lesson-total">5</span>
+                    </div>
+                </div>
+
+                <div class="lesson-content" id="lesson-content">
+                    <!-- 動的に生成されるレッスンコンテンツ -->
+                </div>
+
+                <div class="lesson-nav">
+                    <button class="nav-btn prev" id="prev-btn" onclick="prevLesson()">◀ 前へ</button>
+                    <button class="nav-btn next" id="next-btn" onclick="nextLesson()">次へ ▶</button>
+                </div>
+            </section>
+
+            <!-- Gitシミュレーター -->
+            <section id="simulator-section" class="section">
+                <div class="simulator-container">
+                    <div class="simulator-header">
+                        <h2>🖥️ Gitシミュレーター</h2>
+                        <button class="hint-btn" onclick="showHint()">💡 ヒント</button>
+                    </div>
+
+                    <div class="simulator-mission">
+                        <div class="mission-icon">🎯</div>
+                        <p id="mission-text">git initコマンドを入力して、リポジトリを作成しよう！</p>
+                    </div>
+
+                    <div class="simulator-visual">
+                        <div class="visual-workspace">
+                            <h4>📁 ワークスペース</h4>
+                            <div class="file-tree" id="file-tree">
+                                <div class="folder">
+                                    <span class="folder-icon">📂</span>
+                                    <span class="folder-name">my-project</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="visual-staging">
+                            <h4>📋 ステージングエリア</h4>
+                            <div class="staging-area" id="staging-area">
+                                <p class="empty-message">ファイルがありません</p>
+                            </div>
+                        </div>
+                        <div class="visual-repository">
+                            <h4>💾 リポジトリ</h4>
+                            <div class="commit-history" id="commit-history">
+                                <p class="empty-message">コミットがありません</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="terminal">
+                        <div class="terminal-header">
+                            <span class="terminal-title">ターミナル</span>
+                            <div class="terminal-buttons">
+                                <span class="btn-red"></span>
+                                <span class="btn-yellow"></span>
+                                <span class="btn-green"></span>
+                            </div>
+                        </div>
+                        <div class="terminal-body" id="terminal-output">
+                            <div class="terminal-line">
+                                <span class="prompt">$</span>
+                                <span class="output">Gitシミュレーターへようこそ！</span>
+                            </div>
+                        </div>
+                        <div class="terminal-input-line">
+                            <span class="prompt">$</span>
+                            <input type="text" id="terminal-input" class="terminal-input"
+                                   placeholder="コマンドを入力..."
+                                   onkeypress="handleTerminalInput(event)"
+                                   autocomplete="off">
+                        </div>
+                    </div>
+
+                    <div class="command-hints">
+                        <h4>💡 使えるコマンド</h4>
+                        <div class="hint-chips" id="available-commands">
+                            <span class="chip" onclick="insertCommand('git init')">git init</span>
+                            <span class="chip" onclick="insertCommand('git status')">git status</span>
+                            <span class="chip" onclick="insertCommand('git add')">git add</span>
+                            <span class="chip" onclick="insertCommand('git commit')">git commit</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- クイズ画面 -->
+            <section id="quiz-section" class="section">
+                <div class="quiz-container">
+                    <div class="quiz-header">
+                        <div class="quiz-progress">
+                            <span id="quiz-current">1</span> / <span id="quiz-total">5</span>
+                        </div>
+                        <div class="quiz-timer" id="quiz-timer">
+                            <span class="timer-icon">⏱️</span>
+                            <span class="timer-value">30</span>
+                        </div>
+                    </div>
+
+                    <div class="quiz-question-card">
+                        <div class="question-type-badge" id="question-type">選択問題</div>
+                        <h2 class="quiz-question" id="quiz-question">
+                            Gitとは何ですか？
+                        </h2>
+                    </div>
+
+                    <div class="quiz-options" id="quiz-options">
+                        <!-- 動的に生成される選択肢 -->
+                    </div>
+
+                    <div class="quiz-feedback hidden" id="quiz-feedback">
+                        <div class="feedback-icon"></div>
+                        <p class="feedback-text"></p>
+                        <p class="feedback-explanation"></p>
+                    </div>
+
+                    <button class="quiz-next-btn hidden" id="quiz-next-btn" onclick="nextQuizQuestion()">
+                        次の問題へ →
+                    </button>
+                </div>
+            </section>
+
+            <!-- 実績画面 -->
+            <section id="achievements-section" class="section">
+                <h1 class="section-title">🏆 実績</h1>
+
+                <div class="achievement-stats">
+                    <div class="stat-card">
+                        <span class="stat-number" id="total-achievements">0</span>
+                        <span class="stat-label">獲得した実績</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number" id="total-badges">0</span>
+                        <span class="stat-label">バッジ</span>
+                    </div>
+                </div>
+
+                <div class="achievements-grid" id="achievements-grid">
+                    <!-- 動的に生成される実績 -->
+                </div>
+            </section>
+
+            <!-- Git用語集 -->
+            <section id="glossary-section" class="section">
+                <h1 class="section-title">📚 Git用語集</h1>
+
+                <div class="search-box">
+                    <input type="text" id="glossary-search" placeholder="用語を検索..."
+                           oninput="filterGlossary()">
+                </div>
+
+                <div class="glossary-list" id="glossary-list">
+                    <!-- 動的に生成される用語リスト -->
+                </div>
+            </section>
+
+            <!-- 設定画面 -->
+            <section id="settings-section" class="section">
+                <h1 class="section-title">⚙️ 設定</h1>
+
+                <div class="settings-list">
+                    <div class="setting-item">
+                        <span class="setting-label">🔊 効果音</span>
+                        <label class="toggle">
+                            <input type="checkbox" id="sound-toggle" checked onchange="toggleSound()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <span class="setting-label">🌙 ダークモード</span>
+                        <label class="toggle">
+                            <input type="checkbox" id="dark-mode-toggle" onchange="toggleDarkMode()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <span class="setting-label">📝 難易度</span>
+                        <select id="difficulty-select" onchange="changeDifficulty()">
+                            <option value="easy">かんたん</option>
+                            <option value="normal" selected>ふつう</option>
+                            <option value="hard">むずかしい</option>
+                        </select>
+                    </div>
+                    <div class="setting-item danger">
+                        <span class="setting-label">🗑️ データをリセット</span>
+                        <button class="reset-btn" onclick="resetProgress()">リセット</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- 通知・ポップアップ -->
+        <div id="notification" class="notification hidden">
+            <div class="notification-icon"></div>
+            <div class="notification-content">
+                <h4 class="notification-title"></h4>
+                <p class="notification-message"></p>
+            </div>
+        </div>
+
+        <!-- レベルアップモーダル -->
+        <div id="levelup-modal" class="modal hidden">
+            <div class="modal-content levelup">
+                <div class="levelup-animation">
+                    <div class="levelup-icon">🎉</div>
+                    <h2>レベルアップ!</h2>
+                    <p class="new-level">レベル <span id="new-level-number">2</span></p>
+                </div>
+                <div class="levelup-rewards">
+                    <p>ボーナス報酬:</p>
+                    <div class="reward-item">🪙 +100 コイン</div>
+                </div>
+                <button class="modal-btn" onclick="closeLevelUpModal()">やったー!</button>
+            </div>
+        </div>
+
+        <!-- バッジ獲得モーダル -->
+        <div id="badge-modal" class="modal hidden">
+            <div class="modal-content badge">
+                <div class="badge-animation">
+                    <div class="badge-glow"></div>
+                    <div class="badge-icon" id="earned-badge-icon">🏅</div>
+                </div>
+                <h2>バッジ獲得!</h2>
+                <p class="badge-name" id="earned-badge-name">はじめの一歩</p>
+                <p class="badge-desc" id="earned-badge-desc">最初のレッスンをクリアした</p>
+                <button class="modal-btn" onclick="closeBadgeModal()">すごい!</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
