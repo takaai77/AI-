@@ -1,0 +1,1535 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CODEX MASTER - AI Coding Quest</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-cyan: #00ffff;
+            --neon-pink: #ff00ff;
+            --neon-green: #00ff88;
+            --neon-yellow: #ffff00;
+            --neon-orange: #ff8800;
+            --dark-bg: #0a0a0f;
+            --dark-card: #12121a;
+            --dark-border: #1a1a2e;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: var(--dark-bg);
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .bg-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, rgba(18, 18, 26, 0.95), rgba(10, 10, 15, 0.98));
+            border-bottom: 2px solid var(--neon-cyan);
+            padding: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            font-weight: 900;
+            background: linear-gradient(45deg, var(--neon-cyan), var(--neon-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+            animation: logoGlow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes logoGlow {
+            0% { filter: drop-shadow(0 0 5px var(--neon-cyan)); }
+            100% { filter: drop-shadow(0 0 20px var(--neon-pink)); }
+        }
+
+        .player-stats {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .stat-box {
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid var(--neon-cyan);
+            border-radius: 10px;
+            padding: 10px 20px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: var(--neon-cyan);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .stat-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .xp-bar-container {
+            width: 200px;
+        }
+
+        .xp-bar {
+            height: 20px;
+            background: var(--dark-border);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid var(--neon-green);
+        }
+
+        .xp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--neon-green), var(--neon-cyan));
+            width: 0%;
+            transition: width 0.5s ease;
+            box-shadow: 0 0 20px var(--neon-green);
+        }
+
+        .xp-text {
+            font-size: 0.8rem;
+            color: var(--neon-green);
+            text-align: center;
+            margin-top: 5px;
+        }
+
+        /* Main Content */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Mission Select */
+        .mission-select {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            color: var(--neon-pink);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 30px;
+            height: 3px;
+            background: var(--neon-pink);
+            box-shadow: 0 0 10px var(--neon-pink);
+        }
+
+        .mission-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .mission-card {
+            background: var(--dark-card);
+            border: 2px solid var(--dark-border);
+            border-radius: 15px;
+            padding: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mission-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .mission-card:hover::before {
+            left: 100%;
+        }
+
+        .mission-card:hover {
+            border-color: var(--neon-cyan);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 40px rgba(0, 255, 255, 0.2);
+        }
+
+        .mission-card.locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .mission-card.completed {
+            border-color: var(--neon-green);
+        }
+
+        .mission-card.active {
+            border-color: var(--neon-yellow);
+            box-shadow: 0 0 30px rgba(255, 255, 0, 0.3);
+        }
+
+        .mission-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .mission-level {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            padding: 5px 15px;
+            border-radius: 20px;
+            background: linear-gradient(45deg, var(--neon-cyan), var(--neon-pink));
+        }
+
+        .mission-xp {
+            color: var(--neon-green);
+            font-weight: 700;
+        }
+
+        .mission-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        .mission-desc {
+            color: #888;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .mission-status {
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
+
+        .status-icon.completed {
+            background: var(--neon-green);
+            color: #000;
+        }
+
+        .status-icon.locked {
+            background: #333;
+            color: #666;
+        }
+
+        .status-icon.available {
+            background: var(--neon-yellow);
+            color: #000;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        /* Content Panel */
+        .content-panel {
+            background: var(--dark-card);
+            border: 2px solid var(--dark-border);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 40px;
+            display: none;
+        }
+
+        .content-panel.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--dark-border);
+        }
+
+        .content-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
+            background: linear-gradient(45deg, var(--neon-cyan), var(--neon-green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .close-btn {
+            background: none;
+            border: 2px solid var(--neon-pink);
+            color: var(--neon-pink);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: var(--neon-pink);
+            color: #000;
+        }
+
+        /* Terminal Style Code Block */
+        .terminal {
+            background: #000;
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow: hidden;
+            border: 1px solid #333;
+        }
+
+        .terminal-header {
+            background: #1a1a1a;
+            padding: 10px 15px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .terminal-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .terminal-dot.red { background: #ff5f56; }
+        .terminal-dot.yellow { background: #ffbd2e; }
+        .terminal-dot.green { background: #27ca40; }
+
+        .terminal-body {
+            padding: 20px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.8;
+            color: var(--neon-green);
+            overflow-x: auto;
+        }
+
+        .terminal-body .comment {
+            color: #666;
+        }
+
+        .terminal-body .keyword {
+            color: var(--neon-pink);
+        }
+
+        .terminal-body .string {
+            color: var(--neon-yellow);
+        }
+
+        .terminal-body .function {
+            color: var(--neon-cyan);
+        }
+
+        .terminal-body .prompt {
+            color: var(--neon-orange);
+        }
+
+        /* Tips Box */
+        .tip-box {
+            background: linear-gradient(135deg, rgba(255, 0, 255, 0.1), rgba(0, 255, 255, 0.1));
+            border-left: 4px solid var(--neon-pink);
+            padding: 20px;
+            border-radius: 0 10px 10px 0;
+            margin: 20px 0;
+        }
+
+        .tip-title {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--neon-pink);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Quiz Section */
+        .quiz-container {
+            background: rgba(0, 255, 255, 0.05);
+            border: 1px solid var(--neon-cyan);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+
+        .quiz-title {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--neon-cyan);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .quiz-question {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .quiz-option {
+            background: var(--dark-card);
+            border: 2px solid var(--dark-border);
+            border-radius: 10px;
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .quiz-option:hover {
+            border-color: var(--neon-cyan);
+            transform: translateX(10px);
+        }
+
+        .quiz-option.correct {
+            border-color: var(--neon-green);
+            background: rgba(0, 255, 136, 0.1);
+        }
+
+        .quiz-option.wrong {
+            border-color: #ff4444;
+            background: rgba(255, 68, 68, 0.1);
+        }
+
+        .option-letter {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--dark-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+        }
+
+        .quiz-result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+        }
+
+        .quiz-result.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .quiz-result.success {
+            background: rgba(0, 255, 136, 0.2);
+            border: 1px solid var(--neon-green);
+            color: var(--neon-green);
+        }
+
+        .quiz-result.fail {
+            background: rgba(255, 68, 68, 0.2);
+            border: 1px solid #ff4444;
+            color: #ff4444;
+        }
+
+        /* Progress Button */
+        .progress-btn {
+            background: linear-gradient(45deg, var(--neon-cyan), var(--neon-green));
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            color: #000;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .progress-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px var(--neon-cyan);
+        }
+
+        .progress-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Achievement Popup */
+        .achievement-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: var(--dark-card);
+            border: 3px solid var(--neon-yellow);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            z-index: 1000;
+            transition: transform 0.5s ease;
+        }
+
+        .achievement-popup.show {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .achievement-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .achievement-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            color: var(--neon-yellow);
+            margin-bottom: 10px;
+        }
+
+        .achievement-desc {
+            color: #888;
+            margin-bottom: 20px;
+        }
+
+        .achievement-xp {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            color: var(--neon-green);
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 999;
+            display: none;
+        }
+
+        .overlay.show {
+            display: block;
+        }
+
+        /* Badges Section */
+        .badges-section {
+            margin-top: 40px;
+        }
+
+        .badges-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .badge {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--dark-card);
+            border: 3px solid var(--dark-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .badge.unlocked {
+            border-color: var(--neon-yellow);
+            box-shadow: 0 0 20px rgba(255, 255, 0, 0.3);
+        }
+
+        .badge.locked {
+            filter: grayscale(1);
+            opacity: 0.3;
+        }
+
+        .badge-tooltip {
+            position: absolute;
+            bottom: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--dark-card);
+            padding: 5px 15px;
+            border-radius: 5px;
+            font-size: 0.7rem;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            border: 1px solid var(--dark-border);
+        }
+
+        .badge:hover .badge-tooltip {
+            opacity: 1;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--dark-bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--neon-cyan);
+            border-radius: 4px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .player-stats {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .logo {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Content Text Styling */
+        .content-text {
+            line-height: 1.8;
+            font-size: 1rem;
+        }
+
+        .content-text h3 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--neon-cyan);
+            margin: 25px 0 15px;
+            font-size: 1.2rem;
+        }
+
+        .content-text p {
+            margin-bottom: 15px;
+            color: #ccc;
+        }
+
+        .content-text ul {
+            margin: 15px 0;
+            padding-left: 25px;
+        }
+
+        .content-text li {
+            margin-bottom: 10px;
+            color: #ccc;
+        }
+
+        .highlight {
+            color: var(--neon-yellow);
+            font-weight: 700;
+        }
+
+        .command {
+            background: rgba(0, 255, 255, 0.1);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Share Tech Mono', monospace;
+            color: var(--neon-cyan);
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-grid"></div>
+
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">CODEX MASTER</div>
+            <div class="player-stats">
+                <div class="stat-box">
+                    <div class="stat-label">LEVEL</div>
+                    <div class="stat-value" id="playerLevel">1</div>
+                </div>
+                <div class="stat-box xp-bar-container">
+                    <div class="stat-label">EXPERIENCE</div>
+                    <div class="xp-bar">
+                        <div class="xp-fill" id="xpFill"></div>
+                    </div>
+                    <div class="xp-text"><span id="currentXp">0</span> / <span id="maxXp">100</span> XP</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">MISSIONS</div>
+                    <div class="stat-value"><span id="completedMissions">0</span>/5</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-container">
+        <section class="mission-select">
+            <h2 class="section-title">MISSION SELECT</h2>
+            <div class="mission-grid" id="missionGrid">
+                <!-- Missions will be generated by JavaScript -->
+            </div>
+        </section>
+
+        <!-- Mission 1: Introduction -->
+        <div class="content-panel" id="mission1">
+            <div class="content-header">
+                <h2 class="content-title">MISSION 1: Codexとは何か？</h2>
+                <button class="close-btn" onclick="closePanel()">&times;</button>
+            </div>
+            <div class="content-text">
+                <p>ようこそ、新人エージェント。君はこれから<span class="highlight">Codex</span>という強力なAIツールを習得する旅に出る。</p>
+
+                <h3>Codexの正体</h3>
+                <p>Codexとは、自然言語をプログラミングコードに変換できるAIシステムだ。人間の言葉で指示を出すと、それを理解してコードを生成してくれる。</p>
+
+                <div class="tip-box">
+                    <div class="tip-title">PRO TIP</div>
+                    <p>Codexは「コードを書く」だけでなく、「コードを理解する」「バグを見つける」「最適化する」など、様々なタスクをこなせる。</p>
+                </div>
+
+                <h3>主な能力</h3>
+                <ul>
+                    <li><span class="highlight">コード生成</span> - 自然言語の説明からコードを作成</li>
+                    <li><span class="highlight">コード補完</span> - 途中のコードを予測して完成</li>
+                    <li><span class="highlight">コード翻訳</span> - ある言語から別の言語へ変換</li>
+                    <li><span class="highlight">デバッグ支援</span> - エラーの原因を特定し修正案を提示</li>
+                </ul>
+
+                <div class="terminal">
+                    <div class="terminal-header">
+                        <div class="terminal-dot red"></div>
+                        <div class="terminal-dot yellow"></div>
+                        <div class="terminal-dot green"></div>
+                    </div>
+                    <div class="terminal-body">
+                        <span class="comment"># 例: Codexへの指示</span><br>
+                        <span class="prompt">USER:</span> "配列の中から最大値を見つける関数を作って"<br><br>
+                        <span class="prompt">CODEX:</span><br>
+                        <span class="keyword">function</span> <span class="function">findMax</span>(arr) {<br>
+                        &nbsp;&nbsp;<span class="keyword">return</span> Math.<span class="function">max</span>(...arr);<br>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="quiz-container" id="quiz1">
+                <h3 class="quiz-title">KNOWLEDGE CHECK</h3>
+                <p class="quiz-question">Codexの主な機能として正しくないものはどれ？</p>
+                <div class="quiz-options">
+                    <div class="quiz-option" onclick="checkAnswer(1, 'A', false)">
+                        <span class="option-letter">A</span>
+                        <span>コードの自動生成</span>
+                    </div>
+                    <div class="quiz-option" onclick="checkAnswer(1, 'B', false)">
+                        <span class="option-letter">B</span>
+                        <span>バグの検出と修正提案</span>
+                    </div>
+                    <div class="quiz-option" onclick="checkAnswer(1, 'C', true)">
+                        <span class="option-letter">C</span>
+                        <span>コーヒーを淹れる</span>
+                    </div>
+                    <div class="quiz-option" onclick="checkAnswer(1, 'D', false)">
+                        <span class="option-letter">D</span>
+                        <span>プログラミング言語間の翻訳</span>
+                    </div>
+                </div>
+                <div class="quiz-result" id="result1"></div>
+            </div>
+
+            <button class="progress-btn" id="complete1" onclick="completeMission(1)" disabled>
+                MISSION COMPLETE
+            </button>
+        </div>
+
+        <!-- Mission 2: Basic Prompts -->
+        <div class="content-panel" id="mission2">
+            <div class="content-header">
+                <h2 class="content-title">MISSION 2: 効果的なプロンプトの書き方</h2>
+                <button class="close-btn" onclick="closePanel()">&times;</button>
+            </div>
+            <div class="content-text">
+                <p>Codexを最大限に活用するには、<span class="highlight">正確で明確なプロンプト</span>を書くスキルが必要だ。</p>
+
+                <h3>プロンプトの黄金律</h3>
+                <ul>
+                    <li><span class="highlight">具体的に</span> - 曖昧な指示は曖昧な結果を生む</li>
+                    <li><span class="highlight">文脈を与える</span> - 何のためのコードか説明する</li>
+                    <li><span class="highlight">例を示す</span> - 入出力の例があると精度が上がる</li>
+                    <li><span class="highlight">制約を明記</span> - 言語、ライブラリ、スタイルを指定</li>
+                </ul>
+
+                <div class="tip-box">
+                    <div class="tip-title">BAD vs GOOD プロンプト</div>
+                    <p><strong style="color: #ff4444;">BAD:</strong> "ソート関数作って"</p>
+                    <p><strong style="color: var(--neon-green);">GOOD:</strong> "Pythonで数値のリストを降順にソートする関数を作成してください。組み込み関数を使わず、クイックソートアルゴリズムで実装してください。"</p>
+                </div>
+
+                <div class="terminal">
+                    <div class="terminal-header">
+                        <div class="terminal-dot red"></div>
+                        <div class="terminal-dot yellow"></div>
+                        <div class="terminal-dot green"></div>
+                    </div>
+                    <div class="terminal-body">
+                        <span class="comment"># 効果的なプロンプトの例</span><br><br>
+                        <span class="prompt">USER:</span><br>
+                        <span class="string">"""</span><br>
+                        <span class="string">TypeScriptで以下の機能を持つユーティリティ関数を作成してください:</span><br>
+                        <span class="string">- 関数名: formatCurrency</span><br>
+                        <span class="string">- 引数: amount (number), currency (string, デフォルト 'JPY')</span><br>
+                        <span class="string">- 戻り値: フォーマットされた通貨文字列</span><br>
+                        <span class="string">- 例: formatCurrency(1000) => '¥1,000'</span><br>
+                        <span class="string">"""</span>
+                    </div>
+                </div>
+
+                <h3>プロンプトテンプレート</h3>
+                <p>以下のテンプレートを使うと、一貫した結果が得られやすい：</p>
+
+                <div class="terminal">
+                    <div class="terminal-header">
+                        <div class="terminal-dot red"></div>
+                        <div class="terminal-dot yellow"></div>
+                        <div class="terminal-dot green"></div>
+                    </div>
+                    <div class="terminal-body">
+                        <span class="comment"># プロンプトテンプレート</span><br><br>
+                        <span class="string">[言語/フレームワーク]で[目的]を達成する</span><br>
+                        <span class="string">[関数/クラス/コンポーネント]を作成してください。</span><br><br>
+                        <span class="string">要件:</span><br>
+                        <span class="string">- [要件1]</span><br>
+                        <span class="string">- [要件2]</span><br><br>
+                        <span class="string">制約:</span><br>
+                        <span class="string">- [制約1]</span><br>
+                        <span class="string">- [制約2]</span><br><br>
+                        <span class="string">入力例: [例]</span><br>
+                        <span class="string">出力例: [例]</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="quiz-container" id="quiz2">
+                <h3 class="quiz-title">KNOWLEDGE CHECK</h3>
+                <p class="quiz-question">効果的なプロンプトを書く際に最も重要なことは？</p>
+                <div class="quiz-options">
+                    <div class="quiz-option" onclick="checkAnswer(2, 'A', false)">
+                        <span class="option-letter">A</span>
+                        <span>できるだけ短く書く</span>
+                    </div>
+                    <div class="quiz-option" onclick="checkAnswer(2, 'B', true)">
+                        <span class="option-letter">B</span>
+                        <span>具体的な要件と文脈を明確に伝える</span>
+                    </div>
+                    <div class="quiz-option" onclick="checkAnswer(2, 'C', false)">
+                        <span class="option-letter">C</span>
+                        <span>専門用語をできるだけ多く使う</span>
+                    </div>
+                    <div class="quiz-option" onclick="checkAnswer(2, 'D', false)">
+                        <span class="option-letter">D</span>
+                        <span>感情的な表現を加える</span>
+                    </div>
+                </div>
+                <div class="quiz-result" id="result2"></div>
+            </div>
+
+            <button class="progress-btn" id="complete2" onclick="completeMission(2)" disabled>
+                MISSION COMPLETE
+            </button>
+        </div>
+
+        <!-- Mission 3: Code Generation -->
+        <div class="content-panel" id="mission3">
+            <div class="content-header">
+                <h2 class="content-title">MISSION 3: コード生成マスター</h2>
+                <button class="close-btn" onclick="closePanel()">&times;</button>
+            </div>
+            <div class="content-text">
+                <p>Codexの最も強力な機能の一つが<span class="highlight">コード生成</span>だ。様々なパターンをマスターしよう。</p>
+
+                <h3>関数生成</h3>
+                <div class="terminal">
+                    <div class="terminal-header">
+                        <div class="terminal-dot red"></div>
+                        <div class="terminal-dot yellow"></div>
+                        <div class="terminal-dot green"></div>
+                    </div>
+                    <div class="terminal-body">
+                        <span class="prompt">USER:</span> "メールアドレスのバリデーション関数をJSで"<br><br>
+                        <span class="keyword">function</span> <span class="function">isValidEmail</span>(email) {<br>
+                        &nbsp;&nbsp;<span class="keyword">const</span> regex = <span class="string">/^[^\s@]+@[^\s@]+\.[^\s@]+$/</span>;<br>
+                        &nbsp;&nbsp;<span class="keyword">return</span> regex.<span class="function">test</span>(email);<br>
+                        }
+                    </div>
+                </div>
+
+                <h3>クラス生成</h3>
+                <div class="terminal">
+                    <div class="terminal-header">
+                        <div class="terminal-dot red"></div>
+                        <div class="terminal-dot yellow"></div>
+                        <div class="terminal-dot green"></div>
+                    </div>
+                    <div class="terminal-body">
+                        <span class="prompt">USER:</span> "Pythonでスタックのデータ構造を実装"<br><br>
+                        <span class="keyword">class</span> <span class="function">Stack</span>:<br>
+                        &nbsp;&nbsp;<span class="keyword">def</span> <span class="function">__init__</span>(self):<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;self.items = []<br><br>
+                        &nbsp;&nbsp;<span class="keyword">def</span> <span class="function">push</span>(self, item):<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;self.items.<span class="function">append</span>(item)<br><br>
+                        &nbsp;&nbsp;<span class="keyword">def</span> <span class="function">pop</span>(self):<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span> self.items.<span class="function">pop</span>() <span class="keyword">if</span> self.items <span class="keyword">else</span> <span class="keyword">None</span><br><br>
+                        &nbsp;&nbsp;<span class="keyword">def</span> <span class="function">peek</span>(self):<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span> self.items[-1] <span class="keyword">if</span> self.items <span class="keyword">else</span> <span class="keyword">None</span>
+                    </div>
+                </div>
+
+                <h3>API統合コード</h3>
+                <div class="terminal">
+                    <div class="terminal-header">
+                        <div class="terminal-dot red"></div>
+                        <div class="terminal-dot yellow"></div>
+                        <div class="terminal-dot green"></div>
+                    </div>
+                    <div class="terminal-body">
+                        <span class="prompt">USER:</span> "Node.jsでREST API呼び出し（エラーハンドリング付き）"<br><br>
+                        <span class="keyword">async function</span> <span class="function">fetchData</span>(url) {<br>
+                        &nbsp;&nbsp;<span class="keyword">try</span> {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">const</span> response = <span class="keyword">await</span> <span class="function">fetch</span>(url);<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">if</span> (!response.ok) {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">throw new</span> <span class="function">Error</span>(<span class="string">`HTTP error! status: ${response.status}`</span>);<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return await</span> response.<span class="function">json</span>();<br>
+                        &nbsp;&nbsp;} <span class="keyword">catch</span> (error) {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;console.<span class="function">error</span>(<span class="string">'Fetch failed:'</span>, error);<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">throw</span> error;<br>
+                        &nbsp;&nbsp;}<br>
+                        }
+                    </div>
+                </div>
+
+                <div class="tip-box">
+                    <div class="tip-title">ADVANCED TIP</div>
+                    <p>複雑なコードを生成する時は、まず<span class="highlight">擬似コード</span>や<span class="highlight">構造の説明</span>を書いてもらい、その後で実装を依頼すると精度が上がる！</p>
+                </div>
+            </div>
+
+            <div class="quiz-container" id="quiz3">
+                <h3 class="quiz-title">KNOWLEDGE CHECK</h3>
+                <p class="quiz-question">複雑な機能をCodexに実装させる時のベストプラクティスは？</p>
+                <div class="quiz-options">
+                    <div class="quiz-option" onclick="checkAnswer(3, 'A', false)">
+                        <span class="option-letter">A</span>
+                        <span>全てを一度に依頼する</span>
+                    </div>
+                    <div class="quiz-option" onclick="checkAnswer(3, 'B', false)">
+                        <span class="option-letter">B</span>
+                        <span>コードをコピペで組み合わせる</span>
+                    </div>
+                    <div class="quiz-option" onclick="checkAnswer(3, 'C', true)">
+                        <span class="option-letter">C</span>
+                        <span>段階的に設計→実装と進める</span>
+                    </div>
+                    <div class="quiz-option" onclick="checkAnswer(3, 'D', false)">
+                        <span class="option-letter">D</span>
+                        <span>エラーハンドリングは省略する</span>
+                    </div>
+                </div>
+                <div class="quiz-result" id="result3"></div>
+            </div>
+
+            <button class="progress-btn" id="complete3" onclick="completeMission(3)" disabled>
+                MISSION COMPLETE
+            </button>
+        </div>
+
+        <!-- Mission 4: Debugging -->
+        <div class="content-panel" id="mission4">
+            <div class="content-header">
+                <h2 class="content-title">MISSION 4: デバッグの極意</h2>
+                <button class="close-btn" onclick="closePanel()">&times;</button>
+            </div>
+            <div class="content-text">
+                <p>Codexは<span class="highlight">デバッグの強力な味方</span>になる。バグを見つけ、修正する方法を学ぼう。</p>
+
+                <h3>バグ特定の依頼方法</h3>
+                <div class="terminal">
+                    <div class="terminal-header">
+                        <div class="terminal-dot red"></div>
+                        <div class="terminal-dot yellow"></div>
+                        <div class="terminal-dot green"></div>
+                    </div>
+                    <div class="terminal-body">
+                        <span class="prompt">USER:</span><br>
+                        <span class="string">以下のコードにバグがあります。見つけて修正してください:</span><br><br>
+                        <span class="keyword">function</span> <span class="function">calculateAverage</span>(numbers) {<br>
+                        &nbsp;&nbsp;<span class="keyword">let</span> sum = 0;<br>
+                        &nbsp;&nbsp;<span class="keyword">for</span> (<span class="keyword">let</span> i = 0; i <= numbers.length; i++) {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;sum += numbers[i];<br>
+                        &nbsp;&nbsp;}<br>
+                        &nbsp;&nbsp;<span class="keyword">return</span> sum / numbers.length;<br>
+                        }<br><br>
+                        <span class="prompt">CODEX:</span><br>
+                        <span class="string">バグ発見: ループ条件が i <= numbers.length になっています。</span><br>
+                        <span class="string">これにより配列外アクセスが発生します。</span><br>
+                        <span class="string">修正: i < numbers.length に変更してください。</span>
+                    </div>
+                </div>
+
+                <h3>エラーメッセージの解析</h3>
+                <div class="tip-box">
+                    <div class="tip-title">DEBUG STRATEGY</div>
+                    <p>エラーメッセージと関連するコードを一緒にCodexに渡すと、的確な診断が得られる。スタックトレースも含めるとさらに精度アップ！</p>
+                </div>
+
+                <div class="terminal">
+                    <div class="terminal-header">
+                        <div class="terminal-dot red"></div>
+                        <div class="terminal-dot yellow"></div>
+                        <div class="terminal-dot green"></div>
+                    </div>
+                    <div class="terminal-body">
+                        <span class="prompt">USER:</span><br>
+                        <span class="string">このエラーの原因と解決策を教えてください:</span><br><br>
+                        <span class="comment">TypeError: Cannot read property 'map' of undefined</span><br>
+                        <span class="comment">at UserList (UserList.js:15:23)</span><br><br>
+                        <span class="keyword">function</span> <span class="function">UserList</span>({ users }) {<br>
+                        &nbsp;&nbsp;<span class="keyword">return</span> (<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&lt;ul&gt;<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{users.<span class="function">map</span>(user =&gt; &lt;li&gt;{user.name}&lt;/li&gt;)}<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&lt;/ul&gt;<br>
+                        &nbsp;&nbsp;);<br>
+                        }
+                    </div>
+                </div>
+
+                <h3>パフォーマンス問題の診断</h3>
+                <p>Codexは「なぜこのコードが遅いのか」も分析できる：</p>
+                <ul>
+                    <li>アルゴリズムの計算量の指摘</li>
+                    <li>メモリリークの検出</li>
+                    <li>非効率なデータ構造の指摘</li>
+                    <li>最適化の提案</li>
+                </ul>
+            </div>
+
+            <div class="quiz-container" id="quiz4">
+                <h3 class="quiz-title">KNOWLEDGE CHECK</h3>
+                <p class="quiz-question">Codexにデバッグを依頼する際、最も効果的な情報の組み合わせは？</p>
+                <div class="quiz-options">
+                    <div class="quiz-option" onclick="checkAnswer(4, 'A', false)">
+                        <span class="option-letter">A</span>
+                        <span>「動かない」とだけ伝える</span>
+                    </div>
+                    <div class="quiz-option" onclick="checkAnswer(4, 'B', false)">
+                        <span class="option-letter">B</span>
+                        <span>エラーメッセージのみ</span>
+                    </div>
+                    <div class="quiz-option" onclick="checkAnswer(4, 'C', true)">
+                        <span class="option-letter">C</span>
+                        <span>エラーメッセージ + 関連コード + 期待する動作</span>
+                    </div>
+                    <div class="quiz-option" onclick="checkAnswer(4, 'D', false)">
+                        <span class="option-letter">D</span>
+                        <span>プロジェクト全体のコード</span>
+                    </div>
+                </div>
+                <div class="quiz-result" id="result4"></div>
+            </div>
+
+            <button class="progress-btn" id="complete4" onclick="completeMission(4)" disabled>
+                MISSION COMPLETE
+            </button>
+        </div>
+
+        <!-- Mission 5: Advanced Techniques -->
+        <div class="content-panel" id="mission5">
+            <div class="content-header">
+                <h2 class="content-title">MISSION 5: 上級テクニック</h2>
+                <button class="close-btn" onclick="closePanel()">&times;</button>
+            </div>
+            <div class="content-text">
+                <p>最終ミッションへようこそ！ここでは<span class="highlight">Codexマスター</span>への道を完成させる上級テクニックを学ぶ。</p>
+
+                <h3>Chain of Thought（思考の連鎖）</h3>
+                <p>複雑な問題は、Codexに「ステップバイステップで考えて」と依頼すると精度が上がる：</p>
+
+                <div class="terminal">
+                    <div class="terminal-header">
+                        <div class="terminal-dot red"></div>
+                        <div class="terminal-dot yellow"></div>
+                        <div class="terminal-dot green"></div>
+                    </div>
+                    <div class="terminal-body">
+                        <span class="prompt">USER:</span><br>
+                        <span class="string">ステップバイステップで考えてから実装してください:</span><br>
+                        <span class="string">二分探索木の削除操作を実装</span><br><br>
+                        <span class="prompt">CODEX:</span><br>
+                        <span class="comment"># ステップ1: 削除するノードを見つける</span><br>
+                        <span class="comment"># ステップ2: ケース分析</span><br>
+                        <span class="comment">#   - 葉ノード: 単純に削除</span><br>
+                        <span class="comment">#   - 子が1つ: 子で置き換え</span><br>
+                        <span class="comment">#   - 子が2つ: 後続ノードで置き換え</span><br>
+                        <span class="comment"># ステップ3: 各ケースを実装</span>
+                    </div>
+                </div>
+
+                <h3>Few-Shot Learning（例示学習）</h3>
+                <p>いくつかの例を示すと、Codexはそのパターンを学習して適用する：</p>
+
+                <div class="terminal">
+                    <div class="terminal-header">
+                        <div class="terminal-dot red"></div>
+                        <div class="terminal-dot yellow"></div>
+                        <div class="terminal-dot green"></div>
+                    </div>
+                    <div class="terminal-body">
+                        <span class="prompt">USER:</span><br>
+                        <span class="string">以下のパターンで変換してください:</span><br><br>
+                        <span class="string">入力: "hello world" → 出力: "Hello World"</span><br>
+                        <span class="string">入力: "foo bar baz" → 出力: "Foo Bar Baz"</span><br>
+                        <span class="string">入力: "test case" → 出力: ?</span><br><br>
+                        <span class="prompt">CODEX:</span> <span class="string">"Test Case"</span>
+                    </div>
+                </div>
+
+                <h3>コードレビューの依頼</h3>
+                <div class="tip-box">
+                    <div class="tip-title">MASTER TIP</div>
+                    <p>Codexに「このコードをレビューして、改善点を指摘して」と依頼すると、セキュリティ、パフォーマンス、可読性の観点からフィードバックが得られる！</p>
+                </div>
+
+                <h3>リファクタリング</h3>
+                <ul>
+                    <li><span class="command">「このコードをDRY原則に従ってリファクタリングして」</span></li>
+                    <li><span class="command">「このコードをSOLID原則に従って再設計して」</span></li>
+                    <li><span class="command">「このコードのテストを書いて」</span></li>
+                    <li><span class="command">「このコードにTypeScriptの型を追加して」</span></li>
+                </ul>
+
+                <h3>Codexマスターの心得</h3>
+                <div class="tip-box">
+                    <div class="tip-title">FINAL WISDOM</div>
+                    <ul>
+                        <li>Codexは<span class="highlight">アシスタント</span>であり、代替ではない</li>
+                        <li>生成されたコードは必ず<span class="highlight">レビュー</span>する</li>
+                        <li><span class="highlight">セキュリティ</span>を常に意識する</li>
+                        <li>学習を続け、プロンプトを<span class="highlight">改善</span>し続ける</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="quiz-container" id="quiz5">
+                <h3 class="quiz-title">FINAL CHALLENGE</h3>
+                <p class="quiz-question">Codexを使う際の最も重要な姿勢は？</p>
+                <div class="quiz-options">
+                    <div class="quiz-option" onclick="checkAnswer(5, 'A', false)">
+                        <span class="option-letter">A</span>
+                        <span>全てをCodexに任せる</span>
+                    </div>
+                    <div class="quiz-option" onclick="checkAnswer(5, 'B', false)">
+                        <span class="option-letter">B</span>
+                        <span>生成されたコードをそのまま使う</span>
+                    </div>
+                    <div class="quiz-option" onclick="checkAnswer(5, 'C', false)">
+                        <span class="option-letter">C</span>
+                        <span>できるだけ短いプロンプトを書く</span>
+                    </div>
+                    <div class="quiz-option" onclick="checkAnswer(5, 'D', true)">
+                        <span class="option-letter">D</span>
+                        <span>アシスタントとして活用し、生成コードを必ずレビューする</span>
+                    </div>
+                </div>
+                <div class="quiz-result" id="result5"></div>
+            </div>
+
+            <button class="progress-btn" id="complete5" onclick="completeMission(5)" disabled>
+                BECOME A CODEX MASTER
+            </button>
+        </div>
+
+        <!-- Badges Section -->
+        <section class="badges-section">
+            <h2 class="section-title">ACHIEVEMENTS</h2>
+            <div class="badges-grid" id="badgesGrid">
+                <!-- Badges will be generated by JavaScript -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Achievement Popup -->
+    <div class="overlay" id="overlay"></div>
+    <div class="achievement-popup" id="achievementPopup">
+        <div class="achievement-icon" id="achievementIcon"></div>
+        <h3 class="achievement-title" id="achievementTitle"></h3>
+        <p class="achievement-desc" id="achievementDesc"></p>
+        <div class="achievement-xp" id="achievementXp"></div>
+        <button class="progress-btn" onclick="closeAchievement()">CONTINUE</button>
+    </div>
+
+    <script>
+        // Game State
+        const gameState = {
+            level: 1,
+            xp: 0,
+            xpToNextLevel: 100,
+            completedMissions: [],
+            unlockedBadges: [],
+            quizAnswered: {}
+        };
+
+        // Mission Data
+        const missions = [
+            { id: 1, title: 'Codexとは何か？', desc: 'AIコーディングアシスタントの基本を学ぶ', xp: 100, level: 'BEGINNER' },
+            { id: 2, title: '効果的なプロンプトの書き方', desc: '正確な指示で最高の結果を得る', xp: 150, level: 'BEGINNER' },
+            { id: 3, title: 'コード生成マスター', desc: '様々なコード生成パターンを習得', xp: 200, level: 'INTERMEDIATE' },
+            { id: 4, title: 'デバッグの極意', desc: 'バグを見つけ、修正する方法を学ぶ', xp: 200, level: 'INTERMEDIATE' },
+            { id: 5, title: '上級テクニック', desc: 'Codexマスターへの最終試験', xp: 350, level: 'ADVANCED' }
+        ];
+
+        // Badge Data
+        const badges = [
+            { id: 'first_step', icon: '🚀', name: '最初の一歩', desc: 'Mission 1をクリア' },
+            { id: 'prompt_master', icon: '✍️', name: 'プロンプトマスター', desc: 'Mission 2をクリア' },
+            { id: 'code_generator', icon: '⚡', name: 'コードジェネレーター', desc: 'Mission 3をクリア' },
+            { id: 'bug_hunter', icon: '🐛', name: 'バグハンター', desc: 'Mission 4をクリア' },
+            { id: 'codex_master', icon: '👑', name: 'CODEXマスター', desc: '全ミッションクリア' },
+            { id: 'perfectionist', icon: '💯', name: 'パーフェクショニスト', desc: '全クイズを一発正解' }
+        ];
+
+        // Initialize
+        function init() {
+            loadGameState();
+            renderMissions();
+            renderBadges();
+            updateUI();
+        }
+
+        // Load game state from localStorage
+        function loadGameState() {
+            const saved = localStorage.getItem('codexMasterGameState');
+            if (saved) {
+                Object.assign(gameState, JSON.parse(saved));
+            }
+        }
+
+        // Save game state to localStorage
+        function saveGameState() {
+            localStorage.setItem('codexMasterGameState', JSON.stringify(gameState));
+        }
+
+        // Update UI
+        function updateUI() {
+            document.getElementById('playerLevel').textContent = gameState.level;
+            document.getElementById('currentXp').textContent = gameState.xp;
+            document.getElementById('maxXp').textContent = gameState.xpToNextLevel;
+            document.getElementById('xpFill').style.width = `${(gameState.xp / gameState.xpToNextLevel) * 100}%`;
+            document.getElementById('completedMissions').textContent = gameState.completedMissions.length;
+        }
+
+        // Render Missions
+        function renderMissions() {
+            const grid = document.getElementById('missionGrid');
+            grid.innerHTML = '';
+
+            missions.forEach((mission, index) => {
+                const isCompleted = gameState.completedMissions.includes(mission.id);
+                const isLocked = index > 0 && !gameState.completedMissions.includes(missions[index - 1].id);
+                const isAvailable = !isCompleted && !isLocked;
+
+                const card = document.createElement('div');
+                card.className = `mission-card ${isCompleted ? 'completed' : ''} ${isLocked ? 'locked' : ''} ${isAvailable ? 'available' : ''}`;
+                card.innerHTML = `
+                    <div class="mission-header">
+                        <span class="mission-level">${mission.level}</span>
+                        <span class="mission-xp">+${mission.xp} XP</span>
+                    </div>
+                    <h3 class="mission-title">MISSION ${mission.id}: ${mission.title}</h3>
+                    <p class="mission-desc">${mission.desc}</p>
+                    <div class="mission-status">
+                        <div class="status-icon ${isCompleted ? 'completed' : isLocked ? 'locked' : 'available'}">
+                            ${isCompleted ? '✓' : isLocked ? '🔒' : '!'}
+                        </div>
+                        <span>${isCompleted ? 'COMPLETED' : isLocked ? 'LOCKED' : 'AVAILABLE'}</span>
+                    </div>
+                `;
+
+                if (!isLocked) {
+                    card.onclick = () => openMission(mission.id);
+                }
+
+                grid.appendChild(card);
+            });
+        }
+
+        // Render Badges
+        function renderBadges() {
+            const grid = document.getElementById('badgesGrid');
+            grid.innerHTML = '';
+
+            badges.forEach(badge => {
+                const isUnlocked = gameState.unlockedBadges.includes(badge.id);
+                const badgeEl = document.createElement('div');
+                badgeEl.className = `badge ${isUnlocked ? 'unlocked' : 'locked'}`;
+                badgeEl.innerHTML = `
+                    ${badge.icon}
+                    <div class="badge-tooltip">${badge.name}</div>
+                `;
+                grid.appendChild(badgeEl);
+            });
+        }
+
+        // Open Mission Panel
+        function openMission(id) {
+            document.querySelectorAll('.content-panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+            document.getElementById(`mission${id}`).classList.add('active');
+
+            // Reset quiz state for this mission if not answered
+            if (!gameState.quizAnswered[id]) {
+                const options = document.querySelectorAll(`#quiz${id} .quiz-option`);
+                options.forEach(opt => {
+                    opt.classList.remove('correct', 'wrong');
+                    opt.style.pointerEvents = 'auto';
+                });
+                document.getElementById(`result${id}`).classList.remove('show');
+                document.getElementById(`complete${id}`).disabled = true;
+            }
+        }
+
+        // Close Panel
+        function closePanel() {
+            document.querySelectorAll('.content-panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+        }
+
+        // Check Quiz Answer
+        function checkAnswer(missionId, answer, isCorrect) {
+            if (gameState.quizAnswered[missionId]) return;
+
+            const options = document.querySelectorAll(`#quiz${missionId} .quiz-option`);
+            const resultDiv = document.getElementById(`result${missionId}`);
+            const completeBtn = document.getElementById(`complete${missionId}`);
+
+            options.forEach(opt => {
+                opt.style.pointerEvents = 'none';
+            });
+
+            event.currentTarget.classList.add(isCorrect ? 'correct' : 'wrong');
+
+            if (isCorrect) {
+                resultDiv.className = 'quiz-result show success';
+                resultDiv.innerHTML = '🎯 正解！素晴らしい！';
+                completeBtn.disabled = false;
+                gameState.quizAnswered[missionId] = 'first_try';
+            } else {
+                resultDiv.className = 'quiz-result show fail';
+                resultDiv.innerHTML = '❌ 不正解... もう一度考えてみよう';
+                gameState.quizAnswered[missionId] = 'retry';
+
+                // Allow retry after 2 seconds
+                setTimeout(() => {
+                    options.forEach(opt => {
+                        if (!opt.classList.contains('wrong')) {
+                            opt.style.pointerEvents = 'auto';
+                        }
+                    });
+                    gameState.quizAnswered[missionId] = null;
+                }, 2000);
+            }
+
+            saveGameState();
+        }
+
+        // Complete Mission
+        function completeMission(id) {
+            if (gameState.completedMissions.includes(id)) return;
+
+            const mission = missions.find(m => m.id === id);
+            gameState.completedMissions.push(id);
+            addXP(mission.xp);
+
+            // Check for badges
+            checkBadges(id);
+
+            // Update UI
+            renderMissions();
+            closePanel();
+            saveGameState();
+        }
+
+        // Add XP
+        function addXP(amount) {
+            gameState.xp += amount;
+
+            while (gameState.xp >= gameState.xpToNextLevel) {
+                gameState.xp -= gameState.xpToNextLevel;
+                gameState.level++;
+                gameState.xpToNextLevel = Math.floor(gameState.xpToNextLevel * 1.5);
+                showAchievement('🎮', `LEVEL ${gameState.level}`, 'レベルアップ！', `+${amount} XP`);
+            }
+
+            updateUI();
+        }
+
+        // Check Badges
+        function checkBadges(completedMissionId) {
+            const badgeMapping = {
+                1: 'first_step',
+                2: 'prompt_master',
+                3: 'code_generator',
+                4: 'bug_hunter'
+            };
+
+            // Mission-specific badge
+            if (badgeMapping[completedMissionId] && !gameState.unlockedBadges.includes(badgeMapping[completedMissionId])) {
+                unlockBadge(badgeMapping[completedMissionId]);
+            }
+
+            // Codex Master badge
+            if (gameState.completedMissions.length === 5 && !gameState.unlockedBadges.includes('codex_master')) {
+                unlockBadge('codex_master');
+            }
+
+            // Perfectionist badge
+            const allFirstTry = Object.values(gameState.quizAnswered).every(v => v === 'first_try');
+            if (gameState.completedMissions.length === 5 && allFirstTry && !gameState.unlockedBadges.includes('perfectionist')) {
+                unlockBadge('perfectionist');
+            }
+        }
+
+        // Unlock Badge
+        function unlockBadge(badgeId) {
+            const badge = badges.find(b => b.id === badgeId);
+            gameState.unlockedBadges.push(badgeId);
+            showAchievement(badge.icon, 'BADGE UNLOCKED', badge.name, badge.desc);
+            renderBadges();
+            saveGameState();
+        }
+
+        // Show Achievement Popup
+        function showAchievement(icon, title, name, desc) {
+            document.getElementById('achievementIcon').textContent = icon;
+            document.getElementById('achievementTitle').textContent = title;
+            document.getElementById('achievementDesc').textContent = name;
+            document.getElementById('achievementXp').textContent = desc;
+            document.getElementById('overlay').classList.add('show');
+            document.getElementById('achievementPopup').classList.add('show');
+        }
+
+        // Close Achievement Popup
+        function closeAchievement() {
+            document.getElementById('overlay').classList.remove('show');
+            document.getElementById('achievementPopup').classList.remove('show');
+        }
+
+        // Reset Progress (for development)
+        function resetProgress() {
+            localStorage.removeItem('codexMasterGameState');
+            location.reload();
+        }
+
+        // Initialize on load
+        window.onload = init;
+    </script>
+</body>
+</html>
