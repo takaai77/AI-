@@ -9,8 +9,10 @@ iPhone/モバイルブラウザから動画分析を手軽に行うためのWeb�
 """
 
 import streamlit as st
+import streamlit.components.v1 as components
 import json
 import os
+import html as html_mod
 from pathlib import Path
 from datetime import datetime
 import tempfile
@@ -30,7 +32,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# カスタムCSS（モバイル対応）
+# カスタムCSS（iPhone・モバイル最適化）
 st.markdown("""
 <style>
     .stApp {
@@ -61,10 +63,23 @@ st.markdown("""
         overflow: hidden;
         box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
+    /* iPhone・モバイル最適化 */
     @media (max-width: 768px) {
+        .stApp { padding: 0 8px; }
         .frame-gallery {
             grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
             gap: 10px;
+        }
+        /* タッチタゲットサイズ確保 (Apple HIG: 最小44px) */
+        .stButton button {
+            min-height: 44px;
+            font-size: 16px !important;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+        /* テキスト入力でのiPhoneゾーム防止 */
+        input[type="text"], textarea, select {
+            font-size: 16px !important;
         }
     }
 </style>
@@ -87,8 +102,9 @@ def display_header():
     """ヘッダーの表示"""
     st.title("🎬 Video Prompt Generator")
     st.markdown("""
-    動画URLまたはローカルファイルから、Midjourney/Stable Diffusion用の
+    動画URLまたはローカルファイルから、**Freepik Pikaso**用の
     画像生成プロンプトを自動作成します。
+    生成したプロンプトを [Freepik Pikaso](https://jp.freepik.com/pikaso/app) で使用できます。
     """)
     st.markdown("---")
 
@@ -106,26 +122,24 @@ def display_sidebar():
             help="生成されるプロンプトの言語を選択"
         )
 
-        # プラットフォーム選択
-        platform = st.selectbox(
-            "🎨 画像生成プラットフォーム",
-            options=["seaart", "novelai", "midjourney"],
+        # モデル選択（Freepik Pikaso）
+        model = st.selectbox(
+            "🎨 画像生成モデル（Freepik Pikaso）",
+            options=["seedance", "nanobanana"],
             format_func=lambda x: {
-                "seaart": "SeaArt（シーダンス）",
-                "novelai": "NovelAI（ナノバナナプロ）",
-                "midjourney": "Midjourney"
+                "seedance": "Seedance",
+                "nanobanana": "Nano Banana Pro"
             }[x],
-            index=0,  # SeaArtをデフォルト
-            help="使用する画像生成プラットフォームを選択"
+            index=0,  # Seedanceをデフォルト
+            help="Freepik Pikaso上で使用するモデルを選択"
         )
 
-        # プラットフォーム別の説明
-        platform_desc = {
-            "seaart": "💡 タグベース + 自然言語のハイブリッド形式で生成",
-            "novelai": "💡 アニメ・イラスト特化、タグベース形式で生成",
-            "midjourney": "💡 自然言語で詳細に記述する形式で生成"
+        # モデル別の説明
+        model_desc = {
+            "seedance": "💡 タグベース + 自然言語のハイブリッド形式で生成",
+            "nanobanana": "💡 アニメ・イラスト特化、タグベース形式で生成"
         }
-        st.info(platform_desc[platform])
+        st.info(model_desc[model])
 
         # シーン検出オプション
         st.subheader("🎬 シーン検出")
@@ -168,9 +182,9 @@ def display_sidebar():
             help="処理の詳細情報を表示"
         )
 
-        # 対応プラットフォーム表示
+        # 動画ソース対応
         st.markdown("---")
-        st.subheader("📱 対応プラットフォーム")
+        st.subheader("📱 動画ソース対応")
         st.markdown("""
         - ✅ YouTube
         - ✅ X (Twitter)
@@ -180,11 +194,22 @@ def display_sidebar():
         - ✅ ローカルファイル
         """)
 
+        # Freepik リンク
+        st.markdown("---")
+        st.markdown(
+            '<a href="https://jp.freepik.com/pikaso/app" target="_blank" '
+            'style="display:block; padding:10px; text-align:center; border-radius:8px; '
+            'background:linear-gradient(135deg,#ff6b35,#ff8c5a); color:#fff; '
+            'font-weight:bold; text-decoration:none; font-size:15px;">'
+            '🎨 Freepik Pikaso を開く</a>',
+            unsafe_allow_html=True
+        )
+
         # API情報
         st.markdown("---")
         st.caption("Powered by Google Gemini API")
 
-        return language, platform, detect_scenes, extract_frames, analyze_audio, whisper_model, verbose
+        return language, model, detect_scenes, extract_frames, analyze_audio, whisper_model, verbose
 
 
 def display_input_section():
@@ -248,7 +273,7 @@ def display_input_section():
         return "file", None
 
 
-def process_video(video_source, source_type, language, platform, detect_scenes, extract_frames, analyze_audio, whisper_model, verbose):
+def process_video(video_source, source_type, language, model, detect_scenes, extract_frames, analyze_audio, whisper_model, verbose):
     """動画の処理"""
 
     # 入力チェック
@@ -356,7 +381,7 @@ def process_video(video_source, source_type, language, platform, detect_scenes, 
         status_text.text("⏳ ステップ2/3: プロンプトを生成中...")
         progress_bar.progress(70)
 
-        prompt_gen = PromptGenerator(language=language, platform=platform, verbose=verbose)
+        prompt_gen = PromptGenerator(language=language, model=model, verbose=verbose)
 
         status_text.text("🤖 Gemini APIで動画を分析中...")
 
@@ -497,21 +522,56 @@ def display_results():
                 st.markdown("**🇯🇵 Japanese Prompt:**")
                 st.code(prompt['japanese_prompt'], language="text")
 
-            # コピーボタン
-            col1, col2 = st.columns(2)
-            with col1:
-                st.button(
-                    "📋 英語プロンプトをコピー",
-                    key=f"copy_en_{i}",
-                    help="クリップボードにコピー"
-                )
-            if 'japanese_prompt' in prompt:
-                with col2:
-                    st.button(
-                        "📋 日本語プロンプトをコピー",
-                        key=f"copy_ja_{i}",
-                        help="クリップボードにコピー"
-                    )
+            # コピーボタン＋Freepik リンク（iPhone対応・JS実装）
+            en_text = html_mod.escape(prompt.get('prompt', ''))
+            ja_text = html_mod.escape(prompt.get('japanese_prompt', ''))
+            ja_btn_html = (
+                f'<button class="cpbtn" onclick="doCopy(\'ja_{i}\', this, \'📋 日本語プロンプトをコピー\')">📋 日本語プロンプトをコピー</button>'
+                if ja_text else ''
+            )
+            ja_data_html = (
+                f'<div id="ja_{i}" data-text="{ja_text}" style="display:none"></div>'
+                if ja_text else ''
+            )
+            btn_h = 130 if ja_text else 100
+            components.html(f"""
+            <style>
+                .cpbtn {{
+                    padding: 12px 14px; border: 2px solid #1f77b4; border-radius: 8px;
+                    background: #fff; color: #1f77b4; cursor: pointer; font-size: 15px;
+                    display: inline-block; width: calc(50% - 6px); box-sizing: border-box;
+                    -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+                    min-height: 44px; vertical-align: middle;
+                }}
+                .cpbtn:active {{ background: #e8f0fe; }}
+                .cpbtn.done {{ background: #28a745 !important; color: #fff !important; border-color: #28a745 !important; }}
+                .fpbtn {{
+                    display: block; margin-top: 10px; padding: 13px; border: none; border-radius: 8px;
+                    background: linear-gradient(135deg, #ff6b35, #ff8c5a); color: #fff;
+                    font-size: 15px; font-weight: bold; text-align: center;
+                    text-decoration: none; cursor: pointer; min-height: 44px;
+                    -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+                }}
+                .fpbtn:active {{ opacity: 0.85; }}
+            </style>
+            <div id="en_{i}" data-text="{en_text}" style="display:none"></div>
+            {ja_data_html}
+            <button class="cpbtn" onclick="doCopy('en_{i}', this, '📋 英語プロンプトをコピー')">📋 英語プロンプトをコピー</button>
+            {ja_btn_html}
+            <a href="https://jp.freepik.com/pikaso/app" target="_blank" class="fpbtn">🎨 Freepik Pikaso で画像生成 →</a>
+            <script>
+            function doCopy(id, btn, label) {{
+                var text = document.getElementById(id).getAttribute('data-text');
+                var ta = document.createElement('textarea');
+                ta.value = text; ta.style.position = 'fixed';
+                ta.style.left = '-9999px'; ta.style.top = '-9999px'; ta.style.fontSize = '16px';
+                document.body.appendChild(ta); ta.focus(); ta.select();
+                document.execCommand('copy'); document.body.removeChild(ta);
+                btn.textContent = '✓ コピー済み'; btn.classList.add('done');
+                setTimeout(function() {{ btn.textContent = label; btn.classList.remove('done'); }}, 1500);
+            }}
+            </script>
+            """, height=btn_h)
 
     # 抽出されたフレーム表示
     if st.session_state.extracted_frames:
@@ -550,7 +610,9 @@ def display_results():
 
     with col2:
         # テキスト形式でもダウンロード可能に
+        model_label = {"seedance": "Seedance", "nanobanana": "Nano Banana Pro"}.get(results.get('model', ''), results.get('model', ''))
         text_output = f"# Video Prompt Generator Results\n\n"
+        text_output += f"**プラットフォーム:** Freepik Pikaso | **モデル:** {model_label}\n\n"
         text_output += f"## Summary\n{results.get('summary', 'N/A')}\n\n"
         text_output += f"## Prompts\n\n"
 
@@ -587,7 +649,7 @@ def main():
     display_header()
 
     # サイドバー
-    language, platform, detect_scenes, extract_frames, analyze_audio, whisper_model, verbose = display_sidebar()
+    language, model, detect_scenes, extract_frames, analyze_audio, whisper_model, verbose = display_sidebar()
 
     # 入力セクション
     source_type, video_source = display_input_section()
@@ -612,7 +674,7 @@ def main():
                 video_source,
                 source_type,
                 language,
-                platform,
+                model,
                 detect_scenes,
                 extract_frames,
                 analyze_audio,
@@ -633,6 +695,9 @@ def main():
     <div style="text-align: center; color: #666;">
         <p>Video Prompt Generator | Powered by Google Gemini API</p>
         <p>iPhone・モバイルブラウザ対応 🎉</p>
+        <p style="margin-top:4px;">
+            生成したプロンプトは <a href="https://jp.freepik.com/pikaso/app" target="_blank" style="color:#ff6b35; font-weight:bold;">Freepik Pikaso</a> で使用できます
+        </p>
     </div>
     """, unsafe_allow_html=True)
 

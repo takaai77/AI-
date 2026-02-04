@@ -110,11 +110,11 @@ def parse_arguments():
     )
 
     parser.add_argument(
-        '--platform',
+        '--model',
         type=str,
-        choices=['midjourney', 'seaart', 'novelai'],
-        default='seaart',
-        help='画像生成プラットフォーム（midjourney/seaart/novelai、デフォルト: seaart）'
+        choices=['seedance', 'nanobanana'],
+        default='seedance',
+        help='Freepik Pikaso上の画像生成モデル（seedance/nanobanana、デフォルト: seedance）'
     )
 
     parser.add_argument(
@@ -326,7 +326,7 @@ def main():
 
         prompt_gen = PromptGenerator(
             language=args.language,
-            platform=args.platform,
+            model=args.model,
             verbose=args.verbose
         )
 

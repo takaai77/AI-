@@ -2,7 +2,7 @@
 プロンプト生成モジュール
 
 このモジュールはGemini APIを使用して動画を分析し、
-Midjourney/Stable Diffusion用の画像生成プロンプトを自動生成します。
+Freepik Pikaso上のSeedance/Nano Banana Pro用の画像生成プロンプトを自動生成します。
 """
 
 import json
@@ -22,17 +22,17 @@ class PromptGenerator:
     画像生成AI用のプロンプトと要点まとめを生成します。
     """
 
-    def __init__(self, language: str = 'ja', platform: str = 'seaart', verbose: bool = False):
+    def __init__(self, language: str = 'ja', model: str = 'seedance', verbose: bool = False):
         """
         初期化
 
         Args:
             language (str): プロンプトの言語（'ja'または'en'）
-            platform (str): 画像生成プラットフォーム（'midjourney', 'seaart', 'novelai'）
+            model (str): Freepik Pikaso上の画像生成モデル（'seedance', 'nanobanana'）
             verbose (bool): 詳細ログを出力するかどうか
         """
         self.language = language
-        self.platform = platform
+        self.model = model
         self.verbose = verbose
 
         # Google Generative AI の設定
@@ -45,67 +45,51 @@ class PromptGenerator:
 
         if self.verbose:
             print(f"✓ PromptGenerator initialized")
-            print(f"  Model: {Config.GEMINI_MODEL}")
+            print(f"  Gemini Model: {Config.GEMINI_MODEL}")
             print(f"  Language: {self.language}")
-            print(f"  Platform: {self.platform}")
+            print(f"  Image Gen Model: {self.model}")
 
-    def _get_platform_instructions(self) -> Dict[str, str]:
+    def _get_model_instructions(self) -> Dict[str, str]:
         """
-        プラットフォーム別のプロンプト生成指示を取得
+        Freepik Pikaso上のモデル別のプロンプト生成指示を取得
 
         Returns:
             Dict: 日本語と英語の指示
         """
         instructions = {
-            'midjourney': {
+            'seedance': {
                 'ja': """
-**Midjourney向けプロンプト:**
-- 自然言語で詳細に記述
-- 視覚的な要素を豊かに表現
-- カメラアングル、ライティング、雰囲気を含める
-- 例: "cinematic shot of sunset beach, golden hour lighting, warm atmosphere, professional photography"
-                """,
-                'en': """
-**For Midjourney:**
-- Use natural language, descriptive phrases
-- Rich visual descriptions
-- Include camera angles, lighting, atmosphere
-- Example: "cinematic shot of sunset beach, golden hour lighting, warm atmosphere, professional photography"
-                """
-            },
-            'seaart': {
-                'ja': """
-**SeaArt（シーダンス）向けプロンプト:**
-- タグベースと自然言語のハイブリッド形式
+**Seedance向けプロンプト（Freepik Pikaso）:**
+- タグベースと自然言語のハイブリッド形式が最適
 - 主要タグをカンマ区切りで列挙した後、詳細説明を追加
 - 品質タグを必ず含める: masterpiece, best quality, highres, detailed
 - スタイルタグ: realistic, anime, illustration, photorealistic等
 - 例: "masterpiece, best quality, sunset beach, person walking, golden hour lighting, warm colors, cinematic composition, highly detailed"
                 """,
                 'en': """
-**For SeaArt:**
-- Hybrid format: tags + natural language
+**For Seedance (Freepik Pikaso):**
+- Hybrid format: tags + natural language works best
 - List main tags separated by commas, then add detailed description
 - Always include quality tags: masterpiece, best quality, highres, detailed
 - Style tags: realistic, anime, illustration, photorealistic, etc.
 - Example: "masterpiece, best quality, sunset beach, person walking, golden hour lighting, warm colors, cinematic composition, highly detailed"
                 """
             },
-            'novelai': {
+            'nanobanana': {
                 'ja': """
-**NovelAI（ナノバナナプロ）向けプロンプト:**
-- 完全タグベース形式（カンマ区切り）
+**Nano Banana Pro向けプロンプト（Freepik Pikaso）:**
+- 完全タグベース形式（カンマ区切り）が最適
 - アニメ・イラスト特化のタグを使用
 - 必須品質タグ: masterpiece, best quality, high resolution, detailed, absurdres
-- スタイルタグ: anime, illustration, digital art, 2d, etc.
+- スタイルタグ: anime, illustration, digital art, 2d等
 - キャラクターの詳細: 1girl, 1boy, solo, group等
 - 背景・構図: beach, sunset, scenic, landscape等
 - 色・照明: warm colors, golden hour, soft lighting等
 - 例: "masterpiece, best quality, absurdres, anime, 1girl, sunset beach, golden hour, warm colors, detailed background, soft lighting, scenic"
                 """,
                 'en': """
-**For NovelAI:**
-- Pure tag-based format (comma-separated)
+**For Nano Banana Pro (Freepik Pikaso):**
+- Pure tag-based format (comma-separated) works best
 - Use anime/illustration-focused tags
 - Required quality tags: masterpiece, best quality, high resolution, detailed, absurdres
 - Style tags: anime, illustration, digital art, 2d, etc.
@@ -117,7 +101,7 @@ class PromptGenerator:
             }
         }
 
-        return instructions.get(self.platform, instructions['seaart'])
+        return instructions.get(self.model, instructions['seedance'])
 
     def _create_analysis_prompt(
         self,
@@ -176,8 +160,14 @@ class PromptGenerator:
             audio_info += "\nプロンプト作成時は、上記の音声情報も考慮してください。\n"
             audio_info += "特に、BGMの雰囲気やセリフの内容は、画像の雰囲気やシーンの理解に重要です。\n"
 
-        # プラットフォーム別の指示を取得
-        platform_instructions = self._get_platform_instructions()
+        # モデル別の指示を取得
+        model_instructions = self._get_model_instructions()
+
+        # f-string内でバックスラッシュを使えないため事前定義
+        dialogue_ja = '"dialogue": "このシーンのセリフ（ある場合）",' if audio_analysis else ''
+        audio_mood_ja = '"audio_mood": "BGMの雰囲気やセリフから感じる感情"' if audio_analysis else ''
+        dialogue_en = '"dialogue": "Dialogue in this scene (if any)",' if audio_analysis else ''
+        audio_mood_en = '"audio_mood": "Mood from BGM and dialogue"' if audio_analysis else ''
 
         if self.language == 'ja':
             prompt = f"""
@@ -190,10 +180,10 @@ class PromptGenerator:
 {'音声（セリフやBGM）の情報も要約に含めてください。' if audio_analysis else ''}
 
 # タスク2: 画像生成プロンプトの作成
-動画の重要なシーンや特徴的な場面について、**{self.platform.upper()}向け**の
+動画の重要なシーンや特徴的な場面について、**Freepik Pikaso上の{self.model.upper()}モデル向け**の
 詳細な画像生成プロンプトを作成してください。
 
-{platform_instructions['ja']}
+{model_instructions['ja']}
 
 各プロンプトには以下を含めてください：
 - 視覚的な詳細（構図、色彩、照明、雰囲気）
@@ -212,10 +202,10 @@ class PromptGenerator:
       "scene": 1,
       "timestamp": "00:00:00",
       "description": "シーンの説明",
-      "prompt": "詳細な英語プロンプト（Midjourney/Stable Diffusion用）",
+      "prompt": "詳細な英語プロンプト（Freepik Pikaso用）",
       "japanese_prompt": "日本語での説明的プロンプト"{',' if audio_analysis else ''}
-      {'\"dialogue\": \"このシーンのセリフ（ある場合）\",' if audio_analysis else ''}
-      {'\"audio_mood\": \"BGMの雰囲気やセリフから感じる感情\"' if audio_analysis else ''}
+      {dialogue_ja}
+      {audio_mood_ja}
     }}
   ]
 }}
@@ -276,10 +266,10 @@ Include the main theme, objects that appear, and scene characteristics.
 {'Also include audio information (dialogue and BGM) in the summary.' if audio_analysis else ''}
 
 # Task 2: Create Image Generation Prompts
-Create detailed image generation prompts **specifically for {self.platform.upper()}**
+Create detailed image generation prompts **specifically for {self.model.upper()} on Freepik Pikaso**
 about important scenes or characteristic moments in the video.
 
-{platform_instructions['en']}
+{model_instructions['en']}
 
 Each prompt should include:
 - Visual details (composition, color, lighting, atmosphere)
@@ -298,9 +288,9 @@ Output in the following JSON format:
       "scene": 1,
       "timestamp": "00:00:00",
       "description": "Scene description",
-      "prompt": "Detailed English prompt (for Midjourney/Stable Diffusion)"{',' if audio_analysis else ''}
-      {'\"dialogue\": \"Dialogue in this scene (if any)\",' if audio_analysis else ''}
-      {'\"audio_mood\": \"Mood from BGM and dialogue\"' if audio_analysis else ''}
+      "prompt": "Detailed English prompt (for Freepik Pikaso)"{',' if audio_analysis else ''}
+      {dialogue_en}
+      {audio_mood_en}
     }}
   ]
 }}
@@ -376,7 +366,7 @@ Important:
             result['timestamp'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             result['model'] = Config.GEMINI_MODEL
             result['language'] = self.language
-            result['platform'] = self.platform
+            result['model'] = self.model
 
             # シーン情報がある場合は追加
             if scenes:
