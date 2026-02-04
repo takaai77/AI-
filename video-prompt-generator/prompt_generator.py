@@ -32,7 +32,7 @@ class PromptGenerator:
             verbose (bool): 詳細ログを出力するかどうか
         """
         self.language = language
-        self.model = model
+        self.target_model = model
         self.verbose = verbose
 
         # Google Generative AI の設定
@@ -47,7 +47,7 @@ class PromptGenerator:
             print(f"✓ PromptGenerator initialized")
             print(f"  Gemini Model: {Config.GEMINI_MODEL}")
             print(f"  Language: {self.language}")
-            print(f"  Image Gen Model: {self.model}")
+            print(f"  Image Gen Model: {self.target_model}")
 
     def _get_model_instructions(self) -> Dict[str, str]:
         """
@@ -101,7 +101,7 @@ class PromptGenerator:
             }
         }
 
-        return instructions.get(self.model, instructions['seedance'])
+        return instructions.get(self.target_model, instructions['seedance'])
 
     def _create_analysis_prompt(
         self,
@@ -180,7 +180,7 @@ class PromptGenerator:
 {'音声（セリフやBGM）の情報も要約に含めてください。' if audio_analysis else ''}
 
 # タスク2: 画像生成プロンプトの作成
-動画の重要なシーンや特徴的な場面について、**Freepik Pikaso上の{self.model.upper()}モデル向け**の
+動画の重要なシーンや特徴的な場面について、**Freepik Pikaso上の{self.target_model.upper()}モデル向け**の
 詳細な画像生成プロンプトを作成してください。
 
 {model_instructions['ja']}
@@ -266,7 +266,7 @@ Include the main theme, objects that appear, and scene characteristics.
 {'Also include audio information (dialogue and BGM) in the summary.' if audio_analysis else ''}
 
 # Task 2: Create Image Generation Prompts
-Create detailed image generation prompts **specifically for {self.model.upper()} on Freepik Pikaso**
+Create detailed image generation prompts **specifically for {self.target_model.upper()} on Freepik Pikaso**
 about important scenes or characteristic moments in the video.
 
 {model_instructions['en']}
@@ -364,9 +364,9 @@ Important:
             # メタデータの追加
             result['video_url'] = video_url
             result['timestamp'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            result['model'] = Config.GEMINI_MODEL
+            result['gemini_model'] = Config.GEMINI_MODEL
             result['language'] = self.language
-            result['model'] = self.model
+            result['model'] = self.target_model
 
             # シーン情報がある場合は追加
             if scenes:

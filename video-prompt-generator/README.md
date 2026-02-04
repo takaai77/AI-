@@ -240,7 +240,7 @@ python main.py https://www.youtube.com/watch?v=example_video_id --output my_prom
 {
   "video_url": "https://www.youtube.com/watch?v=example",
   "timestamp": "2025-01-06 12:34:56",
-  "model": "gemini-1.5-flash",
+  "gemini_model": "gemini-1.5-flash",
   "language": "ja",
   "model": "seedance",
   "summary": "動画の要点まとめ...",
@@ -280,7 +280,7 @@ python main.py https://www.youtube.com/watch?v=example_video_id --output my_prom
 {
   "video_url": "https://www.youtube.com/watch?v=example",
   "timestamp": "2025-01-06 12:34:56",
-  "model": "gemini-1.5-flash",
+  "gemini_model": "gemini-1.5-flash",
   "language": "ja",
   "model": "seedance",
   "summary": "動画の要点まとめ...",
