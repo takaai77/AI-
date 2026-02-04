@@ -2,6 +2,8 @@
 
 X（Twitter）やnoteのアカウントを分析し、過去の投稿から動画作成のヒントやスキルを集約してマークダウンファイルとして出力するツールです。
 
+**iPhone/スマートフォン対応** - 通勤時間にも使えるWebアプリ版を搭載。
+
 ## 機能
 
 - **X（Twitter）分析**: ツイートからヒント・ノウハウを抽出
@@ -21,6 +23,7 @@ X（Twitter）やnoteのアカウントを分析し、過去の投稿から動�
   - 視聴維持率
 - **レポート生成**: 分析結果をマークダウン形式で出力
 - **チートシート生成**: 簡潔なスキル一覧を生成
+- **Webアプリ版**: iPhone/スマートフォンから使用可能
 
 ## インストール
 
@@ -35,7 +38,38 @@ pip install -r requirements.txt
 
 ## 使い方
 
-### デモモード（サンプルデータで実行）
+### Webアプリ版（iPhone/スマホ対応）
+
+通勤時間など、スマートフォンから使いたい場合はWebアプリ版をご利用ください。
+
+```bash
+# Webアプリを起動
+streamlit run influencer_analyzer/web_app.py
+```
+
+ブラウザで `http://localhost:8501` にアクセスしてください。
+
+#### iPhoneのホーム画面に追加する方法
+
+1. Safariでアプリを開く
+2. 共有ボタン（□↑）をタップ
+3. 「ホーム画面に追加」を選択
+4. アプリとして使用可能に
+
+#### Streamlit Cloudにデプロイ
+
+無料でWebに公開できます：
+
+1. GitHubにリポジトリをプッシュ
+2. [Streamlit Cloud](https://share.streamlit.io/) にログイン
+3. リポジトリを選択してデプロイ
+4. URLをブックマークしてどこからでもアクセス
+
+---
+
+### CLIモード
+
+#### デモモード（サンプルデータで実行）
 
 APIキーなしで動作確認できます。
 
@@ -115,12 +149,16 @@ export X_BEARER_TOKEN="your_bearer_token"
 ```
 influencer_analyzer/
 ├── __init__.py           # パッケージ初期化
-├── main.py               # メインエントリーポイント
+├── main.py               # CLIエントリーポイント
+├── web_app.py            # Webアプリ（Streamlit）
 ├── config.py             # 設定管理
 ├── x_analyzer.py         # X（Twitter）分析モジュール
 ├── note_analyzer.py      # note分析モジュール
 ├── content_analyzer.py   # コンテンツ分析・スキル抽出
 └── report_generator.py   # マークダウンレポート生成
+
+.streamlit/
+└── config.toml           # Streamlit設定（テーマ等）
 ```
 
 ## 使用例
