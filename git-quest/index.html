@@ -123,9 +123,15 @@
             <!-- ステージ選択画面 -->
             <section id="stages-section" class="section">
                 <h1 class="section-title">🗺️ 冒険マップ</h1>
-                <p class="section-subtitle">5時間でGitマスターになろう!</p>
+                <p class="section-subtitle">初心者からCodexエンジニアレベルまで!</p>
 
-                <div class="stage-map">
+                <!-- 難易度タブ -->
+                <div class="difficulty-tabs">
+                    <button class="tab-btn active" onclick="showDifficultyTab('beginner')">🌱 初級 (1-5)</button>
+                    <button class="tab-btn" onclick="showDifficultyTab('advanced')">🚀 上級 (6-10)</button>
+                </div>
+
+                <div class="stage-map" id="beginner-stages">
                     <!-- ステージ1: Gitの基本 -->
                     <div class="stage-node unlocked" data-stage="1" onclick="startStage(1)">
                         <div class="stage-icon">🌱</div>
@@ -206,6 +212,104 @@
                         <div class="stage-info">
                             <h3>最終試験</h3>
                             <p>Gitマスターへの道</p>
+                        </div>
+                        <div class="lock-overlay">🔒</div>
+                    </div>
+                </div>
+
+                <!-- 上級ステージマップ -->
+                <div class="stage-map advanced-map hidden" id="advanced-stages">
+                    <div class="advanced-header">
+                        <h2>🚀 Codex開発エンジニアコース</h2>
+                        <p>git worktree、並列開発、エンタープライズ戦略をマスター</p>
+                    </div>
+
+                    <!-- ステージ6: 高度なブランチ戦略 -->
+                    <div class="stage-node advanced locked" data-stage="6" onclick="startStage(6)">
+                        <div class="stage-icon">🔄</div>
+                        <div class="stage-info">
+                            <h3>ステージ6</h3>
+                            <p>高度なブランチ戦略</p>
+                            <span class="stage-time">⏱️ 約90分</span>
+                            <span class="stage-difficulty">上級</span>
+                        </div>
+                        <div class="stage-stars" id="stage-6-stars">
+                            <span>☆</span><span>☆</span><span>☆</span>
+                        </div>
+                        <div class="lock-overlay">🔒</div>
+                    </div>
+                    <div class="stage-path advanced-path"></div>
+
+                    <!-- ステージ7: git worktree -->
+                    <div class="stage-node advanced locked" data-stage="7" onclick="startStage(7)">
+                        <div class="stage-icon">🌳</div>
+                        <div class="stage-info">
+                            <h3>ステージ7</h3>
+                            <p>worktree - 並列開発</p>
+                            <span class="stage-time">⏱️ 約80分</span>
+                            <span class="stage-difficulty">上級</span>
+                        </div>
+                        <div class="stage-stars" id="stage-7-stars">
+                            <span>☆</span><span>☆</span><span>☆</span>
+                        </div>
+                        <div class="lock-overlay">🔒</div>
+                    </div>
+                    <div class="stage-path advanced-path"></div>
+
+                    <!-- ステージ8: デバッグ技法 -->
+                    <div class="stage-node advanced locked" data-stage="8" onclick="startStage(8)">
+                        <div class="stage-icon">🔍</div>
+                        <div class="stage-info">
+                            <h3>ステージ8</h3>
+                            <p>高度なデバッグ技法</p>
+                            <span class="stage-time">⏱️ 約70分</span>
+                            <span class="stage-difficulty">エキスパート</span>
+                        </div>
+                        <div class="stage-stars" id="stage-8-stars">
+                            <span>☆</span><span>☆</span><span>☆</span>
+                        </div>
+                        <div class="lock-overlay">🔒</div>
+                    </div>
+                    <div class="stage-path advanced-path"></div>
+
+                    <!-- ステージ9: Git Hooks -->
+                    <div class="stage-node advanced locked" data-stage="9" onclick="startStage(9)">
+                        <div class="stage-icon">🪝</div>
+                        <div class="stage-info">
+                            <h3>ステージ9</h3>
+                            <p>Git Hooks & 自動化</p>
+                            <span class="stage-time">⏱️ 約85分</span>
+                            <span class="stage-difficulty">エキスパート</span>
+                        </div>
+                        <div class="stage-stars" id="stage-9-stars">
+                            <span>☆</span><span>☆</span><span>☆</span>
+                        </div>
+                        <div class="lock-overlay">🔒</div>
+                    </div>
+                    <div class="stage-path advanced-path"></div>
+
+                    <!-- ステージ10: エンタープライズ -->
+                    <div class="stage-node advanced locked" data-stage="10" onclick="startStage(10)">
+                        <div class="stage-icon">🏗️</div>
+                        <div class="stage-info">
+                            <h3>ステージ10</h3>
+                            <p>エンタープライズGit戦略</p>
+                            <span class="stage-time">⏱️ 約100分</span>
+                            <span class="stage-difficulty">マスター</span>
+                        </div>
+                        <div class="stage-stars" id="stage-10-stars">
+                            <span>☆</span><span>☆</span><span>☆</span>
+                        </div>
+                        <div class="lock-overlay">🔒</div>
+                    </div>
+
+                    <!-- Codexマスター試験 -->
+                    <div class="stage-path boss-path"></div>
+                    <div class="stage-node boss codex-boss locked" data-stage="codex-boss" onclick="startStage('codex-boss')">
+                        <div class="stage-icon">🤖</div>
+                        <div class="stage-info">
+                            <h3>Codex認定試験</h3>
+                            <p>AI開発エンジニア認定</p>
                         </div>
                         <div class="lock-overlay">🔒</div>
                     </div>
@@ -450,5 +554,6 @@
     </div>
 
     <script src="app.js"></script>
+    <script src="advanced-stages.js"></script>
 </body>
 </html>

@@ -2196,3 +2196,141 @@ function updateMascotMessage() {
 
 // 定期的にメッセージを更新
 setInterval(updateMascotMessage, 30000);
+
+// ===========================================
+// 難易度タブ切り替え
+// ===========================================
+
+function showDifficultyTab(tab) {
+    const beginnerStages = document.getElementById('beginner-stages');
+    const advancedStages = document.getElementById('advanced-stages');
+    const tabs = document.querySelectorAll('.tab-btn');
+
+    tabs.forEach(t => t.classList.remove('active'));
+
+    if (tab === 'beginner') {
+        beginnerStages.classList.remove('hidden');
+        advancedStages.classList.add('hidden');
+        tabs[0].classList.add('active');
+    } else {
+        beginnerStages.classList.add('hidden');
+        advancedStages.classList.remove('hidden');
+        tabs[1].classList.add('active');
+    }
+}
+
+// ===========================================
+// 上級ステージ管理
+// ===========================================
+
+function updateAdvancedStageMap() {
+    // 上級ステージ (6-10) のアンロック状態を更新
+    for (let i = 6; i <= 10; i++) {
+        const node = document.querySelector(`.stage-node[data-stage="${i}"]`);
+        if (node) {
+            // ステージ5クリア後にステージ6をアンロック
+            const prereq = i === 6 ? 5 : i - 1;
+            if (gameState.progress.completedStages.includes(prereq)) {
+                if (!gameState.progress.unlockedStages.includes(i)) {
+                    gameState.progress.unlockedStages.push(i);
+                }
+                node.classList.remove('locked');
+                node.classList.add('unlocked');
+                const lockOverlay = node.querySelector('.lock-overlay');
+                if (lockOverlay) lockOverlay.remove();
+            }
+
+            // スター表示
+            const stars = gameState.progress.stageStars[i] || 0;
+            const starsContainer = document.getElementById(`stage-${i}-stars`);
+            if (starsContainer) {
+                const starSpans = starsContainer.querySelectorAll('span');
+                starSpans.forEach((span, index) => {
+                    span.textContent = index < stars ? '★' : '☆';
+                    if (index < stars) span.classList.add('filled');
+                });
+            }
+        }
+    }
+
+    // Codexボスステージ
+    const codexBoss = document.querySelector('.stage-node.codex-boss');
+    if (codexBoss && gameState.progress.completedStages.includes(10)) {
+        codexBoss.classList.remove('locked');
+        codexBoss.classList.add('unlocked');
+        const lockOverlay = codexBoss.querySelector('.lock-overlay');
+        if (lockOverlay) lockOverlay.remove();
+    }
+}
+
+// updateUIを拡張して上級マップも更新
+const _originalUpdateUI = updateUI;
+updateUI = function() {
+    _originalUpdateUI();
+    if (typeof updateAdvancedStageMap === 'function') {
+        updateAdvancedStageMap();
+    }
+};
+
+// ===========================================
+// Codex認定試験
+// ===========================================
+
+function startCodexBossStage() {
+    if (!gameState.progress.completedStages.includes(10)) {
+        showNotification('🔒', 'ロック中', 'ステージ10をクリアすると解放されます');
+        return;
+    }
+
+    showNotification('🤖', 'Codex認定試験', 'AI開発エンジニアへの挑戦！');
+
+    currentStageData = {
+        title: "Codex認定試験",
+        quiz: []
+    };
+
+    // 上級ステージから出題
+    if (typeof ADVANCED_STAGES !== 'undefined') {
+        for (let i = 6; i <= 10; i++) {
+            if (ADVANCED_STAGES[i] && ADVANCED_STAGES[i].quiz) {
+                const stageQuiz = ADVANCED_STAGES[i].quiz;
+                const shuffled = [...stageQuiz].sort(() => Math.random() - 0.5);
+                currentStageData.quiz.push(...shuffled.slice(0, 2));
+            }
+        }
+    }
+
+    currentQuizIndex = 0;
+    quizScore = 0;
+    startQuiz();
+}
+
+// startStageを拡張してcodex-bossと上級ステージに対応
+const _originalStartStage = startStage;
+startStage = function(stageNum) {
+    if (stageNum === 'codex-boss') {
+        startCodexBossStage();
+        return;
+    }
+
+    // 上級ステージ (6-10) の処理
+    if (typeof stageNum === 'number' && stageNum >= 6 && stageNum <= 10) {
+        if (!gameState.progress.unlockedStages.includes(stageNum)) {
+            showNotification('🔒', 'ロック中', '前のステージをクリアしてください');
+            return;
+        }
+
+        if (typeof ADVANCED_STAGES !== 'undefined' && ADVANCED_STAGES[stageNum]) {
+            currentStageData = ADVANCED_STAGES[stageNum];
+            currentLessonIndex = 0;
+            gameState.progress.currentStage = stageNum;
+            saveGameState();
+
+            renderLesson();
+            showSection('lesson');
+            return;
+        }
+    }
+
+    _originalStartStage(stageNum);
+};
