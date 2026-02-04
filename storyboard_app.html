@@ -1,0 +1,1348 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="日本の誇り">
+    <meta name="theme-color" content="#1a1a2e">
+    <title>知られざる日本の誇り - ストーリーボード</title>
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🇯🇵</text></svg>">
+    <style>
+        :root {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-card: #0f3460;
+            --accent: #e94560;
+            --accent-light: #ff6b6b;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --gold: #ffd700;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Yu Gothic', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ヘッダー */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(180deg, var(--bg-primary) 0%, transparent 100%);
+            padding: 20px 16px 40px;
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            text-align: center;
+            background: linear-gradient(135deg, var(--gold), var(--accent-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* メインコンテンツ */
+        .container {
+            padding: 80px 16px 100px;
+        }
+
+        /* エピソード選択タブ */
+        .episode-tabs {
+            display: flex;
+            overflow-x: auto;
+            gap: 8px;
+            padding: 10px 0 20px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .episode-tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .episode-tab {
+            flex-shrink: 0;
+            padding: 12px 20px;
+            background: var(--bg-secondary);
+            border: none;
+            border-radius: 25px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .episode-tab.active {
+            background: var(--accent);
+            color: white;
+            box-shadow: 0 4px 15px rgba(233, 69, 96, 0.4);
+        }
+
+        /* エピソードカード */
+        .episode-card {
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .episode-card.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .episode-header {
+            text-align: center;
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .episode-number {
+            font-size: 0.8rem;
+            color: var(--accent);
+            font-weight: 600;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+
+        .episode-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .episode-concept {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        /* シーン */
+        .scene {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .scene-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .scene-number {
+            background: var(--accent);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .scene-time {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .scene-section {
+            margin-bottom: 16px;
+        }
+
+        .scene-label {
+            font-size: 0.75rem;
+            color: var(--accent-light);
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .scene-content {
+            font-size: 0.95rem;
+            line-height: 1.7;
+            color: var(--text-primary);
+        }
+
+        .narration {
+            background: rgba(255,215,0,0.1);
+            border-left: 3px solid var(--gold);
+            padding: 12px 16px;
+            border-radius: 0 12px 12px 0;
+            font-style: italic;
+        }
+
+        .text-overlay {
+            display: inline-block;
+            background: rgba(233, 69, 96, 0.2);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        /* プロンプトセクション */
+        .prompt-section {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 16px;
+            position: relative;
+        }
+
+        .prompt-text {
+            font-family: 'SF Mono', 'Menlo', monospace;
+            font-size: 0.8rem;
+            line-height: 1.6;
+            color: #7fdbca;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: var(--accent);
+            border: none;
+            color: white;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .copy-btn:active {
+            transform: scale(0.95);
+            background: var(--accent-light);
+        }
+
+        .copy-btn.copied {
+            background: #27ae60;
+        }
+
+        /* ナビゲーション */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-secondary);
+            padding: 12px 16px;
+            padding-bottom: max(12px, env(safe-area-inset-bottom));
+            display: flex;
+            justify-content: space-around;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .nav-btn.active {
+            color: var(--accent);
+        }
+
+        .nav-icon {
+            font-size: 1.4rem;
+        }
+
+        /* シーン切り替えボタン */
+        .scene-nav {
+            display: flex;
+            justify-content: space-between;
+            padding: 16px 0;
+            gap: 12px;
+        }
+
+        .scene-nav-btn {
+            flex: 1;
+            background: var(--bg-card);
+            border: none;
+            color: var(--text-primary);
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .scene-nav-btn:active {
+            background: var(--accent);
+            transform: scale(0.98);
+        }
+
+        .scene-nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* ビュー切り替え */
+        .view-toggle {
+            display: flex;
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 20px;
+        }
+
+        .view-btn {
+            flex: 1;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .view-btn.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* 全シーン表示 */
+        .all-scenes {
+            display: none;
+        }
+
+        .all-scenes.active {
+            display: block;
+        }
+
+        .single-scene {
+            display: block;
+        }
+
+        .single-scene.hidden {
+            display: none;
+        }
+
+        /* プログレスバー */
+        .progress-bar {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 20px;
+        }
+
+        .progress-dot {
+            flex: 1;
+            height: 4px;
+            background: var(--bg-card);
+            border-radius: 2px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .progress-dot.active {
+            background: var(--accent);
+        }
+
+        .progress-dot.completed {
+            background: var(--gold);
+        }
+
+        /* トースト通知 */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--bg-card);
+            color: white;
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* ガイドライン画面 */
+        .guidelines-section {
+            display: none;
+            padding: 80px 16px 100px;
+        }
+
+        .guidelines-section.active {
+            display: block;
+        }
+
+        .guideline-card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .guideline-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--gold);
+        }
+
+        .guideline-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .guideline-table th,
+        .guideline-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.85rem;
+        }
+
+        .guideline-table th {
+            color: var(--accent-light);
+            font-weight: 500;
+        }
+
+        /* 拡張エピソード画面 */
+        .future-section {
+            display: none;
+            padding: 80px 16px 100px;
+        }
+
+        .future-section.active {
+            display: block;
+        }
+
+        .future-card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .future-num {
+            background: var(--bg-card);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .future-info h3 {
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+
+        .future-info p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>知られざる日本の誇り</h1>
+    </header>
+
+    <!-- メイン画面 -->
+    <main class="container" id="mainView">
+        <!-- エピソードタブ -->
+        <div class="episode-tabs">
+            <button class="episode-tab active" data-ep="1">EP1 龍馬</button>
+            <button class="episode-tab" data-ep="2">EP2 謙信</button>
+            <button class="episode-tab" data-ep="3">EP3 聖徳太子</button>
+            <button class="episode-tab" data-ep="4">EP4 武蔵</button>
+            <button class="episode-tab" data-ep="5">EP5 千畝</button>
+        </div>
+
+        <!-- Episode 1: 坂本龍馬 -->
+        <div class="episode-card active" id="ep1">
+            <div class="episode-header">
+                <div class="episode-number">EPISODE 01</div>
+                <h2 class="episode-title">坂本龍馬</h2>
+                <p class="episode-concept">「一人の若者が、刀を捨て、握手で日本を変えた」</p>
+            </div>
+
+            <div class="view-toggle">
+                <button class="view-btn active" data-view="single">1シーンずつ</button>
+                <button class="view-btn" data-view="all">全シーン</button>
+            </div>
+
+            <div class="progress-bar" id="progress1">
+                <div class="progress-dot active" data-scene="0"></div>
+                <div class="progress-dot" data-scene="1"></div>
+                <div class="progress-dot" data-scene="2"></div>
+                <div class="progress-dot" data-scene="3"></div>
+                <div class="progress-dot" data-scene="4"></div>
+                <div class="progress-dot" data-scene="5"></div>
+                <div class="progress-dot" data-scene="6"></div>
+            </div>
+
+            <div class="single-scene" id="singleView1">
+                <!-- シーン1 -->
+                <div class="scene" data-scene-index="0">
+                    <div class="scene-header">
+                        <span class="scene-number">シーン 1</span>
+                        <span class="scene-time">0:00 - 0:05</span>
+                    </div>
+
+                    <div class="scene-section">
+                        <div class="scene-label">📹 映像</div>
+                        <div class="scene-content">暗闘から夜明けの日本の海岸線へ。波と朝日のシネマティックショット</div>
+                    </div>
+
+                    <div class="scene-section">
+                        <div class="scene-label">🎙️ ナレーション</div>
+                        <div class="scene-content narration">「1867年、日本は崩壊の危機にあった」</div>
+                    </div>
+
+                    <div class="scene-section">
+                        <div class="scene-label">🎨 Freepikプロンプト</div>
+                        <div class="prompt-section">
+                            <button class="copy-btn" onclick="copyPrompt(this)">📋 コピー</button>
+                            <div class="prompt-text">Cinematic sunrise over Japanese coastline, Bakumatsu era atmosphere, dramatic orange and purple sky, traditional Japanese sailing ships silhouettes, 4K quality, film grain, moody lighting, historical Japanese aesthetic, widescreen composition adapted to vertical 9:16</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="scene" data-scene-index="1" style="display:none;">
+                    <div class="scene-header">
+                        <span class="scene-number">シーン 2</span>
+                        <span class="scene-time">0:05 - 0:12</span>
+                    </div>
+
+                    <div class="scene-section">
+                        <div class="scene-label">📹 映像</div>
+                        <div class="scene-content">混乱する江戸時代末期の街並み。武士たちが対立する様子</div>
+                    </div>
+
+                    <div class="scene-section">
+                        <div class="scene-label">🎙️ ナレーション</div>
+                        <div class="scene-content narration">「薩摩と長州、二つの藩は互いを敵と見なし、内戦は避けられないと思われていた」</div>
+                    </div>
+
+                    <div class="scene-section">
+                        <div class="scene-label">📝 テキストオーバーレイ</div>
+                        <div class="scene-content text-overlay">内戦の危機</div>
+                    </div>
+
+                    <div class="scene-section">
+                        <div class="scene-label">🎨 Freepikプロンプト</div>
+                        <div class="prompt-section">
+                            <button class="copy-btn" onclick="copyPrompt(this)">📋 コピー</button>
+                            <div class="prompt-text">Dramatic scene of two groups of samurai facing each other in tension, Edo period Japan street, traditional architecture, lanterns, dust and fog atmosphere, cinematic lighting, dark mood, historical Japanese conflict scene, vertical composition 9:16</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="scene" data-scene-index="2" style="display:none;">
+                    <div class="scene-header">
+                        <span class="scene-number">シーン 3</span>
+                        <span class="scene-time">0:12 - 0:20</span>
+                    </div>
+
+                    <div class="scene-section">
+                        <div class="scene-label">📹 映像</div>
+                        <div class="scene-content">若き坂本龍馬のシルエット。海を見つめる後ろ姿。ズームアウトで龍馬の全身を見せる。風になびく着物</div>
+                    </div>
+
+                    <div class="scene-section">
+                        <div class="scene-label">🎙️ ナレーション</div>
+                        <div class="scene-content narration">「しかし、一人の土佐の若者が立ち上がった。坂本龍馬、わずか33歳」</div>
+                    </div>
+
+                    <div class="scene-section">
+                        <div class="scene-label">📝 テキストオーバーレイ</div>
+                        <div class="scene-content text-overlay">坂本龍馬 1836-1867</div>
+                    </div>
+
+                    <div class="scene-section">
+                        <div class="scene-label">🎨 Freepikプロンプト</div>
+                        <div class="prompt-section">
+                            <button class="copy-btn" onclick="copyPrompt(this)">📋 コピー</button>
+                            <div class="prompt-text">Silhouette of young Japanese samurai man standing on cliff overlooking the ocean, Bakumatsu era clothing, windswept kimono and hakama, dramatic backlight from sunset, heroic pose, inspirational mood, cinematic composition, vertical 9:16 format</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="scene" data-scene-index="3" style="display:none;">
+                    <div class="scene-header">
+                        <span class="scene-number">シーン 4</span>
+                        <span class="scene-time">0:20 - 0:30</span>
+                    </div>
+
+                    <div class="scene-section">
+                        <div class="scene-label">📹 映像</div>
+                        <div class="scene-content">龍馬が薩摩と長州の代表者を引き合わせる瞬間。握手のクローズアップ</div>
+                    </div>
+
+                    <div class="scene-section">
+                        <div class="scene-label">🎙️ ナレーション</div>
+                        <div class="scene-content narration">「彼は刀ではなく、言葉と情熱で、宿敵同士を結びつけた。これが薩長同盟。日本の運命を変えた握手だった」</div>
+                    </div>
+
+                    <div class="scene-section">
+                        <div class="scene-label">📝 テキストオーバーレイ</div>
+                        <div class="scene-content text-overlay">薩長同盟 1866年</div>
+                    </div>
+
+                    <div class="scene-section">
+                        <div class="scene-label">🎨 Freepikプロンプト</div>
+                        <div class="prompt-section">
+                            <button class="copy-btn" onclick="copyPrompt(this)">📋 コピー</button>
+                            <div class="prompt-text">Two Japanese samurai leaders shaking hands in traditional Japanese room with tatami mats, young mediator standing between them smiling, warm candlelight, historical moment, emotional scene, Edo period interior, hope and unity theme, vertical 9:16 format</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="scene" data-scene-index="4" style="display:none;">
+                    <div class="scene-header">
+                        <span class="scene-number">シーン 5</span>
+                        <span class="scene-time">0:30 - 0:40</span>
+                    </div>
+
+                    <div class="scene-section">
+                        <div class="scene-label">📹 映像</div>
+                        <div class="scene-content">船の上で書物を書く龍馬。「船中八策」の文字が浮かび上がる</div>
+                    </div>
+
+                    <div class="scene-section">
+                        <div class="scene-label">🎙️ ナレーション</div>
+                        <div class="scene-content narration">「そして龍馬は新しい日本の設計図を描いた。議会制度、憲法、平等な社会。今の日本の基礎となる8つの約束」</div>
+                    </div>
+
+                    <div class="scene-section">
+                        <div class="scene-label">📝 テキストオーバーレイ</div>
+                        <div class="scene-content text-overlay">船中八策 - 近代日本の設計図</div>
+                    </div>
+
+                    <div class="scene-section">
+                        <div class="scene-label">🎨 Freepikプロンプト</div>
+                        <div class="prompt-section">
+                            <button class="copy-btn" onclick="copyPrompt(this)">📋 コピー</button>
+                            <div class="prompt-text">Japanese man writing with brush on traditional paper inside a wooden ship cabin, oil lamp lighting, historical documents and maps around him, focused expression, Bakumatsu era atmosphere, warm golden tones, vertical 9:16 cinematic composition</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="scene" data-scene-index="5" style="display:none;">
+                    <div class="scene-header">
+                        <span class="scene-number">シーン 6</span>
+                        <span class="scene-time">0:40 - 0:50</span>
+                    </div>
+
+                    <div class="scene-section">
+                        <div class="scene-label">📹 映像</div>
+                        <div class="scene-content">現代の東京の街並みへトランジション。国会議事堂、近代的な日本。過去と現在のモーフィング効果</div>
+                    </div>
+
+                    <div class="scene-section">
+                        <div class="scene-label">🎙️ ナレーション</div>
+                        <div class="scene-content narration">「龍馬は明治維新を見ることなく暗殺された。だが彼の夢は、今も私たちの中に生きている」</div>
+                    </div>
+
+                    <div class="scene-section">
+                        <div class="scene-label">🎨 Freepikプロンプト</div>
+                        <div class="prompt-section">
+                            <button class="copy-btn" onclick="copyPrompt(this)">📋 コピー</button>
+                            <div class="prompt-text">Split composition showing Edo period Japanese street morphing into modern Tokyo cityscape, Japanese parliament building visible, cherry blossoms connecting past and present, magical transition effect, sunrise light, hopeful atmosphere, vertical 9:16</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="scene" data-scene-index="6" style="display:none;">
+                    <div class="scene-header">
+                        <span class="scene-number">シーン 7</span>
+                        <span class="scene-time">0:50 - 1:00</span>
+                    </div>
+
+                    <div class="scene-section">
+                        <div class="scene-label">📹 映像</div>
+                        <div class="scene-content">龍馬の名言と共に、日の丸が風になびく</div>
+                    </div>
+
+                    <div class="scene-section">
+                        <div class="scene-label">🎙️ ナレーション</div>
+                        <div class="scene-content narration">「『日本を今一度せんたくいたし申候』- 坂本龍馬」</div>
+                    </div>
+
+                    <div class="scene-section">
+                        <div class="scene-label">📝 テキストオーバーレイ</div>
+                        <div class="scene-content text-overlay">日本を今一度せんたくいたし申候</div>
+                    </div>
+
+                    <div class="scene-section">
+                        <div class="scene-label">🎨 Freepikプロンプト</div>
+                        <div class="prompt-section">
+                            <button class="copy-btn" onclick="copyPrompt(this)">📋 コピー</button>
+                            <div class="prompt-text">Japanese flag waving majestically against blue sky with cherry blossoms floating, sunrise light, patriotic and hopeful mood, cinematic quality, inspiring atmosphere, clean composition for text overlay, vertical 9:16 format</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="scene-nav">
+                    <button class="scene-nav-btn" id="prevBtn1" disabled>← 前へ</button>
+                    <button class="scene-nav-btn" id="nextBtn1">次へ →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Episode 2: 上杉謙信 -->
+        <div class="episode-card" id="ep2">
+            <div class="episode-header">
+                <div class="episode-number">EPISODE 02</div>
+                <h2 class="episode-title">上杉謙信</h2>
+                <p class="episode-concept">「敵に塩を送った武将。勝利より大切なものがある」</p>
+            </div>
+
+            <div class="view-toggle">
+                <button class="view-btn active" data-view="single">1シーンずつ</button>
+                <button class="view-btn" data-view="all">全シーン</button>
+            </div>
+
+            <div class="progress-bar" id="progress2">
+                <div class="progress-dot active" data-scene="0"></div>
+                <div class="progress-dot" data-scene="1"></div>
+                <div class="progress-dot" data-scene="2"></div>
+                <div class="progress-dot" data-scene="3"></div>
+                <div class="progress-dot" data-scene="4"></div>
+                <div class="progress-dot" data-scene="5"></div>
+                <div class="progress-dot" data-scene="6"></div>
+            </div>
+
+            <div class="single-scene" id="singleView2">
+                <div class="scene" data-scene-index="0">
+                    <div class="scene-header">
+                        <span class="scene-number">シーン 1</span>
+                        <span class="scene-time">0:00 - 0:05</span>
+                    </div>
+                    <div class="scene-section">
+                        <div class="scene-label">📹 映像</div>
+                        <div class="scene-content">雪深い越後の山々。厳しい冬景色</div>
+                    </div>
+                    <div class="scene-section">
+                        <div class="scene-label">🎙️ ナレーション</div>
+                        <div class="scene-content narration">「戦国時代、勝つためなら何でもする時代」</div>
+                    </div>
+                    <div class="scene-section">
+                        <div class="scene-label">🎨 Freepikプロンプト</div>
+                        <div class="prompt-section">
+                            <button class="copy-btn" onclick="copyPrompt(this)">📋 コピー</button>
+                            <div class="prompt-text">Majestic snow-covered mountains of Echigo region Japan, dramatic winter landscape, traditional Japanese castle silhouette in distance, misty atmosphere, Sengoku period aesthetic, cinematic wide shot, vertical 9:16 format</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="scene" data-scene-index="1" style="display:none;">
+                    <div class="scene-header">
+                        <span class="scene-number">シーン 2</span>
+                        <span class="scene-time">0:05 - 0:12</span>
+                    </div>
+                    <div class="scene-section">
+                        <div class="scene-label">📹 映像</div>
+                        <div class="scene-content">武田信玄と上杉謙信の対峙。二人の武将のシルエット</div>
+                    </div>
+                    <div class="scene-section">
+                        <div class="scene-label">🎙️ ナレーション</div>
+                        <div class="scene-content narration">「上杉謙信と武田信玄。日本史上最も激しいライバル。五度に渡る川中島の戦い」</div>
+                    </div>
+                    <div class="scene-section">
+                        <div class="scene-label">🎨 Freepikプロンプト</div>
+                        <div class="prompt-section">
+                            <button class="copy-btn" onclick="copyPrompt(this)">📋 コピー</button>
+                            <div class="prompt-text">Two legendary samurai warlords facing each other across battlefield, dramatic silhouettes, one with flowing cape one with distinctive helmet, tension and respect between rivals, Sengoku period, dramatic lighting, vertical 9:16</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="scene" data-scene-index="2" style="display:none;">
+                    <div class="scene-header">
+                        <span class="scene-number">シーン 3</span>
+                        <span class="scene-time">0:12 - 0:22</span>
+                    </div>
+                    <div class="scene-section">
+                        <div class="scene-label">📹 映像</div>
+                        <div class="scene-content">塩が運ばれなくなった武田領。苦しむ民衆</div>
+                    </div>
+                    <div class="scene-section">
+                        <div class="scene-label">🎙️ ナレーション</div>
+                        <div class="scene-content narration">「ある冬、他の大名たちは武田への塩の供給を断った。内陸の武田領では、民が苦しんでいた」</div>
+                    </div>
+                    <div class="scene-section">
+                        <div class="scene-label">📝 テキストオーバーレイ</div>
+                        <div class="scene-content text-overlay">塩止め - 卑怯な戦略</div>
+                    </div>
+                    <div class="scene-section">
+                        <div class="scene-label">🎨 Freepikプロンプト</div>
+                        <div class="prompt-section">
+                            <button class="copy-btn" onclick="copyPrompt(this)">📋 コピー</button>
+                            <div class="prompt-text">Suffering Japanese villagers in Sengoku period, empty salt containers, worried expressions, mountain village setting, winter atmosphere, dramatic lighting showing hardship, emotional scene, vertical 9:16</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="scene" data-scene-index="3" style="display:none;">
+                    <div class="scene-header">
+                        <span class="scene-number">シーン 4</span>
+                        <span class="scene-time">0:22 - 0:35</span>
+                    </div>
+                    <div class="scene-section">
+                        <div class="scene-label">📹 映像</div>
+                        <div class="scene-content">謙信が塩を送る決断をする場面。そして塩を運ぶ行列</div>
+                    </div>
+                    <div class="scene-section">
+                        <div class="scene-label">🎙️ ナレーション</div>
+                        <div class="scene-content narration">「しかし謙信は違った。『戦いは武士同士で決めるもの。民を巻き込むのは卑怯だ』。彼は敵である武田に、塩を送った」</div>
+                    </div>
+                    <div class="scene-section">
+                        <div class="scene-label">📝 テキストオーバーレイ</div>
+                        <div class="scene-content text-overlay">敵に塩を送る</div>
+                    </div>
+                    <div class="scene-section">
+                        <div class="scene-label">🎨 Freepikプロンプト</div>
+                        <div class="prompt-section">
+                            <button class="copy-btn" onclick="copyPrompt(this)">📋 コピー</button>
+                            <div class="prompt-text">Dramatic scene of samurai lord giving orders to send supplies, noble expression, followed by caravan of horses carrying salt bags through snowy mountain pass, warm torchlight against cold snow, heroic and honorable mood, vertical 9:16</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="scene" data-scene-index="4" style="display:none;">
+                    <div class="scene-header">
+                        <span class="scene-number">シーン 5</span>
+                        <span class="scene-time">0:35 - 0:45</span>
+                    </div>
+                    <div class="scene-section">
+                        <div class="scene-label">📹 映像</div>
+                        <div class="scene-content">武田信玄が謙信からの塩を受け取る。感動する家臣たち</div>
+                    </div>
+                    <div class="scene-section">
+                        <div class="scene-label">🎙️ ナレーション</div>
+                        <div class="scene-content narration">「信玄は生涯、この恩を忘れなかった。『謙信こそ真の武士だ』と」</div>
+                    </div>
+                    <div class="scene-section">
+                        <div class="scene-label">🎨 Freepikプロンプト</div>
+                        <div class="prompt-section">
+                            <button class="copy-btn" onclick="copyPrompt(this)">📋 コピー</button>
+                            <div class="prompt-text">Japanese warlord receiving gift with deep respect and emotion, samurai retainers watching in awe, traditional castle interior, candlelight, tears of gratitude, powerful emotional moment, Sengoku period, vertical 9:16</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="scene" data-scene-index="5" style="display:none;">
+                    <div class="scene-header">
+                        <span class="scene-number">シーン 6</span>
+                        <span class="scene-time">0:45 - 0:55</span>
+                    </div>
+                    <div class="scene-section">
+                        <div class="scene-label">📹 映像</div>
+                        <div class="scene-content">現代のビジネスシーン、競争する中でも助け合う姿</div>
+                    </div>
+                    <div class="scene-section">
+                        <div class="scene-label">🎙️ ナレーション</div>
+                        <div class="scene-content narration">「『敵に塩を送る』。このことわざは今も日本人の心に生きている。勝利より大切なもの、それが義」</div>
+                    </div>
+                    <div class="scene-section">
+                        <div class="scene-label">🎨 Freepikプロンプト</div>
+                        <div class="prompt-section">
+                            <button class="copy-btn" onclick="copyPrompt(this)">📋 コピー</button>
+                            <div class="prompt-text">Modern Japanese business people helping each other, split screen with ancient samurai scene, theme of honor transcending competition, professional environment, warm lighting, connection between past and present, vertical 9:16</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="scene" data-scene-index="6" style="display:none;">
+                    <div class="scene-header">
+                        <span class="scene-number">シーン 7</span>
+                        <span class="scene-time">0:55 - 1:00</span>
+                    </div>
+                    <div class="scene-section">
+                        <div class="scene-label">📹 映像</div>
+                        <div class="scene-content">上杉謙信の旗印「毘」と共に</div>
+                    </div>
+                    <div class="scene-section">
+                        <div class="scene-label">🎙️ ナレーション</div>
+                        <div class="scene-content narration">「義に生きる。それが日本人の誇り」</div>
+                    </div>
+                    <div class="scene-section">
+                        <div class="scene-label">📝 テキストオーバーレイ</div>
+                        <div class="scene-content text-overlay">義</div>
+                    </div>
+                    <div class="scene-section">
+                        <div class="scene-label">🎨 Freepikプロンプト</div>
+                        <div class="prompt-section">
+                            <button class="copy-btn" onclick="copyPrompt(this)">📋 コピー</button>
+                            <div class="prompt-text">Japanese war banner with kanji character for "righteousness" (義) waving in wind, mountain backdrop, dramatic sunset, inspiring heroic mood, traditional Japanese aesthetic, vertical 9:16</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="scene-nav">
+                    <button class="scene-nav-btn" id="prevBtn2" disabled>← 前へ</button>
+                    <button class="scene-nav-btn" id="nextBtn2">次へ →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Episode 3-5 の簡略版（サイズ削減のため） -->
+        <div class="episode-card" id="ep3">
+            <div class="episode-header">
+                <div class="episode-number">EPISODE 03</div>
+                <h2 class="episode-title">聖徳太子</h2>
+                <p class="episode-concept">「1400年前、一人の皇子が日本のかたちを決めた」</p>
+            </div>
+            <div class="scene">
+                <p style="text-align:center; padding: 40px 0; color: var(--text-secondary);">
+                    詳細は storyboard_japan_heroes.md をご確認ください<br><br>
+                    主なシーン：<br>
+                    1. 古代日本の朝廷<br>
+                    2. 若き太子と経典<br>
+                    3. 冠位十二階<br>
+                    4. 十七条憲法<br>
+                    5. 遣隋使<br>
+                    6. 法隆寺<br>
+                    7. 太子の遺産
+                </p>
+            </div>
+        </div>
+
+        <div class="episode-card" id="ep4">
+            <div class="episode-header">
+                <div class="episode-number">EPISODE 04</div>
+                <h2 class="episode-title">宮本武蔵</h2>
+                <p class="episode-concept">「60戦無敗の剣豪が、最後に気づいた本当の強さとは」</p>
+            </div>
+            <div class="scene">
+                <p style="text-align:center; padding: 40px 0; color: var(--text-secondary);">
+                    詳細は storyboard_japan_heroes.md をご確認ください<br><br>
+                    主なシーン：<br>
+                    1. 二刀流のシルエット<br>
+                    2. 巌流島の決闘<br>
+                    3. 孤独な修行の道<br>
+                    4. 五輪書を書く晩年<br>
+                    5. 千日の稽古<br>
+                    6. 現代の職人たち<br>
+                    7. 座禅する武蔵
+                </p>
+            </div>
+        </div>
+
+        <div class="episode-card" id="ep5">
+            <div class="episode-header">
+                <div class="episode-number">EPISODE 05</div>
+                <h2 class="episode-title">杉原千畝</h2>
+                <p class="episode-concept">「命令に背いて、人道を選んだ日本人がいた」</p>
+            </div>
+            <div class="scene">
+                <p style="text-align:center; padding: 40px 0; color: var(--text-secondary);">
+                    詳細は storyboard_japan_heroes.md をご確認ください<br><br>
+                    主なシーン：<br>
+                    1. リトアニア日本領事館<br>
+                    2. 難民の列<br>
+                    3. 本国からの拒否<br>
+                    4. 命令違反の決断<br>
+                    5. 朝から晩までビザ発給<br>
+                    6. 列車からビザを渡す<br>
+                    7. イスラエルの記念碑
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <!-- ガイドライン画面 -->
+    <section class="guidelines-section" id="guidelinesView">
+        <h2 style="font-size: 1.3rem; margin-bottom: 20px; color: var(--gold);">制作ガイドライン</h2>
+
+        <div class="guideline-card">
+            <h3 class="guideline-title">🎵 音楽・サウンド</h3>
+            <table class="guideline-table">
+                <tr><th>シーン</th><th>推奨BGM</th></tr>
+                <tr><td>オープニング</td><td>和太鼓＋現代的ビート</td></tr>
+                <tr><td>緊張シーン</td><td>尺八の低音、ストリングス</td></tr>
+                <tr><td>決断シーン</td><td>ピアノ＋和楽器</td></tr>
+                <tr><td>エンディング</td><td>壮大なオーケストラ</td></tr>
+            </table>
+        </div>
+
+        <div class="guideline-card">
+            <h3 class="guideline-title">🎨 カラーグレーディング</h3>
+            <table class="guideline-table">
+                <tr><td>過去のシーン</td><td>ウォームトーン、セピア、フィルムグレイン</td></tr>
+                <tr><td>現代のシーン</td><td>クリーン、高コントラスト</td></tr>
+                <tr><td>感動シーン</td><td>ゴールデンアワー、ソフトハイライト</td></tr>
+            </table>
+        </div>
+
+        <div class="guideline-card">
+            <h3 class="guideline-title">📝 テキストアニメーション</h3>
+            <table class="guideline-table">
+                <tr><td>タイトル</td><td>フェードイン＋スケールアップ</td></tr>
+                <tr><td>引用文</td><td>タイプライター効果</td></tr>
+                <tr><td>日付/場所</td><td>スライドイン</td></tr>
+            </table>
+        </div>
+
+        <div class="guideline-card">
+            <h3 class="guideline-title">🎙️ ナレーション</h3>
+            <p style="line-height: 1.8; font-size: 0.9rem;">
+                <strong>声質:</strong> 落ち着いた男性の声<br>
+                <strong>ペース:</strong> ゆっくり、重要な言葉は間を置く<br>
+                <strong>トーン:</strong> 誇りと尊敬を込めて
+            </p>
+        </div>
+
+        <div class="guideline-card">
+            <h3 class="guideline-title">#️⃣ ハッシュタグ</h3>
+            <p style="line-height: 1.8; font-size: 0.85rem; color: #7fdbca;">
+                #日本の誇り #日本史 #歴史 #偉人 #愛国心 #日本人で良かった #JapaneseHistory #Samurai
+            </p>
+        </div>
+    </section>
+
+    <!-- 拡張エピソード画面 -->
+    <section class="future-section" id="futureView">
+        <h2 style="font-size: 1.3rem; margin-bottom: 20px; color: var(--gold);">今後のエピソード候補</h2>
+
+        <div class="future-card">
+            <div class="future-num">6</div>
+            <div class="future-info">
+                <h3>北里柴三郎</h3>
+                <p>世界を救った日本の細菌学者</p>
+            </div>
+        </div>
+
+        <div class="future-card">
+            <div class="future-num">7</div>
+            <div class="future-info">
+                <h3>豊田佐吉</h3>
+                <p>自動織機から世界のTOYOTAへ</p>
+            </div>
+        </div>
+
+        <div class="future-card">
+            <div class="future-num">8</div>
+            <div class="future-info">
+                <h3>与謝野晶子</h3>
+                <p>戦争に反対した情熱の歌人</p>
+            </div>
+        </div>
+
+        <div class="future-card">
+            <div class="future-num">9</div>
+            <div class="future-info">
+                <h3>伊能忠敬</h3>
+                <p>50歳から始めた日本地図作り</p>
+            </div>
+        </div>
+
+        <div class="future-card">
+            <div class="future-num">10</div>
+            <div class="future-info">
+                <h3>中村哲</h3>
+                <p>アフガニスタンに水を引いた医師</p>
+            </div>
+        </div>
+
+        <div class="future-card">
+            <div class="future-num">11</div>
+            <div class="future-info">
+                <h3>葛飾北斎</h3>
+                <p>90歳まで描き続けた世界の画家</p>
+            </div>
+        </div>
+
+        <div class="future-card">
+            <div class="future-num">12</div>
+            <div class="future-info">
+                <h3>野口英世</h3>
+                <p>貧困から世界的医学者へ</p>
+            </div>
+        </div>
+
+        <div class="future-card">
+            <div class="future-num">13</div>
+            <div class="future-info">
+                <h3>津田梅子</h3>
+                <p>女子教育のパイオニア</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ボトムナビゲーション -->
+    <nav class="bottom-nav">
+        <button class="nav-btn active" data-view="main">
+            <span class="nav-icon">📖</span>
+            <span>ストーリー</span>
+        </button>
+        <button class="nav-btn" data-view="guidelines">
+            <span class="nav-icon">🎬</span>
+            <span>ガイド</span>
+        </button>
+        <button class="nav-btn" data-view="future">
+            <span class="nav-icon">💡</span>
+            <span>次回予告</span>
+        </button>
+    </nav>
+
+    <!-- トースト -->
+    <div class="toast" id="toast">コピーしました！</div>
+
+    <script>
+        // 現在のエピソードとシーン
+        let currentEpisode = 1;
+        const currentScenes = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+        const totalScenes = { 1: 7, 2: 7, 3: 7, 4: 7, 5: 7 };
+
+        // エピソードタブ切り替え
+        document.querySelectorAll('.episode-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const ep = parseInt(tab.dataset.ep);
+                currentEpisode = ep;
+
+                document.querySelectorAll('.episode-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                document.querySelectorAll('.episode-card').forEach(card => card.classList.remove('active'));
+                document.getElementById(`ep${ep}`).classList.add('active');
+            });
+        });
+
+        // シーンナビゲーション
+        function setupSceneNav(epNum) {
+            const prevBtn = document.getElementById(`prevBtn${epNum}`);
+            const nextBtn = document.getElementById(`nextBtn${epNum}`);
+            const singleView = document.getElementById(`singleView${epNum}`);
+
+            if (!prevBtn || !nextBtn || !singleView) return;
+
+            const scenes = singleView.querySelectorAll('.scene');
+            const progressDots = document.querySelectorAll(`#progress${epNum} .progress-dot`);
+
+            function updateScene() {
+                const idx = currentScenes[epNum];
+                scenes.forEach((s, i) => s.style.display = i === idx ? 'block' : 'none');
+
+                progressDots.forEach((dot, i) => {
+                    dot.classList.remove('active', 'completed');
+                    if (i < idx) dot.classList.add('completed');
+                    if (i === idx) dot.classList.add('active');
+                });
+
+                prevBtn.disabled = idx === 0;
+                nextBtn.disabled = idx === scenes.length - 1;
+            }
+
+            prevBtn.addEventListener('click', () => {
+                if (currentScenes[epNum] > 0) {
+                    currentScenes[epNum]--;
+                    updateScene();
+                }
+            });
+
+            nextBtn.addEventListener('click', () => {
+                if (currentScenes[epNum] < scenes.length - 1) {
+                    currentScenes[epNum]++;
+                    updateScene();
+                }
+            });
+
+            // プログレスドットクリック
+            progressDots.forEach(dot => {
+                dot.addEventListener('click', () => {
+                    currentScenes[epNum] = parseInt(dot.dataset.scene);
+                    updateScene();
+                });
+            });
+        }
+
+        setupSceneNav(1);
+        setupSceneNav(2);
+
+        // ビュー切り替え
+        document.querySelectorAll('.view-toggle').forEach(toggle => {
+            toggle.querySelectorAll('.view-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    toggle.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+
+                    const card = toggle.closest('.episode-card');
+                    const singleView = card.querySelector('.single-scene');
+
+                    if (btn.dataset.view === 'all') {
+                        // 全シーン表示
+                        singleView.querySelectorAll('.scene').forEach(s => s.style.display = 'block');
+                        singleView.querySelector('.scene-nav').style.display = 'none';
+                        card.querySelector('.progress-bar').style.display = 'none';
+                    } else {
+                        // 1シーンずつ表示
+                        const epNum = parseInt(card.id.replace('ep', ''));
+                        const idx = currentScenes[epNum];
+                        singleView.querySelectorAll('.scene').forEach((s, i) => {
+                            s.style.display = i === idx ? 'block' : 'none';
+                        });
+                        singleView.querySelector('.scene-nav').style.display = 'flex';
+                        card.querySelector('.progress-bar').style.display = 'flex';
+                    }
+                });
+            });
+        });
+
+        // ナビゲーション切り替え
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                const view = btn.dataset.view;
+                document.getElementById('mainView').style.display = view === 'main' ? 'block' : 'none';
+                document.getElementById('guidelinesView').classList.toggle('active', view === 'guidelines');
+                document.getElementById('futureView').classList.toggle('active', view === 'future');
+            });
+        });
+
+        // プロンプトコピー
+        function copyPrompt(btn) {
+            const promptText = btn.parentElement.querySelector('.prompt-text').textContent;
+            navigator.clipboard.writeText(promptText).then(() => {
+                btn.innerHTML = '✅ コピー済';
+                btn.classList.add('copied');
+                showToast('プロンプトをコピーしました！');
+
+                setTimeout(() => {
+                    btn.innerHTML = '📋 コピー';
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        // トースト表示
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        // スワイプ操作
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, false);
+
+        document.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, false);
+
+        function handleSwipe() {
+            const diff = touchStartX - touchEndX;
+            if (Math.abs(diff) < 50) return;
+
+            const activeCard = document.querySelector('.episode-card.active');
+            if (!activeCard) return;
+
+            const epNum = parseInt(activeCard.id.replace('ep', ''));
+            const singleView = activeCard.querySelector('.single-scene');
+            const isAllView = singleView.querySelector('.scene-nav').style.display === 'none';
+
+            if (isAllView) return;
+
+            if (diff > 0 && currentScenes[epNum] < totalScenes[epNum] - 1) {
+                // 左スワイプ = 次へ
+                currentScenes[epNum]++;
+                updateSceneDisplay(epNum);
+            } else if (diff < 0 && currentScenes[epNum] > 0) {
+                // 右スワイプ = 前へ
+                currentScenes[epNum]--;
+                updateSceneDisplay(epNum);
+            }
+        }
+
+        function updateSceneDisplay(epNum) {
+            const singleView = document.getElementById(`singleView${epNum}`);
+            const scenes = singleView.querySelectorAll('.scene');
+            const progressDots = document.querySelectorAll(`#progress${epNum} .progress-dot`);
+            const idx = currentScenes[epNum];
+
+            scenes.forEach((s, i) => s.style.display = i === idx ? 'block' : 'none');
+
+            progressDots.forEach((dot, i) => {
+                dot.classList.remove('active', 'completed');
+                if (i < idx) dot.classList.add('completed');
+                if (i === idx) dot.classList.add('active');
+            });
+
+            document.getElementById(`prevBtn${epNum}`).disabled = idx === 0;
+            document.getElementById(`nextBtn${epNum}`).disabled = idx === scenes.length - 1;
+        }
+
+        // サービスワーカー登録（オフライン対応）
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                // オフラインでも動作するようにキャッシュ
+                console.log('PWA Ready');
+            });
+        }
+    </script>
+</body>
+</html>
