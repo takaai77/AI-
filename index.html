@@ -495,25 +495,55 @@
         <div id="tab-settings" class="tab-content">
             <div class="card">
                 <div class="card-title">⚙️ API設定</div>
-                <input type="password" id="settingsClaudeKey" placeholder="Claude APIキー">
-                <input type="password" id="settingsGeminiKey" placeholder="Gemini APIキー">
+                <input type="password" id="settingsClaudeKey" placeholder="Claude APIキー（sk-ant-...）">
+                <input type="password" id="settingsGeminiKey" placeholder="Gemini APIキー（AIza...）">
                 <button class="btn btn-success" onclick="saveSettings()">
                     💾 保存
                 </button>
             </div>
 
-            <div class="card">
-                <div class="card-title">📖 使い方</div>
-                <div style="line-height: 1.8; font-size: 0.9em;">
-                    <p><strong>1. APIキーを取得</strong></p>
-                    <p>• Claude: <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a></p>
-                    <p>• Gemini: <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com</a></p>
+            <div class="card" style="background: #fef3c7; border: 2px solid #f59e0b;">
+                <div class="card-title" style="color: #92400e;">✨ Gemini API 設定方法（おすすめ）</div>
+                <div style="line-height: 1.8; font-size: 0.9em; color: #78350f;">
+                    <p><strong>💰 料金: 月15回まで無料！</strong></p>
                     <br>
-                    <p><strong>2. ホーム画面に追加</strong></p>
+                    <p><strong>手順:</strong></p>
+                    <p>1️⃣ <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: #b45309;">こちらをタップ</a></p>
+                    <p>2️⃣ 「Create API Key」をタップ</p>
+                    <p>3️⃣ 「Create API key in new project」を選択</p>
+                    <p>4️⃣ キーをコピー（AIza...で始まる）</p>
+                    <p>5️⃣ 上の欄に貼り付けて保存</p>
+                    <br>
+                    <p><strong>⚠️ エラーが出る場合:</strong></p>
+                    <p>• <a href="https://console.cloud.google.com/apis/library/generativelanguage.googleapis.com" target="_blank" style="color: #b45309;">こちらから</a>APIを有効化</p>
+                    <p>• 「有効にする」をタップ</p>
+                    <p>• 数分待ってから再試行</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">📖 Claude API 設定方法</div>
+                <div style="line-height: 1.8; font-size: 0.9em;">
+                    <p><strong>💰 料金: 無料枠なし、従量課金</strong></p>
+                    <br>
+                    <p><strong>手順:</strong></p>
+                    <p>1️⃣ <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a></p>
+                    <p>2️⃣ 「Create Key」をタップ</p>
+                    <p>3️⃣ キーをコピー（sk-ant-...で始まる）</p>
+                    <p>4️⃣ 上の欄に貼り付けて保存</p>
+                    <br>
+                    <p><strong>⚡ 高品質だが高価</strong></p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">📱 使い方</div>
+                <div style="line-height: 1.8; font-size: 0.9em;">
+                    <p><strong>1. ホーム画面に追加</strong></p>
                     <p>• Safari→共有→ホーム画面に追加</p>
                     <p>• アプリのように使えます！</p>
                     <br>
-                    <p><strong>3. 分析開始</strong></p>
+                    <p><strong>2. 分析開始</strong></p>
                     <p>• YouTube URLをコピペ</p>
                     <p>• 2-3分で完了！</p>
                 </div>
@@ -787,9 +817,30 @@
                 })
             });
 
-            if (!response.ok) throw new Error('Gemini API error');
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                const errorMsg = errorData.error?.message || `HTTP ${response.status}: ${response.statusText}`;
+                console.error('Gemini API詳細エラー:', errorData);
+
+                // よくあるエラーの日本語メッセージ
+                if (response.status === 400) {
+                    throw new Error(`APIキーが無効です。Google AI Studioで新しいキーを作成してください: ${errorMsg}`);
+                } else if (response.status === 403) {
+                    throw new Error(`Gemini APIが有効になっていません。https://console.cloud.google.com/apis/library/generativelanguage.googleapis.com で有効化してください`);
+                } else if (response.status === 429) {
+                    throw new Error(`レート制限です。少し待ってから再試行してください`);
+                } else {
+                    throw new Error(`Gemini APIエラー: ${errorMsg}`);
+                }
+            }
 
             const data = await response.json();
+
+            if (!data.candidates || !data.candidates[0]?.content?.parts?.[0]?.text) {
+                console.error('予期しないレスポンス:', data);
+                throw new Error('Gemini APIから正しいレスポンスが返されませんでした');
+            }
+
             return data.candidates[0].content.parts[0].text;
         }
 
