@@ -1,0 +1,50 @@
+﻿name: Security Report (Public-safe)
+description: Non-sensitive security concern. For sensitive details use Private Security Report link.
+title: "[Security]: "
+labels:
+  - security
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not include secrets, exploit code, or sensitive payloads here.
+        For sensitive vulnerabilities, use the private advisory channel in issue template config.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Security Concern Summary
+      placeholder: Describe the concern at a high level
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Estimated Severity
+      options:
+        - Low
+        - Medium
+        - High
+        - Critical
+    validations:
+      required: true
+  - type: textarea
+    id: affected
+    attributes:
+      label: Affected Area
+      placeholder: e.g., API endpoint, auth flow, CI workflow
+    validations:
+      required: true
+  - type: textarea
+    id: mitigation
+    attributes:
+      label: Suggested Mitigation
+      placeholder: Suggested fix or containment
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Confirmation
+      options:
+        - label: I did not include secrets or private exploit details.
+          required: true
+        - label: I will use private advisory for sensitive details.
+          required: true

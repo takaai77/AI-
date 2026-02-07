@@ -1,0 +1,67 @@
+﻿name: Bug Report
+description: Report a reproducible defect
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Please provide enough detail to reproduce quickly.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What is broken?
+      placeholder: Describe the issue
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Include exact steps
+      placeholder: |
+        1. Open ...
+        2. Click ...
+        3. See error ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      placeholder: What should happen?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      placeholder: What actually happens?
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / Screenshots
+      description: Remove sensitive data before posting
+      placeholder: Paste relevant logs or screenshots
+  - type: dropdown
+    id: security_impact
+    attributes:
+      label: Security Impact
+      description: Does this issue affect security?
+      options:
+        - No
+        - Unsure
+        - Yes (also file private advisory)
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Confirmation
+      options:
+        - label: I removed secrets and personal data from this report.
+          required: true
