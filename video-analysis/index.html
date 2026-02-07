@@ -1,0 +1,1545 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日本のヒット曲分析ツール - AI作曲支援</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #ec4899;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --bg-input: #334155;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border: #475569;
+            --success: #10b981;
+            --warning: #f59e0b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            border-radius: 16px;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid var(--border);
+        }
+
+        .card h2 {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card h2 .icon {
+            font-size: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .inline-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-input);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .checkbox-item:hover {
+            background: var(--border);
+        }
+
+        .checkbox-item input {
+            width: auto;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--bg-input);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .analysis-section {
+            margin-top: 20px;
+            padding: 20px;
+            background: var(--bg-input);
+            border-radius: 8px;
+        }
+
+        .analysis-section h3 {
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+            color: var(--primary);
+        }
+
+        .analysis-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .analysis-item:last-child {
+            border-bottom: none;
+        }
+
+        .analysis-label {
+            color: var(--text-muted);
+        }
+
+        .analysis-value {
+            font-weight: 600;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 4px 12px;
+            background: var(--primary);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin: 4px;
+        }
+
+        .meter-container {
+            margin: 10px 0;
+        }
+
+        .meter {
+            height: 8px;
+            background: var(--bg-dark);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .meter-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .prompt-output {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            white-space: pre-wrap;
+            font-size: 0.9rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 8px 16px;
+            font-size: 0.85rem;
+        }
+
+        .prompt-container {
+            position: relative;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 20px;
+            background: var(--bg-input);
+            padding: 4px;
+            border-radius: 8px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .chord-progression {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0;
+        }
+
+        .chord {
+            padding: 8px 16px;
+            background: var(--bg-dark);
+            border-radius: 6px;
+            font-weight: 600;
+        }
+
+        .example-songs {
+            margin-top: 20px;
+        }
+
+        .example-song {
+            padding: 12px;
+            background: var(--bg-input);
+            border-radius: 8px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .example-song:hover {
+            transform: translateX(5px);
+        }
+
+        .example-song h4 {
+            color: var(--primary);
+        }
+
+        .example-song p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .section-structure {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin: 15px 0;
+        }
+
+        .section-block {
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .section-intro { background: #3b82f6; }
+        .section-verse { background: #10b981; }
+        .section-prechorus { background: #f59e0b; }
+        .section-chorus { background: #ef4444; }
+        .section-bridge { background: #8b5cf6; }
+        .section-outro { background: #6b7280; }
+
+        .hidden {
+            display: none;
+        }
+
+        #results {
+            margin-top: 30px;
+        }
+
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: conic-gradient(var(--primary) 0deg, var(--bg-input) 0deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px auto;
+            position: relative;
+        }
+
+        .score-circle::before {
+            content: '';
+            position: absolute;
+            width: 90px;
+            height: 90px;
+            background: var(--bg-card);
+            border-radius: 50%;
+        }
+
+        .score-value {
+            position: relative;
+            z-index: 1;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .success-factors {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .factor-card {
+            background: var(--bg-input);
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .factor-icon {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+
+        .factor-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .factor-score {
+            color: var(--primary);
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎵 日本のヒット曲分析ツール</h1>
+            <p>音楽専門家視点で分析し、AI作曲に活用できるプロンプトを生成</p>
+        </header>
+
+        <div class="main-grid">
+            <!-- 入力セクション -->
+            <div class="left-column">
+                <div class="card">
+                    <h2><span class="icon">📝</span> 楽曲情報入力</h2>
+
+                    <div class="form-group">
+                        <label>曲名</label>
+                        <input type="text" id="songTitle" placeholder="例: 夜に駆ける">
+                    </div>
+
+                    <div class="form-group">
+                        <label>アーティスト名</label>
+                        <input type="text" id="artistName" placeholder="例: YOASOBI">
+                    </div>
+
+                    <div class="inline-group">
+                        <div class="form-group">
+                            <label>BPM (テンポ)</label>
+                            <input type="number" id="bpm" placeholder="例: 130" min="40" max="220">
+                        </div>
+                        <div class="form-group">
+                            <label>キー (調)</label>
+                            <select id="songKey">
+                                <option value="">選択してください</option>
+                                <option value="C">C メジャー</option>
+                                <option value="C#">C# メジャー</option>
+                                <option value="D">D メジャー</option>
+                                <option value="D#">D# メジャー</option>
+                                <option value="E">E メジャー</option>
+                                <option value="F">F メジャー</option>
+                                <option value="F#">F# メジャー</option>
+                                <option value="G">G メジャー</option>
+                                <option value="G#">G# メジャー</option>
+                                <option value="A">A メジャー</option>
+                                <option value="A#">A# メジャー</option>
+                                <option value="B">B メジャー</option>
+                                <option value="Am">A マイナー</option>
+                                <option value="A#m">A# マイナー</option>
+                                <option value="Bm">B マイナー</option>
+                                <option value="Cm">C マイナー</option>
+                                <option value="C#m">C# マイナー</option>
+                                <option value="Dm">D マイナー</option>
+                                <option value="D#m">D# マイナー</option>
+                                <option value="Em">E マイナー</option>
+                                <option value="Fm">F マイナー</option>
+                                <option value="F#m">F# マイナー</option>
+                                <option value="Gm">G マイナー</option>
+                                <option value="G#m">G# マイナー</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="inline-group">
+                        <div class="form-group">
+                            <label>拍子</label>
+                            <select id="timeSignature">
+                                <option value="4/4">4/4 (一般的)</option>
+                                <option value="3/4">3/4 (ワルツ)</option>
+                                <option value="6/8">6/8</option>
+                                <option value="2/4">2/4</option>
+                                <option value="5/4">5/4</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>曲の長さ (秒)</label>
+                            <input type="number" id="duration" placeholder="例: 240" min="30" max="600">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top: 24px;">
+                    <h2><span class="icon">🎼</span> 曲構成・コード進行</h2>
+
+                    <div class="form-group">
+                        <label>曲の構成 (選択してください)</label>
+                        <div class="checkbox-group" id="structureCheckboxes">
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="structure" value="intro" checked> イントロ
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="structure" value="verse" checked> Aメロ
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="structure" value="prechorus" checked> Bメロ
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="structure" value="chorus" checked> サビ
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="structure" value="bridge"> Cメロ
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="structure" value="drop"> ドロップ
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="structure" value="outro" checked> アウトロ
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>メインコード進行</label>
+                        <select id="chordProgression">
+                            <option value="4536">IV-V-IIIm-VIm (王道進行)</option>
+                            <option value="1564">I-V-VIm-IV (ポップパンク進行)</option>
+                            <option value="6415">VIm-IV-I-V (小室進行)</option>
+                            <option value="1645">I-VIm-IV-V (50年代進行)</option>
+                            <option value="6251">VIm-IIm-V-I (ジャズ進行)</option>
+                            <option value="4156">IV-I-V-VIm (カノン進行)</option>
+                            <option value="1451">I-IV-V-I (ブルース基本)</option>
+                            <option value="custom">カスタム</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="customChordGroup" style="display: none;">
+                        <label>カスタムコード進行 (例: Am-F-C-G)</label>
+                        <input type="text" id="customChords" placeholder="コードをハイフンで区切って入力">
+                    </div>
+
+                    <div class="form-group">
+                        <label>転調</label>
+                        <select id="modulation">
+                            <option value="none">なし</option>
+                            <option value="half_up">半音上げ (サビ前)</option>
+                            <option value="whole_up">全音上げ</option>
+                            <option value="relative">平行調へ</option>
+                            <option value="parallel">同主調へ</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top: 24px;">
+                    <h2><span class="icon">📜</span> 歌詞・テーマ</h2>
+
+                    <div class="form-group">
+                        <label>歌詞 (サビの一部でOK)</label>
+                        <textarea id="lyrics" placeholder="分析したい歌詞を入力してください..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>テーマ・モチーフ</label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="theme" value="love"> 恋愛
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="theme" value="farewell"> 別れ・失恋
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="theme" value="youth"> 青春
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="theme" value="dream"> 夢・希望
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="theme" value="life"> 人生・生き方
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="theme" value="nostalgia"> ノスタルジー
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="theme" value="night"> 夜・月
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="theme" value="seasons"> 季節
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="theme" value="friendship"> 友情
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="theme" value="struggle"> 葛藤・苦悩
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>感情の雰囲気</label>
+                        <select id="mood">
+                            <option value="uplifting">前向き・元気</option>
+                            <option value="melancholy">切ない・メランコリック</option>
+                            <option value="romantic">ロマンチック</option>
+                            <option value="nostalgic">懐かしい</option>
+                            <option value="energetic">エネルギッシュ</option>
+                            <option value="calm">穏やか・癒し</option>
+                            <option value="dark">ダーク・重い</option>
+                            <option value="hopeful">希望的</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top: 24px;">
+                    <h2><span class="icon">🎸</span> 音楽的特徴</h2>
+
+                    <div class="form-group">
+                        <label>ジャンル</label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="genre" value="jpop"> J-POP
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="genre" value="rock"> ロック
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="genre" value="ballad"> バラード
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="genre" value="electronic"> エレクトロニック
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="genre" value="hiphop"> ヒップホップ
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="genre" value="anisong"> アニソン
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="genre" value="city_pop"> シティポップ
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="genre" value="idol"> アイドル
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>メロディの特徴</label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="melody" value="catchy"> キャッチー
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="melody" value="high_notes"> 高音域
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="melody" value="wide_range"> 音域が広い
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="melody" value="repetitive"> 反復的
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="melody" value="syncopation"> シンコペーション
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="melody" value="pentatonic"> ペンタトニック
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>アレンジ・楽器</label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="arrangement" value="synth"> シンセサイザー
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="arrangement" value="guitar"> ギター
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="arrangement" value="piano"> ピアノ
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="arrangement" value="strings"> ストリングス
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="arrangement" value="brass"> ブラス
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="arrangement" value="808"> 808ベース
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="arrangement" value="acoustic"> アコースティック
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="analyzeAndGenerate()">🔍 分析してプロンプト生成</button>
+                        <button class="btn btn-secondary" onclick="loadExample()">📋 サンプルを読み込む</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 結果セクション -->
+            <div class="right-column">
+                <div class="card">
+                    <h2><span class="icon">📊</span> 分析結果</h2>
+
+                    <div id="results" class="hidden">
+                        <div class="tabs">
+                            <button class="tab active" onclick="switchTab('analysis')">楽曲分析</button>
+                            <button class="tab" onclick="switchTab('success')">ヒット要因</button>
+                            <button class="tab" onclick="switchTab('prompt')">AIプロンプト</button>
+                        </div>
+
+                        <div id="analysis-tab" class="tab-content active">
+                            <div class="analysis-section">
+                                <h3>📈 総合スコア</h3>
+                                <div class="score-circle" id="scoreCircle">
+                                    <span class="score-value" id="totalScore">--</span>
+                                </div>
+                                <p style="text-align: center; color: var(--text-muted);" id="scoreComment">分析結果がここに表示されます</p>
+                            </div>
+
+                            <div class="analysis-section">
+                                <h3>🎵 曲構成</h3>
+                                <div class="section-structure" id="structureVisual"></div>
+                                <div id="structureAnalysis"></div>
+                            </div>
+
+                            <div class="analysis-section">
+                                <h3>🎹 コード進行分析</h3>
+                                <div class="chord-progression" id="chordVisual"></div>
+                                <div id="chordAnalysis"></div>
+                            </div>
+
+                            <div class="analysis-section">
+                                <h3>📝 歌詞分析</h3>
+                                <div id="lyricsAnalysis"></div>
+                            </div>
+
+                            <div class="analysis-section">
+                                <h3>🎧 サウンド特性</h3>
+                                <div id="soundAnalysis"></div>
+                            </div>
+                        </div>
+
+                        <div id="success-tab" class="tab-content">
+                            <div class="analysis-section">
+                                <h3>🏆 ヒット要因スコア</h3>
+                                <div class="success-factors" id="successFactors"></div>
+                            </div>
+
+                            <div class="analysis-section">
+                                <h3>💡 強みと改善点</h3>
+                                <div id="strengths"></div>
+                            </div>
+
+                            <div class="analysis-section">
+                                <h3>🎯 類似ヒット曲</h3>
+                                <div id="similarSongs"></div>
+                            </div>
+                        </div>
+
+                        <div id="prompt-tab" class="tab-content">
+                            <div class="analysis-section">
+                                <h3>🤖 AI音楽生成プロンプト</h3>
+                                <div class="tabs" style="margin-bottom: 10px;">
+                                    <button class="tab active" onclick="switchPromptType('suno')">Suno AI</button>
+                                    <button class="tab" onclick="switchPromptType('udio')">Udio</button>
+                                    <button class="tab" onclick="switchPromptType('generic')">汎用</button>
+                                </div>
+                                <div class="prompt-container">
+                                    <div class="prompt-output" id="sunoPrompt"></div>
+                                    <button class="btn btn-secondary copy-btn" onclick="copyPrompt('suno')">📋 コピー</button>
+                                </div>
+                                <div class="prompt-container hidden" id="udioPromptContainer">
+                                    <div class="prompt-output" id="udioPrompt"></div>
+                                    <button class="btn btn-secondary copy-btn" onclick="copyPrompt('udio')">📋 コピー</button>
+                                </div>
+                                <div class="prompt-container hidden" id="genericPromptContainer">
+                                    <div class="prompt-output" id="genericPrompt"></div>
+                                    <button class="btn btn-secondary copy-btn" onclick="copyPrompt('generic')">📋 コピー</button>
+                                </div>
+                            </div>
+
+                            <div class="analysis-section">
+                                <h3>📋 再現ポイント</h3>
+                                <div id="recreationTips"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="noResults">
+                        <p style="text-align: center; color: var(--text-muted); padding: 40px;">
+                            左側のフォームに曲の情報を入力して<br>
+                            「分析してプロンプト生成」をクリックしてください
+                        </p>
+
+                        <div class="example-songs">
+                            <h3 style="margin-bottom: 15px;">📚 分析例を読み込む</h3>
+                            <div class="example-song" onclick="loadExampleSong('yoasobi')">
+                                <h4>夜に駆ける - YOASOBI</h4>
+                                <p>BPM 130 / Am / ボカロP由来の高速展開型J-POP</p>
+                            </div>
+                            <div class="example-song" onclick="loadExampleSong('ado')">
+                                <h4>うっせぇわ - Ado</h4>
+                                <p>BPM 126 / Bm / 反抗的なメッセージソング</p>
+                            </div>
+                            <div class="example-song" onclick="loadExampleSong('official')">
+                                <h4>Pretender - Official髭男dism</h4>
+                                <p>BPM 92 / A / 切ないラブバラード</p>
+                            </div>
+                            <div class="example-song" onclick="loadExampleSong('kenshi')">
+                                <h4>Lemon - 米津玄師</h4>
+                                <p>BPM 87 / G#m / 喪失と追憶のバラード</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // コード進行データベース
+        const chordProgressions = {
+            '4536': {
+                name: '王道進行 (IV-V-IIIm-VIm)',
+                description: '日本のJ-POPで最も使われる進行。切なさと希望が共存',
+                examples: ['First Love (宇多田ヒカル)', 'M (浜崎あゆみ)', '瞳をとじて (平井堅)'],
+                emotion: 'nostalgic',
+                popularity: 95
+            },
+            '1564': {
+                name: 'ポップパンク進行 (I-V-VIm-IV)',
+                description: '洋楽由来。明るく前向きな印象',
+                examples: ['ヘビーローテーション (AKB48)', 'Butter-Fly (和田光司)'],
+                emotion: 'uplifting',
+                popularity: 85
+            },
+            '6415': {
+                name: '小室進行 (VIm-IV-I-V)',
+                description: '90年代を代表する進行。エモーショナルで力強い',
+                examples: ['Get Wild (TM NETWORK)', 'CAN YOU CELEBRATE? (安室奈美恵)'],
+                emotion: 'dramatic',
+                popularity: 90
+            },
+            '1645': {
+                name: '50年代進行 (I-VIm-IV-V)',
+                description: 'クラシックな循環コード。懐かしさを感じる',
+                examples: ['Stand by Me', '上を向いて歩こう (坂本九)'],
+                emotion: 'classic',
+                popularity: 75
+            },
+            '6251': {
+                name: 'ジャズ進行 (VIm-IIm-V-I)',
+                description: 'おしゃれで洗練された印象',
+                examples: ['Fly Me to the Moon', 'Plastic Love (竹内まりや)'],
+                emotion: 'sophisticated',
+                popularity: 70
+            },
+            '4156': {
+                name: 'カノン進行 (IV-I-V-VIm)',
+                description: '美しく展開する進行。感動的',
+                examples: ['パッヘルベルのカノン', '卒業写真 (荒井由実)'],
+                emotion: 'emotional',
+                popularity: 80
+            },
+            '1451': {
+                name: 'ブルース基本 (I-IV-V-I)',
+                description: 'シンプルで力強い',
+                examples: ['Johnny B. Goode', 'ロックンロール系楽曲'],
+                emotion: 'powerful',
+                popularity: 65
+            }
+        };
+
+        // ヒット曲のパターンデータ
+        const hitPatterns = {
+            bpm: {
+                '60-80': { label: 'バラード', weight: 1.0, description: 'しっとりとした雰囲気' },
+                '80-100': { label: 'ミディアム', weight: 1.2, description: 'バランスの良いテンポ' },
+                '100-130': { label: 'アップテンポ', weight: 1.3, description: 'ノリやすく印象に残りやすい' },
+                '130-160': { label: 'ダンス', weight: 1.1, description: 'EDM/ダンスミュージック向け' },
+                '160+': { label: '高速', weight: 0.8, description: 'ボカロ/アニソン向け' }
+            },
+            structure: {
+                typical: ['intro', 'verse', 'prechorus', 'chorus', 'verse', 'prechorus', 'chorus', 'bridge', 'chorus', 'outro'],
+                modern: ['intro', 'chorus', 'verse', 'prechorus', 'chorus', 'bridge', 'chorus', 'outro']
+            }
+        };
+
+        // サンプル楽曲データ
+        const exampleSongs = {
+            yoasobi: {
+                title: '夜に駆ける',
+                artist: 'YOASOBI',
+                bpm: 130,
+                key: 'Am',
+                timeSignature: '4/4',
+                duration: 260,
+                structure: ['intro', 'verse', 'prechorus', 'chorus', 'bridge', 'outro'],
+                chordProgression: '6415',
+                modulation: 'none',
+                themes: ['night', 'love', 'struggle'],
+                mood: 'melancholy',
+                genres: ['jpop', 'electronic'],
+                melodyFeatures: ['catchy', 'high_notes', 'syncopation'],
+                arrangements: ['synth', 'piano'],
+                lyrics: '沈むように溶けてゆくように\n二人だけの空が広がる夜に\n「さよなら」だけだった\nその一言で全てが分かった'
+            },
+            ado: {
+                title: 'うっせぇわ',
+                artist: 'Ado',
+                bpm: 126,
+                key: 'Bm',
+                timeSignature: '4/4',
+                duration: 210,
+                structure: ['intro', 'verse', 'prechorus', 'chorus', 'verse', 'chorus', 'outro'],
+                chordProgression: '6415',
+                modulation: 'none',
+                themes: ['struggle', 'youth'],
+                mood: 'energetic',
+                genres: ['jpop', 'rock'],
+                melodyFeatures: ['catchy', 'high_notes', 'wide_range'],
+                arrangements: ['synth', 'guitar'],
+                lyrics: 'うっせぇうっせぇうっせぇわ\nあなたが思うより健康です\n一切合切凡庸な\nあなたじゃ分からないかもね'
+            },
+            official: {
+                title: 'Pretender',
+                artist: 'Official髭男dism',
+                bpm: 92,
+                key: 'A',
+                timeSignature: '4/4',
+                duration: 327,
+                structure: ['intro', 'verse', 'prechorus', 'chorus', 'verse', 'prechorus', 'chorus', 'bridge', 'chorus', 'outro'],
+                chordProgression: '4536',
+                modulation: 'half_up',
+                themes: ['love', 'farewell'],
+                mood: 'melancholy',
+                genres: ['jpop', 'ballad'],
+                melodyFeatures: ['catchy', 'high_notes', 'wide_range'],
+                arrangements: ['piano', 'strings', 'guitar'],
+                lyrics: 'グッバイ\n君の運命のヒトは僕じゃない\n辛いけど否めない でも離れ難いのさ'
+            },
+            kenshi: {
+                title: 'Lemon',
+                artist: '米津玄師',
+                bpm: 87,
+                key: 'G#m',
+                timeSignature: '4/4',
+                duration: 315,
+                structure: ['intro', 'verse', 'prechorus', 'chorus', 'verse', 'prechorus', 'chorus', 'bridge', 'chorus', 'outro'],
+                chordProgression: '4536',
+                modulation: 'none',
+                themes: ['farewell', 'nostalgia', 'life'],
+                mood: 'melancholy',
+                genres: ['jpop', 'ballad'],
+                melodyFeatures: ['catchy', 'pentatonic'],
+                arrangements: ['piano', 'strings', 'acoustic'],
+                lyrics: '夢ならばどれほどよかったでしょう\n未だにあなたのことを夢にみる\n忘れた物を取りに帰るように\n古びた思い出の埃を払う'
+            }
+        };
+
+        // タブ切り替え
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tabs .tab').forEach(tab => tab.classList.remove('active'));
+
+            document.getElementById(tabName + '-tab').classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // プロンプトタイプ切り替え
+        function switchPromptType(type) {
+            const containers = ['sunoPrompt', 'udioPromptContainer', 'genericPromptContainer'];
+            containers.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.add('hidden');
+            });
+
+            if (type === 'suno') {
+                document.getElementById('sunoPrompt').parentElement.classList.remove('hidden');
+            } else if (type === 'udio') {
+                document.getElementById('udioPromptContainer').classList.remove('hidden');
+            } else {
+                document.getElementById('genericPromptContainer').classList.remove('hidden');
+            }
+
+            event.target.parentElement.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        // サンプル曲読み込み
+        function loadExampleSong(songId) {
+            const song = exampleSongs[songId];
+            if (!song) return;
+
+            document.getElementById('songTitle').value = song.title;
+            document.getElementById('artistName').value = song.artist;
+            document.getElementById('bpm').value = song.bpm;
+            document.getElementById('songKey').value = song.key;
+            document.getElementById('timeSignature').value = song.timeSignature;
+            document.getElementById('duration').value = song.duration;
+            document.getElementById('chordProgression').value = song.chordProgression;
+            document.getElementById('modulation').value = song.modulation;
+            document.getElementById('mood').value = song.mood;
+            document.getElementById('lyrics').value = song.lyrics;
+
+            // チェックボックスをリセット
+            document.querySelectorAll('input[name="structure"]').forEach(cb => cb.checked = false);
+            document.querySelectorAll('input[name="theme"]').forEach(cb => cb.checked = false);
+            document.querySelectorAll('input[name="genre"]').forEach(cb => cb.checked = false);
+            document.querySelectorAll('input[name="melody"]').forEach(cb => cb.checked = false);
+            document.querySelectorAll('input[name="arrangement"]').forEach(cb => cb.checked = false);
+
+            // 値をセット
+            song.structure.forEach(s => {
+                const cb = document.querySelector(`input[name="structure"][value="${s}"]`);
+                if (cb) cb.checked = true;
+            });
+            song.themes.forEach(t => {
+                const cb = document.querySelector(`input[name="theme"][value="${t}"]`);
+                if (cb) cb.checked = true;
+            });
+            song.genres.forEach(g => {
+                const cb = document.querySelector(`input[name="genre"][value="${g}"]`);
+                if (cb) cb.checked = true;
+            });
+            song.melodyFeatures.forEach(m => {
+                const cb = document.querySelector(`input[name="melody"][value="${m}"]`);
+                if (cb) cb.checked = true;
+            });
+            song.arrangements.forEach(a => {
+                const cb = document.querySelector(`input[name="arrangement"][value="${a}"]`);
+                if (cb) cb.checked = true;
+            });
+
+            // 分析を実行
+            analyzeAndGenerate();
+        }
+
+        // メイン分析関数
+        function analyzeAndGenerate() {
+            const data = collectFormData();
+            if (!validateData(data)) return;
+
+            const analysis = performAnalysis(data);
+            displayResults(analysis, data);
+
+            document.getElementById('results').classList.remove('hidden');
+            document.getElementById('noResults').classList.add('hidden');
+        }
+
+        // フォームデータ収集
+        function collectFormData() {
+            return {
+                title: document.getElementById('songTitle').value,
+                artist: document.getElementById('artistName').value,
+                bpm: parseInt(document.getElementById('bpm').value) || 120,
+                key: document.getElementById('songKey').value,
+                timeSignature: document.getElementById('timeSignature').value,
+                duration: parseInt(document.getElementById('duration').value) || 240,
+                structure: Array.from(document.querySelectorAll('input[name="structure"]:checked')).map(cb => cb.value),
+                chordProgression: document.getElementById('chordProgression').value,
+                customChords: document.getElementById('customChords').value,
+                modulation: document.getElementById('modulation').value,
+                themes: Array.from(document.querySelectorAll('input[name="theme"]:checked')).map(cb => cb.value),
+                mood: document.getElementById('mood').value,
+                genres: Array.from(document.querySelectorAll('input[name="genre"]:checked')).map(cb => cb.value),
+                melodyFeatures: Array.from(document.querySelectorAll('input[name="melody"]:checked')).map(cb => cb.value),
+                arrangements: Array.from(document.querySelectorAll('input[name="arrangement"]:checked')).map(cb => cb.value),
+                lyrics: document.getElementById('lyrics').value
+            };
+        }
+
+        // データ検証
+        function validateData(data) {
+            if (!data.title && !data.artist) {
+                alert('曲名またはアーティスト名を入力してください');
+                return false;
+            }
+            return true;
+        }
+
+        // 分析実行
+        function performAnalysis(data) {
+            const analysis = {
+                structureScore: analyzeStructure(data.structure),
+                chordScore: analyzeChords(data.chordProgression),
+                tempoScore: analyzeTempo(data.bpm),
+                lyricsScore: analyzeLyrics(data.lyrics, data.themes),
+                soundScore: analyzeSound(data.genres, data.arrangements, data.melodyFeatures),
+                totalScore: 0,
+                hitFactors: [],
+                strengths: [],
+                weaknesses: [],
+                similarSongs: []
+            };
+
+            // 総合スコア計算
+            analysis.totalScore = Math.round(
+                (analysis.structureScore * 0.2 +
+                analysis.chordScore * 0.2 +
+                analysis.tempoScore * 0.15 +
+                analysis.lyricsScore * 0.25 +
+                analysis.soundScore * 0.2) * 100
+            ) / 100;
+
+            // ヒット要因分析
+            analysis.hitFactors = calculateHitFactors(data, analysis);
+
+            // 強みと弱み
+            analysis.strengths = identifyStrengths(data, analysis);
+            analysis.weaknesses = identifyWeaknesses(data, analysis);
+
+            // 類似曲
+            analysis.similarSongs = findSimilarSongs(data);
+
+            return analysis;
+        }
+
+        // 曲構成分析
+        function analyzeStructure(structure) {
+            let score = 0.5;
+
+            if (structure.includes('chorus')) score += 0.2;
+            if (structure.includes('verse')) score += 0.1;
+            if (structure.includes('prechorus')) score += 0.1;
+            if (structure.includes('bridge')) score += 0.05;
+            if (structure.includes('intro')) score += 0.03;
+            if (structure.includes('outro')) score += 0.02;
+
+            return Math.min(score, 1.0);
+        }
+
+        // コード進行分析
+        function analyzeChords(progression) {
+            const prog = chordProgressions[progression];
+            if (!prog) return 0.6;
+            return prog.popularity / 100;
+        }
+
+        // テンポ分析
+        function analyzeTempo(bpm) {
+            if (bpm >= 100 && bpm <= 130) return 0.95;
+            if (bpm >= 80 && bpm <= 160) return 0.85;
+            if (bpm >= 60 && bpm <= 180) return 0.7;
+            return 0.5;
+        }
+
+        // 歌詞分析
+        function analyzeLyrics(lyrics, themes) {
+            let score = 0.5;
+
+            if (lyrics && lyrics.length > 0) {
+                score += 0.1;
+
+                // キーワード分析
+                const emotionalWords = ['愛', '恋', '夢', '希望', '涙', '心', '君', 'あなた', '永遠', '約束'];
+                emotionalWords.forEach(word => {
+                    if (lyrics.includes(word)) score += 0.02;
+                });
+
+                // 反復チェック
+                const lines = lyrics.split('\n');
+                const uniqueLines = new Set(lines);
+                if (lines.length > uniqueLines.size) score += 0.05; // 繰り返しがある
+            }
+
+            // テーマボーナス
+            if (themes.includes('love')) score += 0.1;
+            if (themes.includes('farewell')) score += 0.08;
+            if (themes.includes('youth')) score += 0.05;
+            if (themes.includes('dream')) score += 0.05;
+
+            return Math.min(score, 1.0);
+        }
+
+        // サウンド分析
+        function analyzeSound(genres, arrangements, melody) {
+            let score = 0.5;
+
+            if (genres.includes('jpop')) score += 0.1;
+            if (genres.includes('electronic')) score += 0.08;
+            if (genres.includes('ballad')) score += 0.05;
+
+            if (melody.includes('catchy')) score += 0.15;
+            if (melody.includes('high_notes')) score += 0.05;
+
+            if (arrangements.length >= 2) score += 0.05;
+            if (arrangements.includes('synth')) score += 0.03;
+            if (arrangements.includes('piano')) score += 0.03;
+
+            return Math.min(score, 1.0);
+        }
+
+        // ヒット要因計算
+        function calculateHitFactors(data, analysis) {
+            return [
+                { name: 'メロディ', icon: '🎵', score: Math.round(analysis.soundScore * 100) },
+                { name: 'コード進行', icon: '🎹', score: Math.round(analysis.chordScore * 100) },
+                { name: '歌詞', icon: '📝', score: Math.round(analysis.lyricsScore * 100) },
+                { name: '構成', icon: '🎼', score: Math.round(analysis.structureScore * 100) },
+                { name: 'テンポ', icon: '⏱️', score: Math.round(analysis.tempoScore * 100) },
+                { name: 'キャッチー度', icon: '✨', score: data.melodyFeatures.includes('catchy') ? 90 : 60 }
+            ];
+        }
+
+        // 強み特定
+        function identifyStrengths(data, analysis) {
+            const strengths = [];
+
+            if (analysis.chordScore >= 0.85) strengths.push('王道のコード進行で安定感がある');
+            if (data.melodyFeatures.includes('catchy')) strengths.push('キャッチーなメロディが印象に残る');
+            if (data.bpm >= 100 && data.bpm <= 130) strengths.push('ノリやすいテンポ設定');
+            if (data.themes.includes('love') || data.themes.includes('farewell')) strengths.push('共感を得やすいテーマ');
+            if (data.structure.includes('prechorus')) strengths.push('Bメロによる効果的なサビへの導入');
+            if (data.modulation !== 'none') strengths.push('転調による盛り上がり効果');
+
+            return strengths.length > 0 ? strengths : ['バランスの取れた構成'];
+        }
+
+        // 弱み特定
+        function identifyWeaknesses(data, analysis) {
+            const weaknesses = [];
+
+            if (!data.structure.includes('chorus')) weaknesses.push('サビがないと記憶に残りにくい');
+            if (!data.structure.includes('prechorus')) weaknesses.push('Bメロ追加でサビの効果が上がる可能性');
+            if (data.bpm < 60 || data.bpm > 180) weaknesses.push('テンポが極端で一般受けしにくい可能性');
+            if (data.arrangements.length < 2) weaknesses.push('楽器編成を増やすと厚みが出る');
+
+            return weaknesses;
+        }
+
+        // 類似曲検索
+        function findSimilarSongs(data) {
+            const similar = [];
+
+            Object.entries(exampleSongs).forEach(([key, song]) => {
+                let similarity = 0;
+
+                if (song.chordProgression === data.chordProgression) similarity += 30;
+                if (Math.abs(song.bpm - data.bpm) < 20) similarity += 20;
+                if (song.mood === data.mood) similarity += 20;
+                if (song.genres.some(g => data.genres.includes(g))) similarity += 15;
+                if (song.themes.some(t => data.themes.includes(t))) similarity += 15;
+
+                if (similarity >= 40) {
+                    similar.push({
+                        title: song.title,
+                        artist: song.artist,
+                        similarity: similarity
+                    });
+                }
+            });
+
+            return similar.sort((a, b) => b.similarity - a.similarity).slice(0, 3);
+        }
+
+        // 結果表示
+        function displayResults(analysis, data) {
+            // スコア表示
+            const scoreCircle = document.getElementById('scoreCircle');
+            const totalScore = Math.round(analysis.totalScore * 100);
+            scoreCircle.style.background = `conic-gradient(var(--primary) ${totalScore * 3.6}deg, var(--bg-input) 0deg)`;
+            document.getElementById('totalScore').textContent = totalScore;
+
+            let comment = '';
+            if (totalScore >= 85) comment = '非常に高いヒットポテンシャル！';
+            else if (totalScore >= 70) comment = 'ヒット曲の要素を多く持っています';
+            else if (totalScore >= 50) comment = '改善点を参考にブラッシュアップを';
+            else comment = '大幅な見直しが必要かもしれません';
+            document.getElementById('scoreComment').textContent = comment;
+
+            // 構成表示
+            const structureVisual = document.getElementById('structureVisual');
+            structureVisual.innerHTML = data.structure.map(s => {
+                const labels = {
+                    intro: 'イントロ', verse: 'Aメロ', prechorus: 'Bメロ',
+                    chorus: 'サビ', bridge: 'Cメロ', drop: 'ドロップ', outro: 'アウトロ'
+                };
+                return `<span class="section-block section-${s}">${labels[s]}</span>`;
+            }).join('');
+
+            document.getElementById('structureAnalysis').innerHTML = `
+                <div class="analysis-item">
+                    <span class="analysis-label">構成スコア</span>
+                    <span class="analysis-value">${Math.round(analysis.structureScore * 100)}%</span>
+                </div>
+                <div class="meter-container">
+                    <div class="meter"><div class="meter-fill" style="width: ${analysis.structureScore * 100}%"></div></div>
+                </div>
+            `;
+
+            // コード進行表示
+            const chordInfo = chordProgressions[data.chordProgression] || { name: 'カスタム', description: '独自のコード進行' };
+            document.getElementById('chordVisual').innerHTML = `<span class="tag">${chordInfo.name}</span>`;
+            document.getElementById('chordAnalysis').innerHTML = `
+                <p style="margin-bottom: 10px;">${chordInfo.description}</p>
+                <div class="analysis-item">
+                    <span class="analysis-label">人気度</span>
+                    <span class="analysis-value">${Math.round(analysis.chordScore * 100)}%</span>
+                </div>
+                ${chordInfo.examples ? `<p style="font-size: 0.85rem; color: var(--text-muted);">使用例: ${chordInfo.examples.join(', ')}</p>` : ''}
+            `;
+
+            // 歌詞分析表示
+            const lyricsAnalysis = document.getElementById('lyricsAnalysis');
+            const themes = {
+                love: '恋愛', farewell: '別れ', youth: '青春', dream: '夢',
+                life: '人生', nostalgia: '郷愁', night: '夜', seasons: '季節',
+                friendship: '友情', struggle: '葛藤'
+            };
+            const themesTags = data.themes.map(t => `<span class="tag">${themes[t]}</span>`).join('');
+
+            lyricsAnalysis.innerHTML = `
+                <div style="margin-bottom: 15px;">${themesTags || '<span class="tag">テーマ未選択</span>'}</div>
+                <div class="analysis-item">
+                    <span class="analysis-label">歌詞評価</span>
+                    <span class="analysis-value">${Math.round(analysis.lyricsScore * 100)}%</span>
+                </div>
+                <div class="meter-container">
+                    <div class="meter"><div class="meter-fill" style="width: ${analysis.lyricsScore * 100}%"></div></div>
+                </div>
+            `;
+
+            // サウンド分析表示
+            const soundAnalysis = document.getElementById('soundAnalysis');
+            soundAnalysis.innerHTML = `
+                <div class="analysis-item">
+                    <span class="analysis-label">BPM</span>
+                    <span class="analysis-value">${data.bpm}</span>
+                </div>
+                <div class="analysis-item">
+                    <span class="analysis-label">キー</span>
+                    <span class="analysis-value">${data.key || '未設定'}</span>
+                </div>
+                <div class="analysis-item">
+                    <span class="analysis-label">サウンドスコア</span>
+                    <span class="analysis-value">${Math.round(analysis.soundScore * 100)}%</span>
+                </div>
+            `;
+
+            // ヒット要因表示
+            document.getElementById('successFactors').innerHTML = analysis.hitFactors.map(f => `
+                <div class="factor-card">
+                    <div class="factor-icon">${f.icon}</div>
+                    <div class="factor-name">${f.name}</div>
+                    <div class="factor-score">${f.score}%</div>
+                </div>
+            `).join('');
+
+            // 強みと弱み
+            document.getElementById('strengths').innerHTML = `
+                <h4 style="color: var(--success); margin-bottom: 10px;">💪 強み</h4>
+                <ul style="margin-left: 20px; margin-bottom: 15px;">
+                    ${analysis.strengths.map(s => `<li>${s}</li>`).join('')}
+                </ul>
+                ${analysis.weaknesses.length > 0 ? `
+                <h4 style="color: var(--warning); margin-bottom: 10px;">⚠️ 改善点</h4>
+                <ul style="margin-left: 20px;">
+                    ${analysis.weaknesses.map(w => `<li>${w}</li>`).join('')}
+                </ul>
+                ` : ''}
+            `;
+
+            // 類似曲
+            document.getElementById('similarSongs').innerHTML = analysis.similarSongs.length > 0 ?
+                analysis.similarSongs.map(s => `
+                    <div class="example-song" style="cursor: default;">
+                        <h4>${s.title} - ${s.artist}</h4>
+                        <p>類似度: ${s.similarity}%</p>
+                    </div>
+                `).join('') :
+                '<p style="color: var(--text-muted);">データベース内に類似曲が見つかりませんでした</p>';
+
+            // プロンプト生成
+            generatePrompts(data, analysis);
+        }
+
+        // AIプロンプト生成
+        function generatePrompts(data, analysis) {
+            const moodMap = {
+                uplifting: '前向きで元気な', melancholy: '切なくメランコリックな',
+                romantic: 'ロマンチックな', nostalgic: '懐かしさを感じる',
+                energetic: 'エネルギッシュで力強い', calm: '穏やかで癒される',
+                dark: 'ダークで重厚な', hopeful: '希望に満ちた'
+            };
+
+            const genreMap = {
+                jpop: 'J-POP', rock: 'ロック', ballad: 'バラード',
+                electronic: 'エレクトロニック', hiphop: 'ヒップホップ',
+                anisong: 'アニソン', city_pop: 'シティポップ', idol: 'アイドル'
+            };
+
+            const arrangementMap = {
+                synth: 'シンセサイザー', guitar: 'ギター', piano: 'ピアノ',
+                strings: 'ストリングス', brass: 'ブラス', '808': '808ベース',
+                acoustic: 'アコースティック'
+            };
+
+            const melodyMap = {
+                catchy: 'キャッチーなメロディ', high_notes: '高音域のボーカル',
+                wide_range: '幅広い音域', repetitive: '反復的なフレーズ',
+                syncopation: 'シンコペーション', pentatonic: 'ペンタトニック'
+            };
+
+            const genres = data.genres.map(g => genreMap[g]).join(', ') || 'J-POP';
+            const arrangements = data.arrangements.map(a => arrangementMap[a]).join(', ') || 'ピアノ, ギター';
+            const melodyFeatures = data.melodyFeatures.map(m => melodyMap[m]).join(', ') || 'キャッチーなメロディ';
+            const mood = moodMap[data.mood] || '感情的な';
+            const chordInfo = chordProgressions[data.chordProgression];
+
+            // Suno AI用プロンプト
+            const sunoPrompt = `【ジャンル・スタイル】
+${genres}、${mood}雰囲気
+
+【テンポ・リズム】
+BPM ${data.bpm}、${data.timeSignature}拍子
+
+【楽器構成】
+${arrangements}
+
+【メロディ特徴】
+${melodyFeatures}
+
+【コード進行】
+${chordInfo ? chordInfo.name : 'カスタム進行'}
+${data.key ? `キー: ${data.key}` : ''}
+
+【曲構成】
+${data.structure.map(s => {
+    const labels = { intro: 'イントロ', verse: 'Aメロ', prechorus: 'Bメロ', chorus: 'サビ', bridge: 'Cメロ', drop: 'ドロップ', outro: 'アウトロ' };
+    return labels[s];
+}).join(' → ')}
+
+【ボーカルスタイル】
+日本語歌詞、${data.melodyFeatures.includes('high_notes') ? '高音域でパワフル' : 'ナチュラルで感情的'}
+
+【参考】
+${data.title ? `「${data.title}」(${data.artist})風` : '日本のヒット曲'}のような楽曲`;
+
+            // Udio用プロンプト
+            const udioPrompt = `Japanese ${genres.toLowerCase()}, ${mood.replace('な', '')}
+BPM ${data.bpm}, key of ${data.key || 'A minor'}
+${arrangements}
+${melodyFeatures}
+${data.modulation !== 'none' ? 'Key change in final chorus' : ''}
+${chordInfo ? chordInfo.name.split(' ')[0] + ' chord progression' : ''}
+Female/Male vocal, emotional delivery
+Modern J-POP production, ${data.bpm >= 120 ? 'energetic' : 'mid-tempo'} feel
+${data.title ? `Similar to "${data.title}" by ${data.artist}` : ''}`;
+
+            // 汎用プロンプト
+            const genericPrompt = `【楽曲コンセプト】
+${data.title ? `「${data.title}」(${data.artist})` : '日本のヒット曲'}の要素を取り入れた${genres}楽曲
+
+【詳細仕様】
+• ジャンル: ${genres}
+• テンポ: BPM ${data.bpm} (${data.bpm < 80 ? 'スロー' : data.bpm < 120 ? 'ミディアム' : 'アップテンポ'})
+• 調: ${data.key || '任意'}
+• 拍子: ${data.timeSignature}
+
+【コード進行】
+${chordInfo ? `${chordInfo.name}\n${chordInfo.description}` : 'カスタム進行'}
+${data.modulation !== 'none' ? `\n転調: ${data.modulation === 'half_up' ? 'サビ前に半音上げ' : data.modulation === 'whole_up' ? '全音上げ' : '調性変化あり'}` : ''}
+
+【メロディ・アレンジ】
+${melodyFeatures}
+使用楽器: ${arrangements}
+
+【曲構成】
+${data.structure.map((s, i) => {
+    const labels = { intro: 'イントロ', verse: 'Aメロ', prechorus: 'Bメロ', chorus: 'サビ', bridge: 'Cメロ', drop: 'ドロップ', outro: 'アウトロ' };
+    return `${i + 1}. ${labels[s]}`;
+}).join('\n')}
+
+【雰囲気・感情】
+${mood}
+
+【ヒット要因分析に基づく重要ポイント】
+${analysis.strengths.slice(0, 3).map(s => `• ${s}`).join('\n')}
+
+【再現すべき特徴】
+• ${chordInfo ? `「${chordInfo.name}」による${chordInfo.emotion === 'nostalgic' ? '切なさ' : chordInfo.emotion === 'uplifting' ? '前向きさ' : '感情的な響き'}` : 'コード進行による感情表現'}
+• ${data.melodyFeatures.includes('catchy') ? 'サビの印象的なメロディフック' : 'メロディアスな展開'}
+• ${data.bpm >= 100 && data.bpm <= 130 ? 'ノリやすいテンポ感' : 'テンポに合った世界観'}`;
+
+            document.getElementById('sunoPrompt').textContent = sunoPrompt;
+            document.getElementById('udioPrompt').textContent = udioPrompt;
+            document.getElementById('genericPrompt').textContent = genericPrompt;
+
+            // 再現ポイント
+            document.getElementById('recreationTips').innerHTML = `
+                <ul style="margin-left: 20px;">
+                    <li><strong>コード進行:</strong> ${chordInfo ? chordInfo.name : 'カスタム'}を基本に、サビで盛り上がる展開を</li>
+                    <li><strong>テンポ:</strong> BPM ${data.bpm}を維持。${data.bpm >= 120 ? 'ドライブ感を大切に' : 'グルーヴを意識'}</li>
+                    <li><strong>メロディ:</strong> ${data.melodyFeatures.includes('catchy') ? 'サビは一度聴いたら忘れないフックを' : '感情に寄り添うメロディを'}</li>
+                    <li><strong>歌詞:</strong> ${data.themes.length > 0 ? data.themes.map(t => ({ love: '恋愛', farewell: '別れ', youth: '青春', dream: '夢', life: '人生', nostalgia: '郷愁', night: '夜', seasons: '季節', friendship: '友情', struggle: '葛藤' }[t])).join('、') + 'をテーマに共感できる言葉を' : '共感できるテーマを選んで'}</li>
+                    <li><strong>構成:</strong> ${data.structure.includes('prechorus') ? 'Bメロでサビへの期待感を高める' : 'サビへの導入を工夫する'}</li>
+                    ${data.modulation !== 'none' ? `<li><strong>転調:</strong> ラストサビ前の転調で感情のピークを作る</li>` : ''}
+                </ul>
+            `;
+        }
+
+        // プロンプトコピー
+        function copyPrompt(type) {
+            const prompt = document.getElementById(type + 'Prompt').textContent;
+            navigator.clipboard.writeText(prompt).then(() => {
+                alert('プロンプトをコピーしました！');
+            });
+        }
+
+        // カスタムコード表示切替
+        document.getElementById('chordProgression').addEventListener('change', function() {
+            document.getElementById('customChordGroup').style.display =
+                this.value === 'custom' ? 'block' : 'none';
+        });
+
+        // サンプル読み込みボタン
+        function loadExample() {
+            loadExampleSong('yoasobi');
+        }
+    </script>
+</body>
+</html>
