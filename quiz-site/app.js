@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
   const state = {
     mode: "security",
     questions: [],
@@ -39,7 +39,7 @@
     try {
       const raw = localStorage.getItem(key);
       return raw ? JSON.parse(raw) : fallback;
-    } catch (_e) {
+    } catch (_error) {
       return fallback;
     }
   }
@@ -80,9 +80,9 @@
         <details class="term">
           <summary>${item.term}</summary>
           <div class="term-body">
-            <p><strong>一言定義:</strong> ${item.definition}</p>
-            <p><strong>たとえ話:</strong> ${item.analogy}</p>
-            <p><strong>このシステム例:</strong> ${item.project}</p>
+            <p><strong>Definition:</strong> ${item.definition}</p>
+            <p><strong>Analogy:</strong> ${item.analogy}</p>
+            <p><strong>Project Example:</strong> ${item.project}</p>
           </div>
         </details>
       `
@@ -114,12 +114,11 @@
   function renderHistory() {
     const latest = state.history[0];
     if (!latest) {
-      el.historyText.textContent = "前回履歴: まだありません。";
+      el.historyText.textContent = "Last run: none";
       return;
     }
 
-    el.historyText.textContent =
-      `前回履歴: ${latest.mode} / ${latest.score}問正解 / ${latest.total}問 (${latest.date})`;
+    el.historyText.textContent = `Last run: ${latest.mode} / ${latest.score} correct / ${latest.total} total (${latest.date})`;
   }
 
   function setMode(mode) {
@@ -148,9 +147,9 @@
     state.answered = false;
 
     el.progressText.textContent = `${state.current + 1} / ${state.questions.length}`;
-    el.scoreText.textContent = `正解 ${state.score} / ${state.current}`;
+    el.scoreText.textContent = `Score ${state.score} / ${state.current}`;
     el.meter.style.width = `${(state.current / state.questions.length) * 100}%`;
-    el.category.textContent = `${item.category} | ${item.focus === "security" ? "セキュリティ" : "基礎/運用"}`;
+    el.category.textContent = `${item.category} | ${item.focus === "security" ? "Security" : "Architecture/Ops"}`;
     el.question.textContent = item.question;
 
     el.options.innerHTML = item.options
@@ -186,12 +185,12 @@
     });
 
     el.feedback.classList.remove("hidden");
-    el.feedbackResult.textContent = correct ? "正解です" : "不正解です";
+    el.feedbackResult.textContent = correct ? "Correct" : "Incorrect";
     el.feedbackResult.className = `feedback-result ${correct ? "ok" : "ng"}`;
     el.feedbackExplanation.textContent = item.explanation;
-    el.feedbackAnalogy.textContent = `たとえ: ${item.analogy}`;
+    el.feedbackAnalogy.textContent = `Analogy: ${item.analogy}`;
 
-    el.scoreText.textContent = `正解 ${state.score} / ${state.current + 1}`;
+    el.scoreText.textContent = `Score ${state.score} / ${state.current + 1}`;
     el.nextBtn.classList.remove("hidden");
   }
 
@@ -199,25 +198,29 @@
     const total = state.questions.length;
     const percent = Math.round((state.score / total) * 100);
     const status =
-      percent >= 85 ? "非常に良いです。" : percent >= 70 ? "良いです。弱点を1つ補強しましょう。" : "復習推奨です。";
+      percent >= 85
+        ? "Excellent."
+        : percent >= 70
+          ? "Good. Review one weak area."
+          : "Needs review. Revisit fundamentals.";
 
     el.progressText.textContent = `${total} / ${total}`;
-    el.scoreText.textContent = `正解 ${state.score} / ${total}`;
+    el.scoreText.textContent = `Score ${state.score} / ${total}`;
     el.meter.style.width = "100%";
-    el.category.textContent = "結果";
+    el.category.textContent = "Result";
     el.question.innerHTML = `
-      学習結果: ${state.score} / ${total} (${percent}%)<br />
+      Result: ${state.score} / ${total} (${percent}%)<br />
       ${status}
     `;
 
     const weak = Array.from(new Set(state.wrongCategories)).slice(0, 3);
-
     el.options.innerHTML = `
       <div class="result-box">
-        <strong>次に学ぶと効果が高い領域:</strong><br />
-        ${weak.length ? weak.join(" / ") : "弱点なし。次は実装演習へ進んでOK。"}
+        <strong>High-impact review areas:</strong><br />
+        ${weak.length ? weak.join(" / ") : "No weak category detected. Proceed to implementation drills."}
       </div>
     `;
+
     el.feedback.classList.add("hidden");
     el.nextBtn.classList.add("hidden");
     el.restartBtn.classList.remove("hidden");
@@ -251,6 +254,15 @@
     el.restartBtn.addEventListener("click", resetToSetup);
   }
 
+  function registerServiceWorker() {
+    if (!("serviceWorker" in navigator)) return;
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./sw.js").catch(() => {
+        // no-op on registration failure
+      });
+    });
+  }
+
   function init() {
     renderRoadmap();
     renderTerms();
@@ -258,6 +270,7 @@
     renderHistory();
     bindEvents();
     setMode("security");
+    registerServiceWorker();
   }
 
   init();

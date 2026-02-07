@@ -1,84 +1,83 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0b5c4f" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <title>Kamui Learning Quiz | Security First</title>
     <meta
       name="description"
-      content="ショート動画分析MVPを実装・運用するための学習クイズ。セキュリティ重視、スマホ最適、GitHub Pagesで公開可能。"
+      content="Mobile friendly learning quiz for API, DB, queue, Docker, CI/CD, and security basics."
     />
+    <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
     <header class="hero">
       <p class="eyebrow">Security First Learning</p>
-      <h1>実装を進める前に学ぶクイズ</h1>
+      <h1>Implementation Learning Quiz</h1>
       <p class="lead">
-        API、DB、キュー、Docker、CI/CD、運用、セキュリティを短い問題で学習します。
-        覚えにくい用語は「工場・郵便・料理」の比喩で覚えられる形にしてあります。
+        Learn API, DB, queue, Docker, CI/CD, operations, and security with short questions.
+        Hard terms are explained with analogies to make recall easier.
       </p>
       <div class="hero-tags">
-        <span class="tag tag-primary">最優先: セキュリティ</span>
-        <span class="tag">対象: Web / API / Worker / DB / CI/CD</span>
-        <span class="tag">スマホ学習対応</span>
+        <span class="tag tag-primary">Top Priority: Security</span>
+        <span class="tag">Scope: Web / API / Worker / DB / CI/CD</span>
+        <span class="tag">Mobile optimized</span>
       </div>
     </header>
 
     <main class="container">
       <section class="card">
-        <h2>1. まず学ぶ順序</h2>
+        <h2>1. What to learn first</h2>
         <div id="roadmap" class="roadmap"></div>
       </section>
 
       <section class="card">
-        <h2>2. 覚えにくい用語を比喩で覚える</h2>
-        <p class="muted">
-          比喩で意味を先につかみ、次にこのプロジェクトでの具体例に落とします。
-        </p>
+        <h2>2. Learn terms by analogy</h2>
+        <p class="muted">Understand the metaphor first, then map it to project examples.</p>
         <div id="terms" class="terms"></div>
       </section>
 
       <section class="card">
-        <h2>3. セキュリティ運用チェック</h2>
-        <p class="muted">
-          これは暗記ではなく運用ルールです。毎回、実際に確認してから作業します。
-        </p>
+        <h2>3. Security operation checklist</h2>
+        <p class="muted">Treat this as a runbook, not memory. Check every item before release.</p>
         <div id="security-checklist" class="checklist"></div>
       </section>
 
       <section class="card">
-        <h2>4. 学習クイズ</h2>
+        <h2>4. Quiz</h2>
         <div id="quiz-setup" class="quiz-setup">
           <div class="setup-group">
-            <p class="setup-title">出題モード</p>
+            <p class="setup-title">Mode</p>
             <div class="button-row">
-              <button id="mode-security" class="mode-btn active" type="button">セキュリティ中心</button>
-              <button id="mode-all" class="mode-btn" type="button">全範囲</button>
+              <button id="mode-security" class="mode-btn active" type="button">Security Focus</button>
+              <button id="mode-all" class="mode-btn" type="button">All Topics</button>
             </div>
           </div>
 
           <div class="setup-group">
-            <label for="question-count" class="setup-title">問題数</label>
+            <label for="question-count" class="setup-title">Question Count</label>
             <select id="question-count">
-              <option value="8">8問</option>
-              <option value="12" selected>12問</option>
-              <option value="20">20問</option>
+              <option value="8">8</option>
+              <option value="12" selected>12</option>
+              <option value="20">20</option>
             </select>
           </div>
 
           <p id="history-text" class="muted"></p>
-          <button id="start-quiz" class="primary-btn" type="button">クイズ開始</button>
+          <button id="start-quiz" class="primary-btn" type="button">Start Quiz</button>
         </div>
 
         <div id="quiz-panel" class="quiz-panel hidden">
           <div class="quiz-meta">
             <p id="progress-text" class="progress-text">1 / 12</p>
-            <p id="score-text" class="score-text">正解 0 / 0</p>
+            <p id="score-text" class="score-text">Score 0 / 0</p>
           </div>
 
-          <div class="meter-wrap" aria-label="進捗">
+          <div class="meter-wrap" aria-label="progress">
             <div id="progress-meter" class="meter"></div>
           </div>
 
@@ -93,8 +92,8 @@
           </div>
 
           <div class="button-row">
-            <button id="next-question" class="primary-btn hidden" type="button">次の問題へ</button>
-            <button id="restart-quiz" class="ghost-btn hidden" type="button">もう一度</button>
+            <button id="next-question" class="primary-btn hidden" type="button">Next</button>
+            <button id="restart-quiz" class="ghost-btn hidden" type="button">Restart</button>
           </div>
         </div>
       </section>
@@ -102,8 +101,8 @@
 
     <footer class="footer">
       <p>
-        目的: 実装の速度を落とさず、事故を増やさない学習。<br />
-        セキュリティは「知っている」ではなく「毎回確認する」ことを重視します。
+        Goal: move faster without increasing security risk.<br />
+        Security means repeating checks every time, not just knowing terms once.
       </p>
     </footer>
 

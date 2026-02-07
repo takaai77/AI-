@@ -1,86 +1,86 @@
-const ROADMAP_ITEMS = [
+﻿const ROADMAP_ITEMS = [
   {
     rank: "Step 1",
-    title: "データの流れを理解する",
-    why: "URL登録 -> metrics -> 閾値 -> 解析 -> テンプレ保存の一本線を最初に理解する。"
+    title: "Understand data flow",
+    why: "Start with one line: URL -> metrics -> threshold -> analysis -> templates."
   },
   {
     rank: "Step 2",
-    title: "ジョブキューと失敗時ログを理解する",
-    why: "夜間運用で止まらないために、queue/job/worker と jobs.logs の読み方を先に覚える。"
+    title: "Understand queue and failure logs",
+    why: "Night operations require queue/job/worker understanding and quick log triage."
   },
   {
     rank: "Step 3",
-    title: "セキュリティの最低ラインを固める",
-    why: "APIキー流出、危険な公開、権限漏れは後から修正コストが大きい。最初に防ぐ。"
+    title: "Lock basic security",
+    why: "Leaked keys and weak access control are expensive to fix later."
   },
   {
     rank: "Step 4",
-    title: "改善ループを回す",
-    why: "テンプレを作って終わりではなく、A/Bと週次運用で勝ちパターンを増やす。"
+    title: "Run the growth loop",
+    why: "Store winning templates and improve weekly with A/B tests."
   }
 ];
 
 const TERM_CARDS = [
   {
     term: "API",
-    definition: "画面と裏側が会話する窓口。",
-    analogy: "レストランの注文票。客は料理場の中身を知らなくても注文できる。",
-    project: "Web画面は POST /videos でAPIにURL登録を依頼する。"
+    definition: "A request interface between UI and backend.",
+    analogy: "A restaurant order slip.",
+    project: "The web page calls POST /videos to register URLs."
   },
   {
-    term: "キュー",
-    definition: "後で順番に処理する待ち行列。",
-    analogy: "病院の整理券。先に番号を取って呼ばれたら進む。",
-    project: "解析ジョブをRedisキューに積み、Workerが順番に処理する。"
+    term: "Queue",
+    definition: "A waiting line for async work.",
+    analogy: "Numbered waiting tickets at a clinic.",
+    project: "Analysis jobs are pushed to Redis queue."
   },
   {
-    term: "ワーカー",
-    definition: "キューから仕事を受けて実行する処理担当。",
-    analogy: "工場の作業員。指示書(ジョブ)を受けて作業する。",
-    project: "Celery worker が ffmpeg/OCR/LLM を実行してDB保存する。"
+    term: "Worker",
+    definition: "A process that executes queued jobs.",
+    analogy: "A factory operator handling work orders.",
+    project: "Celery worker runs ffmpeg/OCR/LLM and saves results."
   },
   {
     term: "Docker",
-    definition: "同じ環境で動かすための箱。",
-    analogy: "調理器具ごと運べるキッチンカー。",
-    project: "api/worker/web/postgres/redis を同条件で起動できる。"
+    definition: "A portable runtime container.",
+    analogy: "A kitchen truck with all tools packed.",
+    project: "api/worker/web/db/redis run in the same setup."
   },
   {
-    term: "環境変数",
-    definition: "設定値や秘密情報をコード外から渡す仕組み。",
-    analogy: "金庫の暗証番号を手順書に書かず、別紙で管理する。",
-    project: "OPENAI_API_KEY を .env で管理し、コードに直書きしない。"
+    term: "Env Vars",
+    definition: "Configuration and secrets passed from outside code.",
+    analogy: "Store vault PIN kept on a separate secure sheet.",
+    project: "OPENAI_API_KEY should stay in .env or GitHub Secrets."
   },
   {
     term: "JWT",
-    definition: "ログイン済みかを表す署名付きトークン。",
-    analogy: "改ざん防止付きの入館証。",
-    project: "将来の管理画面ではJWTでユーザー認証を行う。"
+    definition: "A signed token for authentication state.",
+    analogy: "A tamper-evident access badge.",
+    project: "Admin settings APIs should require verified JWT."
   },
   {
-    term: "バリデーション",
-    definition: "入力がルール通りか検査すること。",
-    analogy: "申込書の記入漏れチェック。",
-    project: "LLMのJSONをPydanticで検証し、壊れた値を保存しない。"
+    term: "Validation",
+    definition: "Rule checks for incoming data.",
+    analogy: "A form completeness check before submission.",
+    project: "LLM JSON is validated before saving into DB."
   },
   {
-    term: "最小権限",
-    definition: "必要な操作だけ許可する考え方。",
-    analogy: "店長だけが金庫を開けられる運用。",
-    project: "設定変更APIは管理者だけに許可する設計へ拡張する。"
+    term: "Least Privilege",
+    definition: "Grant only required permissions.",
+    analogy: "Only managers receive vault keys.",
+    project: "Settings updates should be admin-only."
   }
 ];
 
 const SECURITY_CHECKLIST = [
-  "APIキーやDBパスワードをリポジトリへコミットしない",
-  ".env は共有せず、.env.example だけ共有する",
-  "GitHub Actions の権限は必要最小限にする",
-  "外部公開URLには認証・アクセス制限を付ける（本番）",
-  "ジョブログに個人情報や秘密情報を残さない",
-  "依存ライブラリの脆弱性を定期チェックする",
-  "手動メトリクス入力に異常値が入らないよう検証する",
-  "APIのCORS設定を本番ドメインだけに絞る"
+  "Do not commit API keys or passwords into git",
+  "Share only .env.example, never .env",
+  "Keep GitHub Actions permissions minimal",
+  "Use access control for public URLs in production",
+  "Never log raw secrets or personal data",
+  "Review dependency vulnerabilities regularly",
+  "Validate manual metric input ranges on API side",
+  "Restrict CORS to your production domain"
 ];
 
 const QUIZ_QUESTIONS = [
@@ -88,336 +88,336 @@ const QUIZ_QUESTIONS = [
     id: "q01",
     focus: "security",
     category: "Secrets",
-    question: "OPENAI_API_KEY を安全に扱う最適な方法はどれ？",
+    question: "What is the safest way to manage OPENAI_API_KEY?",
     options: [
-      ".env や GitHub Secrets で管理し、コードへ直書きしない",
-      "動作確認しやすいので app.js に直書きする",
-      "READMEへ実値を書いて共有する"
+      "Store it in .env or GitHub Secrets and keep it out of source code",
+      "Put it directly in app.js for convenience",
+      "Write it in README so all teammates can copy it"
     ],
     answer: 0,
-    explanation: "秘密情報はコードと分離し、漏えい面積を減らすのが基本です。",
-    analogy: "金庫番号を壁に書かず、店長だけが知る運用にする。"
+    explanation: "Secrets must be separated from code to reduce leakage risk.",
+    analogy: "Do not write vault PIN on the front door."
   },
   {
     id: "q02",
     focus: "security",
     category: "GitHub Actions",
-    question: "GitHub Actionsでセキュリティを高める設定として正しいのは？",
+    question: "Which Actions setup is most secure by default?",
     options: [
-      "permissions を最小化し、不要な write 権限を外す",
-      "毎回 permissions: write-all にする",
-      "誰でも workflow_dispatch で本番デプロイできるようにする"
+      "Use minimal permissions and avoid unnecessary write scopes",
+      "Use permissions: write-all in every workflow",
+      "Let anyone trigger production deploy by default"
     ],
     answer: 0,
-    explanation: "CI/CDは権限を絞るほど事故時の被害を小さくできます。",
-    analogy: "全員にマスターキーを配らず、必要な鍵だけ渡す。"
+    explanation: "Narrow permissions reduce blast radius during incidents.",
+    analogy: "Do not hand out master keys to everyone."
   },
   {
     id: "q03",
     focus: "security",
-    category: "Input Validation",
-    question: "手動 metrics 入力で最も重要な対策は？",
+    category: "Validation",
+    question: "Why should metric input be validated in API as well?",
     options: [
-      "views/likes/comments の型と範囲をバリデーションする",
-      "フォームは自由入力のままにする",
-      "API側で検証せず画面だけで検証する"
+      "Client checks can be bypassed, API checks protect DB integrity",
+      "Client-side validation is always enough",
+      "Validation only slows down requests"
     ],
     answer: 0,
-    explanation: "API側検証がないと不正値がDBへ入り、分析結果が壊れます。",
-    analogy: "出荷前の最終検品を省くと不良品が市場に出る。"
+    explanation: "API validation is mandatory because clients are untrusted.",
+    analogy: "Final quality check happens at shipping gate, not only at desk."
   },
   {
     id: "q04",
     focus: "security",
     category: "Logs",
-    question: "ジョブログに残してはいけない情報はどれ？",
+    question: "What should never appear in logs?",
     options: [
-      "APIキー、個人情報、生トークン",
-      "進捗パーセント",
-      "処理開始時刻"
+      "API keys, raw tokens, personal data",
+      "Job progress percentage",
+      "Task start timestamp"
     ],
     answer: 0,
-    explanation: "ログは多くの人が見られるため、秘密情報を置く場所ではありません。",
-    analogy: "掲示板に金庫番号を貼るのと同じ。"
+    explanation: "Logs are broadly accessible and must avoid sensitive values.",
+    analogy: "Do not post private keys on a public bulletin board."
   },
   {
     id: "q05",
     focus: "architecture",
-    category: "System Flow",
-    question: "このMVPの基本フローとして正しい順番は？",
+    category: "Flow",
+    question: "Which order matches the MVP pipeline?",
     options: [
-      "URL登録 -> metrics収集 -> 閾値判定 -> 解析ジョブ -> テンプレ保存",
-      "URL登録 -> いきなりLLM -> metrics収集",
-      "metrics収集 -> URL登録 -> OCR"
+      "URL -> metrics -> threshold -> analysis -> templates",
+      "URL -> LLM first -> metrics",
+      "metrics -> URL -> OCR"
     ],
     answer: 0,
-    explanation: "重い解析は閾値通過後に回すことで無駄を減らします。",
-    analogy: "全員面接せず、書類選考を先に行う。"
+    explanation: "Heavy analysis should run only after threshold pass.",
+    analogy: "Screen resumes before full interviews."
   },
   {
     id: "q06",
     focus: "architecture",
     category: "Queue",
-    question: "キューを使う主な理由は？",
+    question: "Main reason to use queue and workers?",
     options: [
-      "重い処理を非同期化し、画面応答を保つため",
-      "DBを不要にするため",
-      "エラーをなくすため"
+      "Keep UI responsive by running heavy tasks asynchronously",
+      "Eliminate all runtime errors",
+      "Replace database entirely"
     ],
     answer: 0,
-    explanation: "キューは速度と安定性のための仕組みで、エラー自体は別対策が必要です。",
-    analogy: "レジ待ち列を作って店内混雑を抑える。"
+    explanation: "Queue improves responsiveness and operational stability.",
+    analogy: "Use waiting lines to prevent crowding at one counter."
   },
   {
     id: "q07",
     focus: "ops",
     category: "Fallback",
-    question: "YouTube以外で指標APIが弱いMVP時の正解は？",
+    question: "If metrics API is unavailable, what is correct MVP behavior?",
     options: [
-      "手動入力を公式運用フローに入れる",
-      "機能を止める",
-      "推測値で自動入力する"
+      "Use manual metrics input as an official fallback",
+      "Stop the system",
+      "Fill random placeholder numbers"
     ],
     answer: 0,
-    explanation: "MVPは止めないことが重要。手動補完は正しい戦略です。",
-    analogy: "自動釣銭機が壊れても手計算で会計を続ける。"
+    explanation: "MVP should keep running even with partial automation.",
+    analogy: "Use manual checkout when scanner is down."
   },
   {
     id: "q08",
     focus: "security",
     category: "CORS",
-    question: "本番CORS設定として良いのは？",
+    question: "Best production CORS policy is:",
     options: [
-      "許可ドメインを本番フロントURLのみに絞る",
-      "allow_origins に * を使う",
-      "CORS設定を無効にする"
+      "Allow only your real frontend domain",
+      "Use allow_origins = *",
+      "Disable CORS protection"
     ],
     answer: 0,
-    explanation: "不用意な * は不要な呼び出し面を広げます。",
-    analogy: "誰でも入れる裏口を作らない。"
+    explanation: "Open CORS broadens abuse surface.",
+    analogy: "Do not leave every side door unlocked."
   },
   {
     id: "q09",
     focus: "security",
     category: "Access Control",
-    question: "設定変更APIを守る設計で適切なのは？",
+    question: "How should settings update endpoints be protected?",
     options: [
-      "認証済みかつ管理者権限のみ実行可能にする",
-      "UIにボタンを隠すだけでAPIは開放する",
-      "URLを難しくするだけで守る"
+      "Require authenticated admin role at API layer",
+      "Hide the UI button only",
+      "Use hard-to-guess URLs"
     ],
     answer: 0,
-    explanation: "UI制御だけでは不十分。API自体に認可が必要です。",
-    analogy: "レジ画面を隠しても、倉庫の鍵が開いていたら意味がない。"
+    explanation: "Authorization must be enforced by backend, not UI only.",
+    analogy: "Lock the vault itself, not only the hallway lights."
   },
   {
     id: "q10",
     focus: "architecture",
     category: "LLM Output",
-    question: "LLM出力をJSONスキーマで固定する目的は？",
+    question: "Why enforce JSON schema for LLM output?",
     options: [
-      "保存前に形式を検証し、壊れたデータを防ぐため",
-      "トークン消費を増やすため",
-      "翻訳しやすくするため"
+      "To validate structure before DB write and keep automation stable",
+      "To increase token usage",
+      "To avoid all prompt engineering"
     ],
     answer: 0,
-    explanation: "形式固定は自動処理の安定性に直結します。",
-    analogy: "伝票フォーマットを統一すると集計ミスが減る。"
+    explanation: "Schema validation catches malformed output early.",
+    analogy: "Standardized forms reduce accounting mistakes."
   },
   {
     id: "q11",
     focus: "ops",
     category: "Nightly Ops",
-    question: "夜間バッチの主目的は？",
+    question: "Main purpose of nightly metrics jobs?",
     options: [
-      "最新metricsを更新し、閾値通過動画を漏れなく解析へ流す",
-      "画面デザインを更新する",
-      "DBを毎晩削除する"
+      "Refresh metrics and queue newly qualified videos",
+      "Redesign UI every night",
+      "Drop all DB tables"
     ],
     answer: 0,
-    explanation: "運用の中心はデータ更新と自動投入です。",
-    analogy: "閉店後の棚卸しで翌日の欠品を防ぐ。"
+    explanation: "Night batch keeps candidate pool fresh and automated.",
+    analogy: "Nightly stock check prevents next-day shortages."
   },
   {
     id: "q12",
     focus: "security",
     category: "Dependencies",
-    question: "依存ライブラリに脆弱性が出たとき最初にやるべきことは？",
+    question: "When a dependency vulnerability appears, first action is:",
     options: [
-      "影響範囲を確認し、更新計画を立てる",
-      "無視して本番を続行する",
-      "全コードを書き直す"
+      "Assess impact and plan prioritized update",
+      "Ignore until next quarter",
+      "Rewrite whole app immediately"
     ],
     answer: 0,
-    explanation: "優先順位を決めた修正計画が必要です。",
-    analogy: "設備故障を見つけたら、影響ラインを止めて優先修理する。"
+    explanation: "Risk-based prioritization gives fast and safe response.",
+    analogy: "Triaging equipment failures before repair scheduling."
   },
   {
     id: "q13",
     focus: "security",
     category: "Git",
-    question: ".env を誤ってコミットした場合の最初の対応は？",
+    question: "If .env was committed by mistake, what comes first?",
     options: [
-      "直ちにキーを失効・再発行し、履歴も対処する",
-      "次回から気をつけるだけ",
-      "READMEに注意書きを追加するだけ"
+      "Revoke and rotate leaked keys immediately",
+      "Just add a warning in README",
+      "Wait until next release"
     ],
     answer: 0,
-    explanation: "漏えい前提で鍵を無効化するのが最優先です。",
-    analogy: "鍵を落としたらまず鍵交換する。"
+    explanation: "Assume compromise once exposed and rotate credentials.",
+    analogy: "Replace lock after losing a key."
   },
   {
     id: "q14",
     focus: "architecture",
-    category: "Media Pipeline",
-    question: "ショット検出が失敗した時のMVP正解は？",
+    category: "Pipeline Fallback",
+    question: "If shot detection fails, MVP should:",
     options: [
-      "固定秒分割へフォールバックして処理継続",
-      "必ず失敗終了する",
-      "適当に1ショットだけ保存する"
+      "Fallback to fixed interval splitting and continue",
+      "Abort all processing",
+      "Save one random shot only"
     ],
     answer: 0,
-    explanation: "MVPは完璧より継続運用を優先します。",
-    analogy: "自動改札が止まったら有人改札で流れを止めない。"
+    explanation: "Fallback keeps operations robust.",
+    analogy: "Use staffed gate when auto gate fails."
   },
   {
     id: "q15",
     focus: "security",
     category: "Public Exposure",
-    question: "開発中トンネルURLを公開するときに必要な認識は？",
+    question: "Correct stance for temporary tunnel URLs is:",
     options: [
-      "試験用であり恒久本番ではない。アクセス制御を前提に使う",
-      "そのまま本番URLとして固定利用する",
-      "誰でも使える方が便利なので制限しない"
+      "Treat as testing endpoint, not permanent production access",
+      "Use as final production URL forever",
+      "Share publicly with no controls"
     ],
     answer: 0,
-    explanation: "試験公開と本番公開は運用ルールが異なります。",
-    analogy: "仮設足場をそのまま常設建物にしない。"
+    explanation: "Temporary exposure must be bounded and controlled.",
+    analogy: "Scaffolding is for construction, not final structure."
   },
   {
     id: "q16",
     focus: "ops",
-    category: "A/B Testing",
-    question: "A/Bテストで正しい進め方は？",
+    category: "A/B Test",
+    question: "Good A/B rule is:",
     options: [
-      "1回の比較で変える要素を1つに絞る",
-      "一度に全部変える",
-      "数字を見ず感覚で決める"
+      "Change one variable at a time",
+      "Change everything at once",
+      "Skip measurement and trust feeling"
     ],
     answer: 0,
-    explanation: "1変数にしないと原因が特定できません。",
-    analogy: "料理で塩と火加減を同時に変えるとどちらが効いたか分からない。"
+    explanation: "Single-variable tests allow causal interpretation.",
+    analogy: "Change only salt or heat, not both at once, when tuning a recipe."
   },
   {
     id: "q17",
     focus: "architecture",
-    category: "DB Modeling",
-    question: "shots テーブルに start_sec / end_sec を持つ主な価値は？",
+    category: "Data Model",
+    question: "Why keep start_sec/end_sec in shots table?",
     options: [
-      "秒単位の編集再現と分析比較が可能になる",
-      "動画ファイル容量が減る",
-      "APIキー管理が楽になる"
+      "Enable second-level reproduction and comparison",
+      "Reduce video file size",
+      "Manage API keys"
     ],
     answer: 0,
-    explanation: "時間情報があるとテンプレ再現精度が上がります。",
-    analogy: "地図に緯度経度があると正確に同じ場所へ行ける。"
+    explanation: "Time anchors are essential for reusable edit templates.",
+    analogy: "Coordinates make locations reproducible."
   },
   {
     id: "q18",
     focus: "security",
     category: "Auth",
-    question: "JWT導入時に避けるべき実装は？",
+    question: "Which JWT practice is risky?",
     options: [
-      "有効期限なしトークンを永続利用する",
-      "短い有効期限と再認証を使う",
-      "署名鍵を安全に管理する"
+      "Never-expiring tokens used indefinitely",
+      "Short expiry and re-auth flow",
+      "Secure signing key storage"
     ],
     answer: 0,
-    explanation: "長期固定トークンは漏えい時被害が大きくなります。",
-    analogy: "期限なし入館証を配り続けるのは危険。"
+    explanation: "Long-lived tokens increase exposure after leakage.",
+    analogy: "Permanent access badges are dangerous if stolen."
   },
   {
     id: "q19",
     focus: "security",
-    category: "Principle",
-    question: "最小権限の考え方として正しいのは？",
+    category: "Least Privilege",
+    question: "Least privilege means:",
     options: [
-      "必要な操作だけ許可し、不要権限は与えない",
-      "最初は全権限で始める",
-      "人ではなく端末だけで権限管理する"
+      "Grant only required permissions",
+      "Start with full admin access",
+      "Control devices only, not users"
     ],
     answer: 0,
-    explanation: "不要権限は攻撃時の被害範囲を広げます。",
-    analogy: "配達員に店の金庫鍵まで渡さない。"
+    explanation: "Unneeded privileges widen attack impact.",
+    analogy: "Delivery staff should not have vault access."
   },
   {
     id: "q20",
     focus: "ops",
     category: "Failure Handling",
-    question: "ジョブが failed になった時の正しい初動は？",
+    question: "First action when a job is failed is:",
     options: [
-      "jobs.logs を読んで失敗段階を特定し、再実行する",
-      "とりあえずDBを初期化する",
-      "ログを消して再投稿する"
+      "Read logs, locate failing stage, then retry",
+      "Drop the whole database",
+      "Delete logs and rerun blindly"
     ],
     answer: 0,
-    explanation: "ログから段階を切り分けると復旧が速くなります。",
-    analogy: "事故現場で先に原因記録を確認する。"
+    explanation: "Stage-level triage shortens recovery time.",
+    analogy: "Check flight recorder before changing parts."
   },
   {
     id: "q21",
     focus: "security",
     category: "Prompt Safety",
-    question: "LLM入力にログ全量をそのまま渡すリスクは？",
+    question: "What is a risk of sending raw logs to LLM?",
     options: [
-      "機密情報が混ざると外部送信される可能性がある",
-      "処理が必ず高速化する",
-      "JSON検証が不要になる"
+      "Sensitive data may be sent externally",
+      "It always improves speed",
+      "It removes need for validation"
     ],
     answer: 0,
-    explanation: "送信前に機密情報マスキングが必要です。",
-    analogy: "郵送前に個人情報を黒塗りせず送るのは危険。"
+    explanation: "Mask secrets before external AI calls.",
+    analogy: "Black out private info before mailing documents."
   },
   {
     id: "q22",
     focus: "architecture",
     category: "Purpose Split",
-    question: "purpose 分岐を持つ理由として最も適切なのは？",
+    question: "Why keep purpose split in prompts/templates?",
     options: [
-      "同じ動画でも評価軸と台本口調が目的で変わるため",
-      "DBテーブル数を減らすため",
-      "OCR精度を上げるため"
+      "Evaluation criteria and tone differ by domain",
+      "To reduce DB tables",
+      "To improve OCR accuracy"
     ],
     answer: 0,
-    explanation: "法華経と健康食品では判断基準が異なります。",
-    analogy: "同じ食材でも和食と洋食で味付けが変わる。"
+    explanation: "Hokekyo and health marketing need different criteria.",
+    analogy: "Same ingredients, different cuisine style."
   },
   {
     id: "q23",
     focus: "security",
     category: "Transport",
-    question: "公開環境で推奨される通信設定は？",
+    question: "Recommended communication setup for public usage is:",
     options: [
-      "HTTPSを使い、平文HTTPを避ける",
-      "内部APIキーがあるのでHTTPでよい",
-      "ローカルだけHTTPSにする"
+      "Use HTTPS and avoid plain HTTP",
+      "HTTP is enough if API key exists",
+      "HTTPS only in local dev"
     ],
     answer: 0,
-    explanation: "通信経路の盗聴・改ざん対策としてTLSは必須です。",
-    analogy: "封筒なしのハガキで機密書類を送らない。"
+    explanation: "TLS protects against interception and tampering.",
+    analogy: "Use sealed envelopes for sensitive mail."
   },
   {
     id: "q24",
     focus: "ops",
     category: "Growth Loop",
-    question: "登録者1万人/再生1億に近づく運用として正しいのは？",
+    question: "Best path toward 10k subscribers / 100M views is:",
     options: [
-      "勝ちテンプレをDB蓄積し、週次でA/B検証を回す",
-      "毎回ゼロから感覚で作る",
-      "当たり動画分析をしない"
+      "Store winning templates and run weekly A/B verification",
+      "Create every video from scratch by intuition",
+      "Skip analysis of winning videos"
     ],
     answer: 0,
-    explanation: "再現可能な型を増やすほど成長速度が上がります。",
-    analogy: "売れる接客トークをマニュアル化して全員で使う。"
+    explanation: "Reusable patterns compound growth over time.",
+    analogy: "Standardize proven sales talk across the team."
   }
 ];

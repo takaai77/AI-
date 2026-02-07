@@ -41,3 +41,5 @@ jobs:
           test -f quiz-site/styles.css
           test -f quiz-site/questions.js
           test -f quiz-site/app.js
+          test -f quiz-site/manifest.webmanifest
+          test -f quiz-site/sw.js

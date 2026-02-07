@@ -1,16 +1,21 @@
-# Quiz Site
+﻿# Quiz Site
 
-GitHub Pages向けの静的学習コンテンツです。
+Static learning content for GitHub Pages.
 
-## 含まれる内容
-- 実装優先度ロードマップ
-- 用語カード（定義 / たとえ話 / このプロジェクト例）
-- セキュリティ運用チェックリスト
-- セキュリティ中心クイズ / 全範囲クイズ
+## Included content
+- Learning roadmap for implementation priorities
+- Term cards (definition + analogy + project example)
+- Security operation checklist
+- Security-focused quiz and all-topic quiz
+- Offline support via service worker (PWA-lite)
 
-## ローカル確認
+## Local preview
 ```bash
 cd quiz-site
 python -m http.server 8080
 ```
-`http://localhost:8080` を開く
+Open `http://localhost:8080`.
+
+## Notes
+- This is static content, so it can be hosted on GitHub Pages.
+- Quiz progress and checklist state are saved in browser localStorage.
