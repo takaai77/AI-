@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Chapter 7: APIの基礎知識 | CODEX MASTERY</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+JP:wght@400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="shared.css">
+</head>
+<body>
+    <header class="chapter-header">
+        <a href="../index.html" class="back-btn">←</a>
+        <div class="header-info">
+            <div class="header-chapter">CHAPTER 7</div>
+            <div class="header-title">APIの基礎知識</div>
+        </div>
+    </header>
+
+    <div class="progress-section">
+        <div class="progress-bar"><div class="progress-fill" style="width: 0%;"></div></div>
+        <div class="progress-text"><span>進捗</span><span>0%</span></div>
+    </div>
+
+    <main class="chapter-content">
+        <section class="content-section">
+            <span class="section-badge">📖 CHAPTER 7</span>
+            <h2 class="section-title">APIの基礎知識</h2>
+
+            <p class="text-block">
+                このチャプターでは、<strong>APIの基礎知識</strong>について深く学んでいきます。
+                実践的な知識とスキルを身につけ、Codexマスターへの道を進みましょう。
+            </p>
+        </section>
+
+        <section class='content-section'><span class='section-badge'>📚 TERMINOLOGY</span>
+            <div class="term-card">
+                <div class="term-header">
+                    <div class="term-icon">🔌</div>
+                    <div>
+                        <div class="term-name">API</div>
+                        <div class="term-english">Application Programming Interface</div>
+                    </div>
+                </div>
+                <div class="term-definition">異なるソフトウェア間でデータをやり取りするための仕組み。Codex APIを使えば、自分のアプリからCodexの機能を呼び出せる。</div>
+            </div>
+
+            <div class="term-card">
+                <div class="term-header">
+                    <div class="term-icon">🎯</div>
+                    <div>
+                        <div class="term-name">エンドポイント</div>
+                        <div class="term-english">Endpoint</div>
+                    </div>
+                </div>
+                <div class="term-definition">APIにリクエストを送る特定のURL。例: /v1/chat/completions</div>
+            </div>
+
+            <div class="term-card">
+                <div class="term-header">
+                    <div class="term-icon">↔️</div>
+                    <div>
+                        <div class="term-name">リクエスト/レスポンス</div>
+                        <div class="term-english">Request/Response</div>
+                    </div>
+                </div>
+                <div class="term-definition">APIとの通信の基本形式。リクエスト（要求）を送り、レスポンス（応答）を受け取る。</div>
+            </div>
+
+            <div class="term-card">
+                <div class="term-header">
+                    <div class="term-icon">🔑</div>
+                    <div>
+                        <div class="term-name">APIキー</div>
+                        <div class="term-english">API Key</div>
+                    </div>
+                </div>
+                <div class="term-definition">APIにアクセスするための認証情報。秘密に保管し、コードにハードコードしてはいけない。</div>
+            </div>
+</section>
+
+        <section class="content-section">
+            <div class="quiz-section" id="quiz1">
+                <div class="quiz-title">🎯 KNOWLEDGE CHECK</div>
+                <p class="quiz-question">APIキーの取り扱いで正しいものは？</p>
+
+                <div class="quiz-options">
+
+                    <div class="quiz-option" onclick="selectOption('quiz1', 0, false, '')">
+                        <span class="option-letter">A</span>
+                        <span>GitHubに公開する</span>
+                    </div>
+
+                    <div class="quiz-option" onclick="selectOption('quiz1', 1, false, '')">
+                        <span class="option-letter">B</span>
+                        <span>コードに直接書く</span>
+                    </div>
+
+                    <div class="quiz-option" onclick="selectOption('quiz1', 2, true, '')">
+                        <span class="option-letter">C</span>
+                        <span>環境変数で管理する</span>
+                    </div>
+
+                    <div class="quiz-option" onclick="selectOption('quiz1', 3, false, '')">
+                        <span class="option-letter">D</span>
+                        <span>SNSで共有する</span>
+                    </div>
+
+                </div>
+
+                <div id="quiz1-result" class="quiz-result"></div>
+                <div id="quiz1-explanation" class="quiz-explanation">
+                    <strong>解説:</strong> 正解は選択肢Cです。このチャプターの内容をしっかり復習しましょう。
+                </div>
+            </div>
+        </section>
+
+        <section class="content-section">
+            <div class="output-exercise">
+                <div class="output-title">✍️ OUTPUT: アウトプット練習</div>
+                <p class="output-prompt">
+                    このチャプターで学んだ「APIの基礎知識」について、自分の言葉で説明してみましょう。
+                </p>
+                <textarea id="output1-input" class="output-textarea" placeholder="ここに入力..."></textarea>
+                <button class="output-submit" onclick="submitOutput('output1')">回答を保存</button>
+                <div id="output1-feedback" class="output-feedback"></div>
+            </div>
+        </section>
+
+        <section class="content-section">
+            <div class="memory-card">
+                <div class="memory-icon">🔑</div>
+                <div class="memory-title">KEY TAKEAWAYS</div>
+                <div class="memory-content" style="text-align: left; font-size: 1rem;">
+                    <ul style="list-style: none;">
+                        <li>✅ APIの基礎知識の基本を理解した</li>
+                        <li>✅ 重要な用語を学んだ</li>
+                        <li>✅ 実践への応用方法を知った</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <div class="chapter-nav">
+            <a href="chapter6.html" class="nav-btn">
+                <div class="nav-btn-label">前のチャプター</div>
+                <div class="nav-btn-text">← コンテキストウィンドウ</div>
+            </a>
+            <a href="chapter8.html" class="nav-btn next" onclick="completeChapter(80)">
+                <div class="nav-btn-label">次のチャプター</div>
+                <div class="nav-btn-text">モデルの種類と特徴 →</div>
+            </a>
+        </div>
+    </main>
+
+    <div class="completion-modal" id="completionModal">
+        <div class="completion-content">
+            <div class="completion-icon">🎉</div>
+            <div class="completion-title">CHAPTER COMPLETE!</div>
+            <p style="color: var(--text-secondary);">Chapter 7をクリアしました！</p>
+            <div class="completion-xp" id="completionXP">+80 XP</div>
+            <button class="completion-btn" onclick="location.href='chapter8.html'">次へ進む</button>
+        </div>
+    </div>
+
+    <script src="shared.js"></script>
+</body>
+</html>

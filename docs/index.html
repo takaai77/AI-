@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0a0a0f">
+    <title>CODEX MASTERY - AI Coding Quest</title>
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+JP:wght@400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-cyan: #00ffff;
+            --neon-pink: #ff00ff;
+            --neon-green: #00ff88;
+            --neon-yellow: #ffff00;
+            --neon-orange: #ff8800;
+            --neon-purple: #8800ff;
+            --dark-bg: #0a0a0f;
+            --dark-card: #12121a;
+            --dark-surface: #1a1a25;
+            --border-color: #2a2a3a;
+            --text-primary: #ffffff;
+            --text-secondary: #888899;
+            --xp-bronze: #cd7f32;
+            --xp-silver: #c0c0c0;
+            --xp-gold: #ffd700;
+            --xp-platinum: #e5e4e2;
+            --xp-diamond: #b9f2ff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding-bottom: 80px;
+        }
+
+        /* Animated Background */
+        .bg-effect {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            background:
+                radial-gradient(ellipse at 20% 20%, rgba(0, 255, 255, 0.05) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(255, 0, 255, 0.05) 0%, transparent 50%);
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(180deg, rgba(18, 18, 26, 0.98) 0%, rgba(10, 10, 15, 0.95) 100%);
+            padding: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 900;
+            background: linear-gradient(45deg, var(--neon-cyan), var(--neon-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .player-rank {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--dark-surface);
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .rank-icon {
+            font-size: 1.2rem;
+        }
+
+        .rank-text {
+            font-size: 0.8rem;
+            color: var(--neon-yellow);
+            font-weight: 700;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .stat-mini {
+            text-align: center;
+            padding: 8px;
+            background: var(--dark-surface);
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-mini-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--neon-cyan);
+        }
+
+        .stat-mini-label {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        /* XP Progress Bar */
+        .xp-section {
+            padding: 15px 20px;
+            background: var(--dark-card);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .xp-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .xp-level {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+        }
+
+        .xp-text {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .xp-bar {
+            height: 12px;
+            background: var(--dark-surface);
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .xp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--neon-green), var(--neon-cyan));
+            border-radius: 6px;
+            transition: width 0.5s ease;
+            box-shadow: 0 0 10px var(--neon-green);
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 20px;
+        }
+
+        /* Section Title */
+        .section-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            color: var(--neon-pink);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background: var(--neon-pink);
+            border-radius: 2px;
+        }
+
+        /* Daily Mission */
+        .daily-mission {
+            background: linear-gradient(135deg, rgba(255, 136, 0, 0.1), rgba(255, 0, 255, 0.1));
+            border: 1px solid var(--neon-orange);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .daily-mission::before {
+            content: 'DAILY';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--neon-orange);
+            color: #000;
+            padding: 3px 10px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+
+        .daily-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .daily-desc {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+        }
+
+        .daily-reward {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .reward-badge {
+            background: rgba(255, 215, 0, 0.2);
+            border: 1px solid var(--xp-gold);
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            color: var(--xp-gold);
+        }
+
+        /* Chapter Grid */
+        .chapter-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .chapter-category {
+            margin-bottom: 20px;
+        }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            padding: 10px 15px;
+            background: var(--dark-surface);
+            border-radius: 10px;
+            border-left: 3px solid var(--neon-cyan);
+        }
+
+        .category-icon {
+            font-size: 1.3rem;
+        }
+
+        .category-info {
+            flex: 1;
+        }
+
+        .category-name {
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        .category-progress {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .category-chapters {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-left: 10px;
+        }
+
+        .chapter-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px;
+            background: var(--dark-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .chapter-card:active {
+            transform: scale(0.98);
+        }
+
+        .chapter-card.locked {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .chapter-card.completed {
+            border-color: var(--neon-green);
+            background: rgba(0, 255, 136, 0.05);
+        }
+
+        .chapter-card.current {
+            border-color: var(--neon-yellow);
+            box-shadow: 0 0 15px rgba(255, 255, 0, 0.2);
+        }
+
+        .chapter-number {
+            width: 40px;
+            height: 40px;
+            background: var(--dark-surface);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .chapter-card.completed .chapter-number {
+            background: var(--neon-green);
+            color: #000;
+        }
+
+        .chapter-card.current .chapter-number {
+            background: var(--neon-yellow);
+            color: #000;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 0, 0.4); }
+            50% { box-shadow: 0 0 0 8px rgba(255, 255, 0, 0); }
+        }
+
+        .chapter-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .chapter-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .chapter-meta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .chapter-xp {
+            color: var(--neon-green);
+        }
+
+        .chapter-arrow {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .quick-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 15px;
+            background: var(--dark-card);
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .quick-btn:active {
+            transform: scale(0.95);
+        }
+
+        .quick-btn-icon {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+
+        .quick-btn-text {
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .quick-btn-desc {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            margin-top: 3px;
+        }
+
+        .quick-btn.glossary {
+            border-color: var(--neon-purple);
+        }
+
+        .quick-btn.quiz {
+            border-color: var(--neon-cyan);
+        }
+
+        .quick-btn.exercise {
+            border-color: var(--neon-green);
+        }
+
+        .quick-btn.review {
+            border-color: var(--neon-pink);
+        }
+
+        /* Streak Section */
+        .streak-section {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 136, 0, 0.1));
+            border: 1px solid var(--xp-gold);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .streak-title {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        .streak-count {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3rem;
+            font-weight: 900;
+            color: var(--xp-gold);
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+
+        .streak-days {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .streak-day {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: var(--dark-surface);
+            border: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+        }
+
+        .streak-day.completed {
+            background: var(--xp-gold);
+            border-color: var(--xp-gold);
+            color: #000;
+        }
+
+        .streak-day.today {
+            border-color: var(--neon-cyan);
+            animation: pulse 2s infinite;
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(18, 18, 26, 0.98);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            padding-bottom: calc(10px + env(safe-area-inset-bottom));
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-secondary);
+            padding: 5px 15px;
+            transition: color 0.3s ease;
+        }
+
+        .nav-item.active {
+            color: var(--neon-cyan);
+        }
+
+        .nav-icon {
+            font-size: 1.5rem;
+            margin-bottom: 3px;
+        }
+
+        .nav-label {
+            font-size: 0.65rem;
+        }
+
+        /* Achievement Toast */
+        .achievement-toast {
+            position: fixed;
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--dark-card), var(--dark-surface));
+            border: 2px solid var(--xp-gold);
+            border-radius: 15px;
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            z-index: 1000;
+            transition: top 0.5s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .achievement-toast.show {
+            top: 20px;
+        }
+
+        .achievement-icon {
+            font-size: 2.5rem;
+        }
+
+        .achievement-info h4 {
+            color: var(--xp-gold);
+            font-size: 0.9rem;
+            margin-bottom: 3px;
+        }
+
+        .achievement-info p {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        /* Loading Screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--dark-bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+
+        .loading-screen.hide {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loading-logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            font-weight: 900;
+            background: linear-gradient(45deg, var(--neon-cyan), var(--neon-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 30px;
+        }
+
+        .loading-bar {
+            width: 200px;
+            height: 4px;
+            background: var(--dark-surface);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .loading-progress {
+            height: 100%;
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink));
+            animation: loading 1.5s ease-in-out infinite;
+        }
+
+        @keyframes loading {
+            0% { width: 0%; margin-left: 0; }
+            50% { width: 70%; margin-left: 15%; }
+            100% { width: 0%; margin-left: 100%; }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--dark-bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--neon-cyan);
+            border-radius: 2px;
+        }
+
+        /* iOS Safe Areas */
+        @supports (padding: max(0px)) {
+            .header {
+                padding-top: max(20px, env(safe-area-inset-top));
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-logo">CODEX MASTERY</div>
+        <div class="loading-bar">
+            <div class="loading-progress"></div>
+        </div>
+    </div>
+
+    <div class="bg-effect"></div>
+
+    <!-- Achievement Toast -->
+    <div class="achievement-toast" id="achievementToast">
+        <span class="achievement-icon" id="achievementIcon">🏆</span>
+        <div class="achievement-info">
+            <h4 id="achievementTitle">Achievement Unlocked!</h4>
+            <p id="achievementDesc">First Login Complete</p>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-top">
+            <div class="logo">CODEX MASTERY</div>
+            <div class="player-rank">
+                <span class="rank-icon" id="rankIcon">🥉</span>
+                <span class="rank-text" id="rankText">BRONZE</span>
+            </div>
+        </div>
+        <div class="stats-row">
+            <div class="stat-mini">
+                <div class="stat-mini-value" id="levelDisplay">1</div>
+                <div class="stat-mini-label">LEVEL</div>
+            </div>
+            <div class="stat-mini">
+                <div class="stat-mini-value" id="chaptersComplete">0</div>
+                <div class="stat-mini-label">CHAPTERS</div>
+            </div>
+            <div class="stat-mini">
+                <div class="stat-mini-value" id="quizScore">0%</div>
+                <div class="stat-mini-label">QUIZ</div>
+            </div>
+            <div class="stat-mini">
+                <div class="stat-mini-value" id="streakDisplay">0</div>
+                <div class="stat-mini-label">STREAK</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- XP Progress -->
+    <div class="xp-section">
+        <div class="xp-header">
+            <span class="xp-level">Level <span id="currentLevel">1</span> → <span id="nextLevel">2</span></span>
+            <span class="xp-text"><span id="currentXP">0</span> / <span id="requiredXP">100</span> XP</span>
+        </div>
+        <div class="xp-bar">
+            <div class="xp-fill" id="xpFill" style="width: 0%;"></div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Daily Mission -->
+        <div class="daily-mission" id="dailyMission">
+            <div class="daily-title" id="dailyTitle">今日のミッション: Chapter 1を完了せよ</div>
+            <div class="daily-desc" id="dailyDesc">Codexの基礎を学び、最初の一歩を踏み出そう</div>
+            <div class="daily-reward">
+                <span class="reward-badge">+50 XP</span>
+                <span class="reward-badge">🏆 Badge</span>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <h2 class="section-title">QUICK ACCESS</h2>
+        <div class="quick-actions">
+            <a href="glossary/index.html" class="quick-btn glossary">
+                <span class="quick-btn-icon">📖</span>
+                <span class="quick-btn-text">用語辞典</span>
+                <span class="quick-btn-desc">専門用語を検索</span>
+            </a>
+            <a href="quiz/index.html" class="quick-btn quiz">
+                <span class="quick-btn-icon">🎯</span>
+                <span class="quick-btn-text">クイズ</span>
+                <span class="quick-btn-desc">知識をテスト</span>
+            </a>
+            <a href="exercises/index.html" class="quick-btn exercise">
+                <span class="quick-btn-icon">💻</span>
+                <span class="quick-btn-text">演習</span>
+                <span class="quick-btn-desc">実践で学ぶ</span>
+            </a>
+            <a href="review.html" class="quick-btn review">
+                <span class="quick-btn-icon">🔄</span>
+                <span class="quick-btn-text">復習</span>
+                <span class="quick-btn-desc">間違いを克服</span>
+            </a>
+        </div>
+
+        <!-- Streak Section -->
+        <div class="streak-section">
+            <div class="streak-title">LEARNING STREAK</div>
+            <div class="streak-count" id="streakCount">0</div>
+            <div style="font-size: 0.9rem; color: var(--text-secondary);">日連続学習中</div>
+            <div class="streak-days" id="streakDays">
+                <!-- Generated by JS -->
+            </div>
+        </div>
+
+        <!-- Chapter Categories -->
+        <h2 class="section-title">LEARNING PATH</h2>
+
+        <!-- Category 1: Fundamentals -->
+        <div class="chapter-category" id="category1">
+            <div class="category-header">
+                <span class="category-icon">🎮</span>
+                <div class="category-info">
+                    <div class="category-name">STAGE 1: 基礎編</div>
+                    <div class="category-progress">Chapter 1-10 | <span id="cat1Progress">0</span>/10 完了</div>
+                </div>
+            </div>
+            <div class="category-chapters" id="chapters1">
+                <!-- Generated by JS -->
+            </div>
+        </div>
+
+        <!-- Category 2: Intermediate -->
+        <div class="chapter-category" id="category2">
+            <div class="category-header" style="border-color: var(--neon-green);">
+                <span class="category-icon">⚡</span>
+                <div class="category-info">
+                    <div class="category-name">STAGE 2: 中級編</div>
+                    <div class="category-progress">Chapter 11-20 | <span id="cat2Progress">0</span>/10 完了</div>
+                </div>
+            </div>
+            <div class="category-chapters" id="chapters2">
+                <!-- Generated by JS -->
+            </div>
+        </div>
+
+        <!-- Category 3: Advanced -->
+        <div class="chapter-category" id="category3">
+            <div class="category-header" style="border-color: var(--neon-pink);">
+                <span class="category-icon">🔥</span>
+                <div class="category-info">
+                    <div class="category-name">STAGE 3: 上級編</div>
+                    <div class="category-progress">Chapter 21-30 | <span id="cat3Progress">0</span>/10 完了</div>
+                </div>
+            </div>
+            <div class="category-chapters" id="chapters3">
+                <!-- Generated by JS -->
+            </div>
+        </div>
+
+        <!-- Category 4: Real-world -->
+        <div class="chapter-category" id="category4">
+            <div class="category-header" style="border-color: var(--neon-orange);">
+                <span class="category-icon">🌐</span>
+                <div class="category-info">
+                    <div class="category-name">STAGE 4: 実践編</div>
+                    <div class="category-progress">Chapter 31-40 | <span id="cat4Progress">0</span>/10 完了</div>
+                </div>
+            </div>
+            <div class="category-chapters" id="chapters4">
+                <!-- Generated by JS -->
+            </div>
+        </div>
+
+        <!-- Category 5: Mastery -->
+        <div class="chapter-category" id="category5">
+            <div class="category-header" style="border-color: var(--neon-purple);">
+                <span class="category-icon">👑</span>
+                <div class="category-info">
+                    <div class="category-name">STAGE 5: マスター編</div>
+                    <div class="category-progress">Chapter 41-50 | <span id="cat5Progress">0</span>/10 完了</div>
+                </div>
+            </div>
+            <div class="category-chapters" id="chapters5">
+                <!-- Generated by JS -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item active">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-label">ホーム</span>
+        </a>
+        <a href="chapters/index.html" class="nav-item">
+            <span class="nav-icon">📚</span>
+            <span class="nav-label">チャプター</span>
+        </a>
+        <a href="quiz/index.html" class="nav-item">
+            <span class="nav-icon">🎯</span>
+            <span class="nav-label">クイズ</span>
+        </a>
+        <a href="glossary/index.html" class="nav-item">
+            <span class="nav-icon">📖</span>
+            <span class="nav-label">用語</span>
+        </a>
+        <a href="profile.html" class="nav-item">
+            <span class="nav-icon">👤</span>
+            <span class="nav-label">プロフィール</span>
+        </a>
+    </nav>
+
+    <script>
+        // Chapter Data
+        const chapters = [
+            // Stage 1: Fundamentals (1-10)
+            { id: 1, title: 'Codexとは何か？', xp: 50, time: '5分' },
+            { id: 2, title: 'AIコーディングの歴史', xp: 50, time: '8分' },
+            { id: 3, title: 'プロンプトの基本概念', xp: 60, time: '10分' },
+            { id: 4, title: '自然言語処理の仕組み', xp: 70, time: '12分' },
+            { id: 5, title: 'トークンとは何か', xp: 60, time: '8分' },
+            { id: 6, title: 'コンテキストウィンドウ', xp: 70, time: '10分' },
+            { id: 7, title: 'APIの基礎知識', xp: 80, time: '15分' },
+            { id: 8, title: 'モデルの種類と特徴', xp: 80, time: '12分' },
+            { id: 9, title: '最初のプロンプトを書く', xp: 100, time: '15分' },
+            { id: 10, title: '基礎編まとめクイズ', xp: 150, time: '20分' },
+
+            // Stage 2: Intermediate (11-20)
+            { id: 11, title: 'プロンプトエンジニアリング入門', xp: 100, time: '15分' },
+            { id: 12, title: 'Few-Shot Learning', xp: 120, time: '18分' },
+            { id: 13, title: 'Zero-Shot Learning', xp: 120, time: '15分' },
+            { id: 14, title: 'Chain of Thought', xp: 130, time: '20分' },
+            { id: 15, title: 'システムプロンプト設計', xp: 140, time: '22分' },
+            { id: 16, title: 'コード生成のベストプラクティス', xp: 150, time: '25分' },
+            { id: 17, title: 'デバッグ支援テクニック', xp: 140, time: '20分' },
+            { id: 18, title: 'リファクタリング依頼術', xp: 130, time: '18分' },
+            { id: 19, title: 'テスト生成の極意', xp: 140, time: '20分' },
+            { id: 20, title: '中級編まとめクイズ', xp: 200, time: '25分' },
+
+            // Stage 3: Advanced (21-30)
+            { id: 21, title: '高度なプロンプトパターン', xp: 180, time: '25分' },
+            { id: 22, title: 'メタプロンプティング', xp: 200, time: '28分' },
+            { id: 23, title: '自己修正プロンプト', xp: 190, time: '25分' },
+            { id: 24, title: 'マルチターン会話設計', xp: 200, time: '30分' },
+            { id: 25, title: 'コンテキスト管理術', xp: 210, time: '28分' },
+            { id: 26, title: 'エラーハンドリング戦略', xp: 180, time: '22分' },
+            { id: 27, title: 'パフォーマンス最適化', xp: 200, time: '25分' },
+            { id: 28, title: 'セキュリティ考慮事項', xp: 220, time: '30分' },
+            { id: 29, title: 'レート制限と対策', xp: 180, time: '20分' },
+            { id: 30, title: '上級編まとめクイズ', xp: 250, time: '30分' },
+
+            // Stage 4: Real-world (31-40)
+            { id: 31, title: 'プロジェクト統合入門', xp: 200, time: '25分' },
+            { id: 32, title: 'IDE連携テクニック', xp: 180, time: '22分' },
+            { id: 33, title: 'Git操作の自動化', xp: 190, time: '25分' },
+            { id: 34, title: 'CI/CDパイプライン統合', xp: 220, time: '30分' },
+            { id: 35, title: 'チーム開発での活用', xp: 200, time: '25分' },
+            { id: 36, title: 'コードレビュー自動化', xp: 210, time: '28分' },
+            { id: 37, title: 'ドキュメント生成', xp: 180, time: '22分' },
+            { id: 38, title: 'レガシーコード対応', xp: 220, time: '30分' },
+            { id: 39, title: 'マイグレーション支援', xp: 230, time: '32分' },
+            { id: 40, title: '実践編まとめクイズ', xp: 280, time: '35分' },
+
+            // Stage 5: Mastery (41-50)
+            { id: 41, title: 'エージェントアーキテクチャ', xp: 250, time: '30分' },
+            { id: 42, title: '自律型コーディング', xp: 280, time: '35分' },
+            { id: 43, title: 'マルチエージェント設計', xp: 300, time: '38分' },
+            { id: 44, title: 'カスタムスキル開発', xp: 280, time: '32分' },
+            { id: 45, title: 'ワークフロー自動化', xp: 290, time: '35分' },
+            { id: 46, title: '大規模プロジェクト戦略', xp: 300, time: '40分' },
+            { id: 47, title: 'AI駆動開発の未来', xp: 250, time: '28分' },
+            { id: 48, title: 'ケーススタディ分析', xp: 280, time: '35分' },
+            { id: 49, title: 'マスタープロジェクト', xp: 400, time: '60分' },
+            { id: 50, title: 'CODEX MASTER認定試験', xp: 500, time: '45分' }
+        ];
+
+        // Game State
+        let gameState = {
+            level: 1,
+            xp: 0,
+            xpToNext: 100,
+            completedChapters: [],
+            currentChapter: 1,
+            streak: 0,
+            lastLogin: null,
+            totalQuizScore: 0,
+            quizAttempts: 0,
+            badges: [],
+            rank: 'bronze'
+        };
+
+        // Load saved state
+        function loadState() {
+            const saved = localStorage.getItem('codexMasteryState');
+            if (saved) {
+                gameState = { ...gameState, ...JSON.parse(saved) };
+            }
+            checkStreak();
+        }
+
+        // Save state
+        function saveState() {
+            localStorage.setItem('codexMasteryState', JSON.stringify(gameState));
+        }
+
+        // Check and update streak
+        function checkStreak() {
+            const today = new Date().toDateString();
+            const lastLogin = gameState.lastLogin;
+
+            if (!lastLogin) {
+                gameState.streak = 1;
+            } else if (lastLogin === today) {
+                // Same day, no change
+            } else {
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                if (lastLogin === yesterday.toDateString()) {
+                    gameState.streak++;
+                } else {
+                    gameState.streak = 1;
+                }
+            }
+
+            gameState.lastLogin = today;
+            saveState();
+        }
+
+        // Get rank based on level
+        function getRank(level) {
+            if (level >= 40) return { name: 'DIAMOND', icon: '💎', color: '#b9f2ff' };
+            if (level >= 30) return { name: 'PLATINUM', icon: '🏆', color: '#e5e4e2' };
+            if (level >= 20) return { name: 'GOLD', icon: '🥇', color: '#ffd700' };
+            if (level >= 10) return { name: 'SILVER', icon: '🥈', color: '#c0c0c0' };
+            return { name: 'BRONZE', icon: '🥉', color: '#cd7f32' };
+        }
+
+        // Update UI
+        function updateUI() {
+            // Level and XP
+            document.getElementById('levelDisplay').textContent = gameState.level;
+            document.getElementById('currentLevel').textContent = gameState.level;
+            document.getElementById('nextLevel').textContent = gameState.level + 1;
+            document.getElementById('currentXP').textContent = gameState.xp;
+            document.getElementById('requiredXP').textContent = gameState.xpToNext;
+            document.getElementById('xpFill').style.width = `${(gameState.xp / gameState.xpToNext) * 100}%`;
+
+            // Stats
+            document.getElementById('chaptersComplete').textContent = gameState.completedChapters.length;
+            document.getElementById('streakDisplay').textContent = gameState.streak;
+            document.getElementById('streakCount').textContent = gameState.streak;
+
+            const quizPercent = gameState.quizAttempts > 0
+                ? Math.round(gameState.totalQuizScore / gameState.quizAttempts)
+                : 0;
+            document.getElementById('quizScore').textContent = quizPercent + '%';
+
+            // Rank
+            const rank = getRank(gameState.level);
+            document.getElementById('rankIcon').textContent = rank.icon;
+            document.getElementById('rankText').textContent = rank.name;
+
+            // Category progress
+            for (let i = 1; i <= 5; i++) {
+                const start = (i - 1) * 10 + 1;
+                const end = i * 10;
+                const completed = gameState.completedChapters.filter(c => c >= start && c <= end).length;
+                document.getElementById(`cat${i}Progress`).textContent = completed;
+            }
+
+            // Streak days
+            renderStreakDays();
+        }
+
+        // Render streak days
+        function renderStreakDays() {
+            const container = document.getElementById('streakDays');
+            container.innerHTML = '';
+            const days = ['日', '月', '火', '水', '木', '金', '土'];
+            const today = new Date().getDay();
+
+            for (let i = 0; i < 7; i++) {
+                const dayIndex = (today - 6 + i + 7) % 7;
+                const div = document.createElement('div');
+                div.className = 'streak-day';
+                if (i < gameState.streak && i <= 6) {
+                    div.className += ' completed';
+                    div.textContent = '✓';
+                } else if (i === 6) {
+                    div.className += ' today';
+                    div.textContent = days[dayIndex];
+                } else {
+                    div.textContent = days[dayIndex];
+                }
+                container.appendChild(div);
+            }
+        }
+
+        // Render chapters
+        function renderChapters() {
+            for (let cat = 1; cat <= 5; cat++) {
+                const container = document.getElementById(`chapters${cat}`);
+                container.innerHTML = '';
+                const start = (cat - 1) * 10;
+                const end = cat * 10;
+
+                for (let i = start; i < end; i++) {
+                    const chapter = chapters[i];
+                    const isCompleted = gameState.completedChapters.includes(chapter.id);
+                    const isCurrent = chapter.id === gameState.currentChapter;
+                    const isLocked = chapter.id > gameState.currentChapter && !isCompleted;
+
+                    const card = document.createElement('a');
+                    card.href = isLocked ? '#' : `chapters/chapter${chapter.id}.html`;
+                    card.className = `chapter-card ${isCompleted ? 'completed' : ''} ${isCurrent ? 'current' : ''} ${isLocked ? 'locked' : ''}`;
+
+                    card.innerHTML = `
+                        <div class="chapter-number">${isCompleted ? '✓' : chapter.id}</div>
+                        <div class="chapter-info">
+                            <div class="chapter-title">${chapter.title}</div>
+                            <div class="chapter-meta">
+                                <span class="chapter-xp">+${chapter.xp} XP</span>
+                                <span>⏱ ${chapter.time}</span>
+                            </div>
+                        </div>
+                        <span class="chapter-arrow">${isLocked ? '🔒' : '→'}</span>
+                    `;
+
+                    container.appendChild(card);
+                }
+            }
+        }
+
+        // Show achievement toast
+        function showAchievement(icon, title, desc) {
+            const toast = document.getElementById('achievementToast');
+            document.getElementById('achievementIcon').textContent = icon;
+            document.getElementById('achievementTitle').textContent = title;
+            document.getElementById('achievementDesc').textContent = desc;
+            toast.classList.add('show');
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Update daily mission
+        function updateDailyMission() {
+            const currentChapter = chapters[gameState.currentChapter - 1];
+            if (currentChapter) {
+                document.getElementById('dailyTitle').textContent =
+                    `今日のミッション: Chapter ${currentChapter.id}を完了せよ`;
+                document.getElementById('dailyDesc').textContent = currentChapter.title;
+            }
+        }
+
+        // Initialize
+        function init() {
+            loadState();
+            renderChapters();
+            updateUI();
+            updateDailyMission();
+
+            // Hide loading screen
+            setTimeout(() => {
+                document.getElementById('loadingScreen').classList.add('hide');
+
+                // Show streak achievement if maintained
+                if (gameState.streak > 1) {
+                    setTimeout(() => {
+                        showAchievement('🔥', `${gameState.streak}日連続!`, '学習を継続中!');
+                    }, 500);
+                }
+            }, 1500);
+        }
+
+        // Start when DOM is ready
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

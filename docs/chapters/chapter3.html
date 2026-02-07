@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Chapter 3: プロンプトの基本概念 | CODEX MASTERY</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+JP:wght@400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="shared.css">
+</head>
+<body>
+    <header class="chapter-header">
+        <a href="../index.html" class="back-btn">←</a>
+        <div class="header-info">
+            <div class="header-chapter">CHAPTER 3</div>
+            <div class="header-title">プロンプトの基本概念</div>
+        </div>
+    </header>
+
+    <div class="progress-section">
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: 0%;"></div>
+        </div>
+        <div class="progress-text">
+            <span>進捗</span>
+            <span>0%</span>
+        </div>
+    </div>
+
+    <main class="chapter-content">
+        <section class="content-section">
+            <span class="section-badge">📖 CORE CONCEPT</span>
+            <h2 class="section-title">プロンプトとは何か？</h2>
+
+            <p class="text-block">
+                <strong>プロンプト（Prompt）</strong>は、AIに対するあなたの「指示」です。料理で言えばレシピ、建築で言えば設計図。プロンプトの質が、出力の質を決定します。
+            </p>
+
+            <div class="memory-card">
+                <div class="memory-icon">💡</div>
+                <div class="memory-title">GOLDEN RULE</div>
+                <div class="memory-content">
+                    良いプロンプト = 良い出力<br>
+                    曖昧なプロンプト = 曖昧な出力
+                </div>
+            </div>
+        </section>
+
+        <!-- Anatomy of Prompt -->
+        <section class="content-section">
+            <span class="section-badge">🔬 ANATOMY</span>
+            <h2 class="section-title">プロンプトの構成要素</h2>
+
+            <div class="key-points">
+                <div class="key-points-title">📋 5つの基本要素</div>
+
+                <div class="key-point">
+                    <div class="key-number">1</div>
+                    <div class="key-text">
+                        <strong>タスク（Task）</strong><br>
+                        何をしてほしいか。「関数を作成して」「このコードを説明して」など
+                    </div>
+                </div>
+
+                <div class="key-point">
+                    <div class="key-number">2</div>
+                    <div class="key-text">
+                        <strong>コンテキスト（Context）</strong><br>
+                        背景情報。「Reactプロジェクトで」「初心者向けに」など
+                    </div>
+                </div>
+
+                <div class="key-point">
+                    <div class="key-number">3</div>
+                    <div class="key-text">
+                        <strong>制約（Constraints）</strong><br>
+                        条件や制限。「TypeScriptで」「100行以内で」など
+                    </div>
+                </div>
+
+                <div class="key-point">
+                    <div class="key-number">4</div>
+                    <div class="key-text">
+                        <strong>例示（Examples）</strong><br>
+                        入出力の例。「入力: [1,2,3] → 出力: 6」など
+                    </div>
+                </div>
+
+                <div class="key-point">
+                    <div class="key-number">5</div>
+                    <div class="key-text">
+                        <strong>フォーマット（Format）</strong><br>
+                        出力形式の指定。「JSON形式で」「コメント付きで」など
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Terms -->
+        <section class="content-section">
+            <span class="section-badge">📚 TERMINOLOGY</span>
+
+            <div class="term-card">
+                <div class="term-header">
+                    <div class="term-icon">💬</div>
+                    <div>
+                        <div class="term-name">プロンプト</div>
+                        <div class="term-english">Prompt</div>
+                    </div>
+                </div>
+                <div class="term-definition">
+                    AIモデルに与える入力テキスト。指示、質問、コンテキストなどを含む。モデルはこれを読み取り、適切な応答を生成する。プロンプトの書き方を最適化する技術を「プロンプトエンジニアリング」と呼ぶ。
+                </div>
+            </div>
+
+            <div class="term-card">
+                <div class="term-header">
+                    <div class="term-icon">🎯</div>
+                    <div>
+                        <div class="term-name">プロンプトエンジニアリング</div>
+                        <div class="term-english">Prompt Engineering</div>
+                    </div>
+                </div>
+                <div class="term-definition">
+                    AIから最適な出力を得るためにプロンプトを設計・最適化する技術。2020年代に登場した新しい専門分野で、AIを効果的に活用するための必須スキル。
+                </div>
+            </div>
+
+            <div class="term-card">
+                <div class="term-header">
+                    <div class="term-icon">📝</div>
+                    <div>
+                        <div class="term-name">インストラクション</div>
+                        <div class="term-english">Instruction</div>
+                    </div>
+                </div>
+                <div class="term-definition">
+                    プロンプト内でAIに与える具体的な命令部分。「以下のコードをリファクタリングしてください」のように、明確なアクションを指示する。
+                </div>
+            </div>
+        </section>
+
+        <!-- Good vs Bad -->
+        <section class="content-section">
+            <span class="section-badge">⚖️ COMPARISON</span>
+            <h2 class="section-title">悪いプロンプト vs 良いプロンプト</h2>
+
+            <div class="code-block" style="border-color: #ff4444;">
+                <div class="code-header">
+                    <span class="code-dot red"></span>
+                    <span class="code-dot yellow"></span>
+                    <span class="code-dot green"></span>
+                    <span class="code-lang" style="color: #ff4444;">❌ BAD PROMPT</span>
+                </div>
+                <div class="code-body">
+<span class="string">"ソート関数作って"</span>
+
+<span class="comment"># 問題点:</span>
+<span class="comment"># - 何をソートする？（数値？文字列？オブジェクト？）</span>
+<span class="comment"># - どの言語？</span>
+<span class="comment"># - 昇順？降順？</span>
+<span class="comment"># - アルゴリズムの指定は？</span>
+                </div>
+            </div>
+
+            <div class="code-block" style="border-color: var(--neon-green);">
+                <div class="code-header">
+                    <span class="code-dot red"></span>
+                    <span class="code-dot yellow"></span>
+                    <span class="code-dot green"></span>
+                    <span class="code-lang" style="color: var(--neon-green);">✅ GOOD PROMPT</span>
+                </div>
+                <div class="code-body">
+<span class="string">"""
+TypeScriptで数値配列を降順にソートする関数を作成してください。
+
+要件:
+- 関数名: sortDescending
+- 引数: numbers: number[]
+- 戻り値: number[]（ソート済み配列）
+- 元の配列を変更しない（イミュータブル）
+
+例:
+入力: [3, 1, 4, 1, 5]
+出力: [5, 4, 3, 1, 1]
+"""</span>
+                </div>
+            </div>
+
+            <div class="highlight-box tip">
+                <div class="highlight-title">💡 違いのポイント</div>
+                <ul style="margin-left: 20px; color: var(--text-secondary);">
+                    <li><strong>言語指定:</strong> TypeScript</li>
+                    <li><strong>具体的な仕様:</strong> 関数名、引数、戻り値</li>
+                    <li><strong>制約:</strong> イミュータブル</li>
+                    <li><strong>例示:</strong> 入出力の具体例</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- The 5W1H Framework -->
+        <section class="content-section">
+            <span class="section-badge">📐 FRAMEWORK</span>
+            <h2 class="section-title">5W1Hフレームワーク</h2>
+
+            <p class="text-block">
+                プロンプトを書く際は、以下の質問に答えられるか確認しましょう：
+            </p>
+
+            <div class="key-points">
+                <div class="key-points-title">❓ 6つの質問</div>
+
+                <div class="key-point">
+                    <div class="key-number">W</div>
+                    <div class="key-text">
+                        <strong>What（何を）</strong> - 何を作成/修正/説明してほしいか
+                    </div>
+                </div>
+
+                <div class="key-point">
+                    <div class="key-number">W</div>
+                    <div class="key-text">
+                        <strong>Why（なぜ）</strong> - 目的や背景は何か
+                    </div>
+                </div>
+
+                <div class="key-point">
+                    <div class="key-number">W</div>
+                    <div class="key-text">
+                        <strong>Who（誰が）</strong> - 対象ユーザーは誰か
+                    </div>
+                </div>
+
+                <div class="key-point">
+                    <div class="key-number">W</div>
+                    <div class="key-text">
+                        <strong>Where（どこで）</strong> - どの環境/フレームワークで使うか
+                    </div>
+                </div>
+
+                <div class="key-point">
+                    <div class="key-number">W</div>
+                    <div class="key-text">
+                        <strong>When（いつ）</strong> - どのタイミングで実行されるか
+                    </div>
+                </div>
+
+                <div class="key-point">
+                    <div class="key-number">H</div>
+                    <div class="key-text">
+                        <strong>How（どのように）</strong> - 具体的な方法/アルゴリズムは
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive -->
+        <section class="content-section">
+            <div class="interactive-box">
+                <div class="interactive-title">🎮 TRY IT: プロンプト改善</div>
+                <p style="color: var(--text-secondary); margin-bottom: 15px;">
+                    「ログイン機能を作って」という曖昧なプロンプトを、5つの基本要素を使って改善してみましょう。
+                </p>
+                <textarea id="improve-prompt-input" class="interactive-input" placeholder="タスク: ...
+コンテキスト: ...
+制約: ...
+例示: ...
+フォーマット: ..."></textarea>
+                <button class="interactive-btn" onclick="runInteractive('improve-prompt')">チェック</button>
+                <div id="improve-prompt-result" class="interactive-result"></div>
+            </div>
+        </section>
+
+        <!-- Quiz 1 -->
+        <section class="content-section">
+            <div class="quiz-section" id="quiz1">
+                <div class="quiz-title">🎯 KNOWLEDGE CHECK</div>
+                <p class="quiz-question">プロンプトの5つの基本要素に含まれないのは？</p>
+
+                <div class="quiz-options">
+                    <div class="quiz-option" onclick="selectOption('quiz1', 0, false, '')">
+                        <span class="option-letter">A</span>
+                        <span>タスク（Task）</span>
+                    </div>
+                    <div class="quiz-option" onclick="selectOption('quiz1', 1, false, '')">
+                        <span class="option-letter">B</span>
+                        <span>コンテキスト（Context）</span>
+                    </div>
+                    <div class="quiz-option" onclick="selectOption('quiz1', 2, true, '')">
+                        <span class="option-letter">C</span>
+                        <span>パスワード（Password）</span>
+                    </div>
+                    <div class="quiz-option" onclick="selectOption('quiz1', 3, false, '')">
+                        <span class="option-letter">D</span>
+                        <span>例示（Examples）</span>
+                    </div>
+                </div>
+
+                <div id="quiz1-result" class="quiz-result"></div>
+                <div id="quiz1-explanation" class="quiz-explanation">
+                    <strong>解説:</strong> プロンプトの5つの基本要素は「タスク」「コンテキスト」「制約」「例示」「フォーマット」です。パスワードはプロンプトの要素ではありません（むしろプロンプトに含めるべきでない機密情報です）。
+                </div>
+            </div>
+        </section>
+
+        <!-- Quiz 2 -->
+        <section class="content-section">
+            <div class="quiz-section" id="quiz2">
+                <div class="quiz-title">🎯 KNOWLEDGE CHECK</div>
+                <p class="quiz-question">「ソート関数作って」というプロンプトの最大の問題点は？</p>
+
+                <div class="quiz-options">
+                    <div class="quiz-option" onclick="selectOption('quiz2', 0, false, '')">
+                        <span class="option-letter">A</span>
+                        <span>日本語で書かれている</span>
+                    </div>
+                    <div class="quiz-option" onclick="selectOption('quiz2', 1, true, '')">
+                        <span class="option-letter">B</span>
+                        <span>具体性が欠けている</span>
+                    </div>
+                    <div class="quiz-option" onclick="selectOption('quiz2', 2, false, '')">
+                        <span class="option-letter">C</span>
+                        <span>文字数が少ない</span>
+                    </div>
+                    <div class="quiz-option" onclick="selectOption('quiz2', 3, false, '')">
+                        <span class="option-letter">D</span>
+                        <span>敬語を使っていない</span>
+                    </div>
+                </div>
+
+                <div id="quiz2-result" class="quiz-result"></div>
+                <div id="quiz2-explanation" class="quiz-explanation">
+                    <strong>解説:</strong> 問題は「具体性の欠如」です。言語、データ型、ソート順、アルゴリズムなどが指定されていないため、AIは最適な出力を生成できません。プロンプトは日本語でも英語でも問題なく、文字数より内容の具体性が重要です。
+                </div>
+            </div>
+        </section>
+
+        <!-- Output Exercise -->
+        <section class="content-section">
+            <div class="output-exercise">
+                <div class="output-title">✍️ OUTPUT: 5要素を使う</div>
+                <p class="output-prompt">
+                    「メール送信機能を作って」というタスクについて、5つの基本要素（タスク、コンテキスト、制約、例示、フォーマット）を使って詳細なプロンプトを書いてみましょう。
+                </p>
+                <textarea id="output1-input" class="output-textarea" placeholder="タスク: メール送信機能を...
+
+コンテキスト: ...
+
+制約: ...
+
+例示: ...
+
+フォーマット: ..."></textarea>
+                <button class="output-submit" onclick="submitOutput('output1')">回答を保存</button>
+                <div id="output1-feedback" class="output-feedback"></div>
+            </div>
+        </section>
+
+        <!-- Key Takeaways -->
+        <section class="content-section">
+            <div class="memory-card">
+                <div class="memory-icon">🔑</div>
+                <div class="memory-title">KEY TAKEAWAYS</div>
+                <div class="memory-content" style="text-align: left; font-size: 1rem;">
+                    <ul style="list-style: none;">
+                        <li>✅ プロンプト = AIへの指示書</li>
+                        <li>✅ 5要素: タスク/コンテキスト/制約/例示/フォーマット</li>
+                        <li>✅ 曖昧さは敵、具体性が味方</li>
+                        <li>✅ 5W1Hで漏れをチェック</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Navigation -->
+        <div class="chapter-nav">
+            <a href="chapter2.html" class="nav-btn">
+                <div class="nav-btn-label">前のチャプター</div>
+                <div class="nav-btn-text">← AIコーディングの歴史</div>
+            </a>
+            <a href="chapter4.html" class="nav-btn next" onclick="completeChapter(60)">
+                <div class="nav-btn-label">次のチャプター</div>
+                <div class="nav-btn-text">自然言語処理の仕組み →</div>
+            </a>
+        </div>
+    </main>
+
+    <div class="completion-modal" id="completionModal">
+        <div class="completion-content">
+            <div class="completion-icon">🎉</div>
+            <div class="completion-title">CHAPTER COMPLETE!</div>
+            <p style="color: var(--text-secondary);">Chapter 3をクリアしました！</p>
+            <div class="completion-xp" id="completionXP">+60 XP</div>
+            <button class="completion-btn" onclick="location.href='chapter4.html'">次へ進む</button>
+        </div>
+    </div>
+
+    <script src="shared.js"></script>
+</body>
+</html>

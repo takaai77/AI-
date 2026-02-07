@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Chapter 28: セキュリティ考慮事項 | CODEX MASTERY</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+JP:wght@400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="shared.css">
+</head>
+<body>
+    <header class="chapter-header">
+        <a href="../index.html" class="back-btn">←</a>
+        <div class="header-info">
+            <div class="header-chapter">CHAPTER 28</div>
+            <div class="header-title">セキュリティ考慮事項</div>
+        </div>
+    </header>
+
+    <div class="progress-section">
+        <div class="progress-bar"><div class="progress-fill" style="width: 0%;"></div></div>
+        <div class="progress-text"><span>進捗</span><span>0%</span></div>
+    </div>
+
+    <main class="chapter-content">
+        <section class="content-section">
+            <span class="section-badge">📖 CHAPTER 28</span>
+            <h2 class="section-title">セキュリティ考慮事項</h2>
+
+            <p class="text-block">
+                このチャプターでは、<strong>セキュリティ考慮事項</strong>について深く学んでいきます。
+                実践的な知識とスキルを身につけ、Codexマスターへの道を進みましょう。
+            </p>
+        </section>
+
+        <section class='content-section'><span class='section-badge'>📚 TERMINOLOGY</span>
+            <div class="term-card">
+                <div class="term-header">
+                    <div class="term-icon">💉</div>
+                    <div>
+                        <div class="term-name">プロンプトインジェクション</div>
+                        <div class="term-english">Prompt Injection</div>
+                    </div>
+                </div>
+                <div class="term-definition">悪意あるユーザーがプロンプトを操作してAIの動作を乗っ取る攻撃。入力のサニタイズが必須。</div>
+            </div>
+
+            <div class="term-card">
+                <div class="term-header">
+                    <div class="term-icon">🔓</div>
+                    <div>
+                        <div class="term-name">機密情報漏洩</div>
+                        <div class="term-english">Data Leakage</div>
+                    </div>
+                </div>
+                <div class="term-definition">プロンプトやAIの応答に機密情報が含まれてしまうリスク。APIキー、パスワードなど。</div>
+            </div>
+</section>
+
+        <section class="content-section">
+            <div class="quiz-section" id="quiz1">
+                <div class="quiz-title">🎯 KNOWLEDGE CHECK</div>
+                <p class="quiz-question">プロンプトインジェクション対策として正しいのは？</p>
+
+                <div class="quiz-options">
+
+                    <div class="quiz-option" onclick="selectOption('quiz1', 0, false, '')">
+                        <span class="option-letter">A</span>
+                        <span>ユーザー入力をそのまま使う</span>
+                    </div>
+
+                    <div class="quiz-option" onclick="selectOption('quiz1', 1, true, '')">
+                        <span class="option-letter">B</span>
+                        <span>入力をサニタイズする</span>
+                    </div>
+
+                    <div class="quiz-option" onclick="selectOption('quiz1', 2, false, '')">
+                        <span class="option-letter">C</span>
+                        <span>対策は不要</span>
+                    </div>
+
+                    <div class="quiz-option" onclick="selectOption('quiz1', 3, false, '')">
+                        <span class="option-letter">D</span>
+                        <span>AIに任せる</span>
+                    </div>
+
+                </div>
+
+                <div id="quiz1-result" class="quiz-result"></div>
+                <div id="quiz1-explanation" class="quiz-explanation">
+                    <strong>解説:</strong> 正解は選択肢Bです。このチャプターの内容をしっかり復習しましょう。
+                </div>
+            </div>
+        </section>
+
+        <section class="content-section">
+            <div class="output-exercise">
+                <div class="output-title">✍️ OUTPUT: アウトプット練習</div>
+                <p class="output-prompt">
+                    このチャプターで学んだ「セキュリティ考慮事項」について、自分の言葉で説明してみましょう。
+                </p>
+                <textarea id="output1-input" class="output-textarea" placeholder="ここに入力..."></textarea>
+                <button class="output-submit" onclick="submitOutput('output1')">回答を保存</button>
+                <div id="output1-feedback" class="output-feedback"></div>
+            </div>
+        </section>
+
+        <section class="content-section">
+            <div class="memory-card">
+                <div class="memory-icon">🔑</div>
+                <div class="memory-title">KEY TAKEAWAYS</div>
+                <div class="memory-content" style="text-align: left; font-size: 1rem;">
+                    <ul style="list-style: none;">
+                        <li>✅ セキュリティ考慮事項の基本を理解した</li>
+                        <li>✅ 重要な用語を学んだ</li>
+                        <li>✅ 実践への応用方法を知った</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <div class="chapter-nav">
+            <a href="chapter27.html" class="nav-btn">
+                <div class="nav-btn-label">前のチャプター</div>
+                <div class="nav-btn-text">← パフォーマンス最適化</div>
+            </a>
+            <a href="chapter29.html" class="nav-btn next" onclick="completeChapter(220)">
+                <div class="nav-btn-label">次のチャプター</div>
+                <div class="nav-btn-text">レート制限と対策 →</div>
+            </a>
+        </div>
+    </main>
+
+    <div class="completion-modal" id="completionModal">
+        <div class="completion-content">
+            <div class="completion-icon">🎉</div>
+            <div class="completion-title">CHAPTER COMPLETE!</div>
+            <p style="color: var(--text-secondary);">Chapter 28をクリアしました！</p>
+            <div class="completion-xp" id="completionXP">+220 XP</div>
+            <button class="completion-btn" onclick="location.href='chapter29.html'">次へ進む</button>
+        </div>
+    </div>
+
+    <script src="shared.js"></script>
+</body>
+</html>

@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>演習 | CODEX MASTERY</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+JP:wght@400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-cyan: #00ffff;
+            --neon-pink: #ff00ff;
+            --neon-green: #00ff88;
+            --neon-yellow: #ffff00;
+            --neon-orange: #ff8800;
+            --dark-bg: #0a0a0f;
+            --dark-card: #12121a;
+            --dark-surface: #1a1a25;
+            --border-color: #2a2a3a;
+            --text-primary: #ffffff;
+            --text-secondary: #888899;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding-bottom: 100px;
+        }
+        .header {
+            background: linear-gradient(180deg, rgba(18, 18, 26, 0.98) 0%, rgba(10, 10, 15, 0.95) 100%);
+            padding: 15px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            background: var(--dark-surface);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: var(--text-primary);
+            font-size: 1.2rem;
+        }
+        .header-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            background: linear-gradient(45deg, var(--neon-green), var(--neon-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .main-content { padding: 20px; }
+        .section-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            color: var(--neon-green);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .exercise-list { display: flex; flex-direction: column; gap: 15px; }
+        .exercise-card {
+            background: var(--dark-card);
+            border: 2px solid var(--border-color);
+            border-radius: 15px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+        .exercise-card:active { transform: scale(0.98); }
+        .exercise-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .exercise-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--neon-green), var(--neon-cyan));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        .exercise-info { flex: 1; }
+        .exercise-info h3 { font-size: 1rem; margin-bottom: 5px; }
+        .exercise-info p { font-size: 0.8rem; color: var(--text-secondary); }
+        .exercise-badge {
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+        .exercise-badge.beginner { background: var(--neon-green); color: #000; }
+        .exercise-badge.intermediate { background: var(--neon-yellow); color: #000; }
+        .exercise-badge.advanced { background: var(--neon-orange); color: #000; }
+        .exercise-content {
+            background: var(--dark-surface);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 15px;
+            display: none;
+        }
+        .exercise-card.expanded .exercise-content { display: block; }
+        .exercise-prompt {
+            font-size: 0.95rem;
+            line-height: 1.8;
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+        }
+        .exercise-textarea {
+            width: 100%;
+            min-height: 150px;
+            background: var(--dark-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 15px;
+            color: var(--text-primary);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.9rem;
+            resize: vertical;
+            margin-bottom: 15px;
+        }
+        .exercise-textarea:focus {
+            outline: none;
+            border-color: var(--neon-green);
+        }
+        .exercise-btn {
+            background: linear-gradient(45deg, var(--neon-green), var(--neon-cyan));
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-weight: 700;
+            color: #000;
+            cursor: pointer;
+        }
+        .exercise-feedback {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid var(--neon-green);
+            display: none;
+        }
+        .exercise-feedback.show { display: block; }
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(18, 18, 26, 0.98);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            padding-bottom: calc(10px + env(safe-area-inset-bottom));
+            z-index: 100;
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-secondary);
+            padding: 5px 15px;
+        }
+        .nav-item.active { color: var(--neon-green); }
+        .nav-icon { font-size: 1.5rem; margin-bottom: 3px; }
+        .nav-label { font-size: 0.65rem; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <a href="../index.html" class="back-btn">←</a>
+        <h1 class="header-title">💻 演習問題</h1>
+    </header>
+
+    <main class="main-content">
+        <h2 class="section-title">プロンプト作成演習</h2>
+
+        <div class="exercise-list">
+            <div class="exercise-card" onclick="toggleExercise(this)">
+                <div class="exercise-header">
+                    <div class="exercise-icon">📝</div>
+                    <div class="exercise-info">
+                        <h3>基本プロンプト作成</h3>
+                        <p>関数生成のプロンプトを書いてみよう</p>
+                    </div>
+                    <span class="exercise-badge beginner">初級</span>
+                </div>
+                <div class="exercise-content">
+                    <p class="exercise-prompt">
+                        <strong>課題:</strong> 「2つの数値を受け取って合計を返す関数」をCodexに生成させるためのプロンプトを書いてください。<br><br>
+                        <strong>ポイント:</strong> 言語、関数名、引数、戻り値を明確に指定しましょう。
+                    </p>
+                    <textarea class="exercise-textarea" placeholder="ここにプロンプトを入力..."></textarea>
+                    <button class="exercise-btn" onclick="event.stopPropagation(); submitExercise(this)">提出する</button>
+                    <div class="exercise-feedback">
+                        <p style="color: var(--neon-green);">✅ 良いプロンプトです！</p>
+                        <p style="color: var(--text-secondary); margin-top: 10px;">チェックポイント：言語指定 ✓ / 関数名 ✓ / 引数指定 ✓ / 戻り値 ✓</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="exercise-card" onclick="toggleExercise(this)">
+                <div class="exercise-header">
+                    <div class="exercise-icon">🐛</div>
+                    <div class="exercise-info">
+                        <h3>デバッグ依頼</h3>
+                        <p>エラー修正を依頼するプロンプト</p>
+                    </div>
+                    <span class="exercise-badge intermediate">中級</span>
+                </div>
+                <div class="exercise-content">
+                    <p class="exercise-prompt">
+                        <strong>課題:</strong> 以下のエラーを修正してもらうプロンプトを書いてください。<br><br>
+                        <code style="background: #000; padding: 10px; display: block; border-radius: 5px; margin: 10px 0;">
+                        TypeError: Cannot read property 'map' of undefined<br>
+                        at UserList.js:15
+                        </code>
+                        <strong>ポイント:</strong> エラーメッセージ、関連コード、期待する動作を含めましょう。
+                    </p>
+                    <textarea class="exercise-textarea" placeholder="ここにプロンプトを入力..."></textarea>
+                    <button class="exercise-btn" onclick="event.stopPropagation(); submitExercise(this)">提出する</button>
+                    <div class="exercise-feedback">
+                        <p style="color: var(--neon-green);">✅ 素晴らしいデバッグ依頼です！</p>
+                        <p style="color: var(--text-secondary); margin-top: 10px;">エラー情報と期待動作を含めると、AIは的確な修正案を提示できます。</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="exercise-card" onclick="toggleExercise(this)">
+                <div class="exercise-header">
+                    <div class="exercise-icon">🔧</div>
+                    <div class="exercise-info">
+                        <h3>リファクタリング依頼</h3>
+                        <p>コード改善を依頼するプロンプト</p>
+                    </div>
+                    <span class="exercise-badge intermediate">中級</span>
+                </div>
+                <div class="exercise-content">
+                    <p class="exercise-prompt">
+                        <strong>課題:</strong> 重複コードを含む関数のリファクタリングを依頼するプロンプトを書いてください。<br><br>
+                        <strong>ポイント:</strong> 改善したいポイント（DRY原則、可読性など）を明確に指定しましょう。
+                    </p>
+                    <textarea class="exercise-textarea" placeholder="ここにプロンプトを入力..."></textarea>
+                    <button class="exercise-btn" onclick="event.stopPropagation(); submitExercise(this)">提出する</button>
+                    <div class="exercise-feedback">
+                        <p style="color: var(--neon-green);">✅ 効果的なリファクタリング依頼です！</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="exercise-card" onclick="toggleExercise(this)">
+                <div class="exercise-header">
+                    <div class="exercise-icon">🔗</div>
+                    <div class="exercise-info">
+                        <h3>Chain of Thought活用</h3>
+                        <p>段階的思考を促すプロンプト</p>
+                    </div>
+                    <span class="exercise-badge advanced">上級</span>
+                </div>
+                <div class="exercise-content">
+                    <p class="exercise-prompt">
+                        <strong>課題:</strong> 複雑なアルゴリズム（例：二分探索木の削除操作）の実装を依頼するプロンプトを書いてください。<br><br>
+                        <strong>ポイント:</strong> 「ステップバイステップで考えて」というChain of Thoughtテクニックを活用しましょう。
+                    </p>
+                    <textarea class="exercise-textarea" placeholder="ここにプロンプトを入力..."></textarea>
+                    <button class="exercise-btn" onclick="event.stopPropagation(); submitExercise(this)">提出する</button>
+                    <div class="exercise-feedback">
+                        <p style="color: var(--neon-green);">✅ Chain of Thoughtを効果的に活用しています！</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="exercise-card" onclick="toggleExercise(this)">
+                <div class="exercise-header">
+                    <div class="exercise-icon">🎯</div>
+                    <div class="exercise-info">
+                        <h3>Few-Shot Learning</h3>
+                        <p>例を含めたプロンプト</p>
+                    </div>
+                    <span class="exercise-badge advanced">上級</span>
+                </div>
+                <div class="exercise-content">
+                    <p class="exercise-prompt">
+                        <strong>課題:</strong> データ変換タスク（例：日付フォーマット変換）のプロンプトを、2-3個の例を含めて書いてください。<br><br>
+                        <strong>ポイント:</strong> 入力と期待出力のペアを示すことで、AIにパターンを学習させます。
+                    </p>
+                    <textarea class="exercise-textarea" placeholder="ここにプロンプトを入力..."></textarea>
+                    <button class="exercise-btn" onclick="event.stopPropagation(); submitExercise(this)">提出する</button>
+                    <div class="exercise-feedback">
+                        <p style="color: var(--neon-green);">✅ 効果的なFew-Shot Learningの例です！</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <nav class="bottom-nav">
+        <a href="../index.html" class="nav-item">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-label">ホーム</span>
+        </a>
+        <a href="../chapters/index.html" class="nav-item">
+            <span class="nav-icon">📚</span>
+            <span class="nav-label">チャプター</span>
+        </a>
+        <a href="../quiz/index.html" class="nav-item">
+            <span class="nav-icon">🎯</span>
+            <span class="nav-label">クイズ</span>
+        </a>
+        <a href="../glossary/index.html" class="nav-item">
+            <span class="nav-icon">📖</span>
+            <span class="nav-label">用語</span>
+        </a>
+        <a href="../profile.html" class="nav-item">
+            <span class="nav-icon">👤</span>
+            <span class="nav-label">プロフィール</span>
+        </a>
+    </nav>
+
+    <script>
+        function toggleExercise(card) {
+            card.classList.toggle('expanded');
+        }
+
+        function submitExercise(btn) {
+            const card = btn.closest('.exercise-card');
+            const textarea = card.querySelector('.exercise-textarea');
+            const feedback = card.querySelector('.exercise-feedback');
+
+            if (textarea.value.trim().length > 10) {
+                feedback.classList.add('show');
+            } else {
+                alert('プロンプトをもう少し詳しく書いてみましょう！');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Chapter 4: 自然言語処理の仕組み | CODEX MASTERY</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+JP:wght@400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="shared.css">
+</head>
+<body>
+    <header class="chapter-header">
+        <a href="../index.html" class="back-btn">←</a>
+        <div class="header-info">
+            <div class="header-chapter">CHAPTER 4</div>
+            <div class="header-title">自然言語処理の仕組み</div>
+        </div>
+    </header>
+
+    <div class="progress-section">
+        <div class="progress-bar"><div class="progress-fill" style="width: 0%;"></div></div>
+        <div class="progress-text"><span>進捗</span><span>0%</span></div>
+    </div>
+
+    <main class="chapter-content">
+        <section class="content-section">
+            <span class="section-badge">🧠 DEEP DIVE</span>
+            <h2 class="section-title">Codexはどうやって理解するのか？</h2>
+
+            <p class="text-block">
+                あなたが日本語で指示を出すと、Codexはそれを「理解」してコードを生成します。でも、コンピュータはどうやって人間の言葉を理解するのでしょうか？その仕組みを見ていきましょう。
+            </p>
+
+            <div class="memory-card">
+                <div class="memory-icon">🔄</div>
+                <div class="memory-title">処理フロー</div>
+                <div class="memory-content">
+                    テキスト → トークン化 → 埋め込み → 注意機構 → 出力生成
+                </div>
+            </div>
+        </section>
+
+        <!-- Tokenization -->
+        <section class="content-section">
+            <span class="section-badge">📚 TERMINOLOGY</span>
+
+            <div class="term-card">
+                <div class="term-header">
+                    <div class="term-icon">🔤</div>
+                    <div>
+                        <div class="term-name">トークン化（Tokenization）</div>
+                        <div class="term-english">Tokenization</div>
+                    </div>
+                </div>
+                <div class="term-definition">
+                    テキストを「トークン」と呼ばれる小さな単位に分割するプロセス。英語では単語単位、日本語では文字やサブワード単位で分割されることが多い。例：「Hello world」→ ["Hello", " world"]
+                </div>
+            </div>
+
+            <div class="term-card">
+                <div class="term-header">
+                    <div class="term-icon">📊</div>
+                    <div>
+                        <div class="term-name">埋め込み（Embedding）</div>
+                        <div class="term-english">Embedding</div>
+                    </div>
+                </div>
+                <div class="term-definition">
+                    各トークンを数値ベクトル（数字の配列）に変換すること。意味的に近い単語は、ベクトル空間でも近い位置に配置される。例：「king」と「queen」は近い位置に。
+                </div>
+            </div>
+
+            <div class="term-card">
+                <div class="term-header">
+                    <div class="term-icon">👁️</div>
+                    <div>
+                        <div class="term-name">注意機構（Attention）</div>
+                        <div class="term-english">Attention Mechanism</div>
+                    </div>
+                </div>
+                <div class="term-definition">
+                    文中のどの部分に「注意」を払うべきかを学習する仕組み。「彼女は猫を飼っている。それはとても可愛い」という文で「それ」が「猫」を指すことを理解できるのはこの機構のおかげ。
+                </div>
+            </div>
+
+            <div class="term-card">
+                <div class="term-header">
+                    <div class="term-icon">🔮</div>
+                    <div>
+                        <div class="term-name">自己回帰（Autoregressive）</div>
+                        <div class="term-english">Autoregressive Generation</div>
+                    </div>
+                </div>
+                <div class="term-definition">
+                    一度に1トークンずつ、前のトークンを基に次のトークンを予測する生成方式。GPTやCodexはこの方式を採用。「The cat sat on the」の次に「mat」が来る確率が高いと予測。
+                </div>
+            </div>
+        </section>
+
+        <!-- Visual Explanation -->
+        <section class="content-section">
+            <span class="section-badge">📊 VISUALIZATION</span>
+            <h2 class="section-title">処理の流れを視覚化</h2>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-dot red"></span>
+                    <span class="code-dot yellow"></span>
+                    <span class="code-dot green"></span>
+                    <span class="code-lang">Processing Pipeline</span>
+                </div>
+                <div class="code-body">
+<span class="string">"配列をソートする関数"</span>
+
+<span class="comment">↓ Step 1: トークン化</span>
+["配列", "を", "ソート", "する", "関数"]
+
+<span class="comment">↓ Step 2: 埋め込み（数値ベクトル化）</span>
+[[0.2, -0.5, 0.8, ...], [0.1, 0.3, -0.2, ...], ...]
+
+<span class="comment">↓ Step 3: Transformer処理（注意機構）</span>
+<span class="comment">「配列」と「ソート」の関連性を学習</span>
+<span class="comment">「関数」が出力形式であることを理解</span>
+
+<span class="comment">↓ Step 4: 自己回帰生成</span>
+"function" → "sort" → "Array" → "(" → ...
+                </div>
+            </div>
+        </section>
+
+        <!-- Why It Matters -->
+        <section class="content-section">
+            <span class="section-badge">💡 INSIGHT</span>
+            <h2 class="section-title">なぜこれを知る必要がある？</h2>
+
+            <div class="key-points">
+                <div class="key-points-title">🎯 実践への応用</div>
+
+                <div class="key-point">
+                    <div class="key-number">1</div>
+                    <div class="key-text">
+                        <strong>トークン制限の理解</strong><br>
+                        プロンプトが長すぎるとトークン制限に達する。簡潔さが重要。
+                    </div>
+                </div>
+
+                <div class="key-point">
+                    <div class="key-number">2</div>
+                    <div class="key-text">
+                        <strong>コンテキストの重要性</strong><br>
+                        注意機構は文脈を理解する。関連情報を近くに配置すると効果的。
+                    </div>
+                </div>
+
+                <div class="key-point">
+                    <div class="key-number">3</div>
+                    <div class="key-text">
+                        <strong>順序の影響</strong><br>
+                        自己回帰生成のため、プロンプトの順序が出力に影響する。
+                    </div>
+                </div>
+            </div>
+
+            <div class="highlight-box tip">
+                <div class="highlight-title">💡 実践的なヒント</div>
+                <p>最も重要な情報（言語、制約など）はプロンプトの<strong>最初か最後</strong>に配置すると、モデルの注意を引きやすくなります。</p>
+            </div>
+        </section>
+
+        <!-- Quiz -->
+        <section class="content-section">
+            <div class="quiz-section" id="quiz1">
+                <div class="quiz-title">🎯 KNOWLEDGE CHECK</div>
+                <p class="quiz-question">テキストを数値ベクトルに変換するプロセスを何と呼ぶ？</p>
+
+                <div class="quiz-options">
+                    <div class="quiz-option" onclick="selectOption('quiz1', 0, false, '')">
+                        <span class="option-letter">A</span>
+                        <span>トークン化</span>
+                    </div>
+                    <div class="quiz-option" onclick="selectOption('quiz1', 1, true, '')">
+                        <span class="option-letter">B</span>
+                        <span>埋め込み（Embedding）</span>
+                    </div>
+                    <div class="quiz-option" onclick="selectOption('quiz1', 2, false, '')">
+                        <span class="option-letter">C</span>
+                        <span>注意機構</span>
+                    </div>
+                    <div class="quiz-option" onclick="selectOption('quiz1', 3, false, '')">
+                        <span class="option-letter">D</span>
+                        <span>自己回帰</span>
+                    </div>
+                </div>
+
+                <div id="quiz1-result" class="quiz-result"></div>
+                <div id="quiz1-explanation" class="quiz-explanation">
+                    <strong>解説:</strong> 埋め込み（Embedding）は、トークン化された単語や文字を高次元の数値ベクトルに変換するプロセスです。これにより、意味的に類似した単語が数学的にも近い位置に配置されます。
+                </div>
+            </div>
+        </section>
+
+        <!-- Output -->
+        <section class="content-section">
+            <div class="output-exercise">
+                <div class="output-title">✍️ OUTPUT: 自分の言葉で説明</div>
+                <p class="output-prompt">
+                    「注意機構（Attention）」が何をするものか、自分の言葉で説明してみましょう。
+                </p>
+                <textarea id="output1-input" class="output-textarea" placeholder="注意機構とは..."></textarea>
+                <button class="output-submit" onclick="submitOutput('output1')">回答を保存</button>
+                <div id="output1-feedback" class="output-feedback"></div>
+            </div>
+        </section>
+
+        <!-- Key Takeaways -->
+        <section class="content-section">
+            <div class="memory-card">
+                <div class="memory-icon">🔑</div>
+                <div class="memory-title">KEY TAKEAWAYS</div>
+                <div class="memory-content" style="text-align: left; font-size: 1rem;">
+                    <ul style="list-style: none;">
+                        <li>✅ トークン化: テキスト→小さな単位</li>
+                        <li>✅ 埋め込み: トークン→数値ベクトル</li>
+                        <li>✅ 注意機構: 文脈の関係性を理解</li>
+                        <li>✅ 自己回帰: 1トークンずつ生成</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <div class="chapter-nav">
+            <a href="chapter3.html" class="nav-btn">
+                <div class="nav-btn-label">前のチャプター</div>
+                <div class="nav-btn-text">← プロンプトの基本概念</div>
+            </a>
+            <a href="chapter5.html" class="nav-btn next" onclick="completeChapter(70)">
+                <div class="nav-btn-label">次のチャプター</div>
+                <div class="nav-btn-text">トークンとは何か →</div>
+            </a>
+        </div>
+    </main>
+
+    <div class="completion-modal" id="completionModal">
+        <div class="completion-content">
+            <div class="completion-icon">🎉</div>
+            <div class="completion-title">CHAPTER COMPLETE!</div>
+            <p style="color: var(--text-secondary);">Chapter 4をクリアしました！</p>
+            <div class="completion-xp" id="completionXP">+70 XP</div>
+            <button class="completion-btn" onclick="location.href='chapter5.html'">次へ進む</button>
+        </div>
+    </div>
+
+    <script src="shared.js"></script>
+</body>
+</html>

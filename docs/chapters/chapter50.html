@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Chapter 50: CODEX MASTER認定試験 | CODEX MASTERY</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+JP:wght@400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="shared.css">
+</head>
+<body>
+    <header class="chapter-header">
+        <a href="../index.html" class="back-btn">←</a>
+        <div class="header-info">
+            <div class="header-chapter">CHAPTER 50</div>
+            <div class="header-title">CODEX MASTER認定試験</div>
+        </div>
+    </header>
+
+    <div class="progress-section">
+        <div class="progress-bar"><div class="progress-fill" style="width: 0%;"></div></div>
+        <div class="progress-text"><span>進捗</span><span>0%</span></div>
+    </div>
+
+    <main class="chapter-content">
+        <section class="content-section">
+            <span class="section-badge">📖 CHAPTER 50</span>
+            <h2 class="section-title">CODEX MASTER認定試験</h2>
+
+            <p class="text-block">
+                このチャプターでは、<strong>CODEX MASTER認定試験</strong>について深く学んでいきます。
+                実践的な知識とスキルを身につけ、Codexマスターへの道を進みましょう。
+            </p>
+        </section>
+
+        <section class='content-section'><span class='section-badge'>📚 TERMINOLOGY</span>
+            <div class="term-card">
+                <div class="term-header">
+                    <div class="term-icon">👑</div>
+                    <div>
+                        <div class="term-name">マスター認定</div>
+                        <div class="term-english">Master Certification</div>
+                    </div>
+                </div>
+                <div class="term-definition">全てのチャプターを完了し、総合的なスキルを証明した証。</div>
+            </div>
+
+            <div class="term-card">
+                <div class="term-header">
+                    <div class="term-icon">📚</div>
+                    <div>
+                        <div class="term-name">継続学習</div>
+                        <div class="term-english">Continuous Learning</div>
+                    </div>
+                </div>
+                <div class="term-definition">AI技術は急速に進化するため、常に最新情報をキャッチアップし続けることが重要。</div>
+            </div>
+</section>
+
+        <section class="content-section">
+            <div class="quiz-section" id="quiz1">
+                <div class="quiz-title">🎯 KNOWLEDGE CHECK</div>
+                <p class="quiz-question">CODEX MASTERになった後、重要なのは？</p>
+
+                <div class="quiz-options">
+
+                    <div class="quiz-option" onclick="selectOption('quiz1', 0, false, '')">
+                        <span class="option-letter">A</span>
+                        <span>学習を止める</span>
+                    </div>
+
+                    <div class="quiz-option" onclick="selectOption('quiz1', 1, true, '')">
+                        <span class="option-letter">B</span>
+                        <span>継続的に学び続ける</span>
+                    </div>
+
+                    <div class="quiz-option" onclick="selectOption('quiz1', 2, false, '')">
+                        <span class="option-letter">C</span>
+                        <span>他人に教えない</span>
+                    </div>
+
+                    <div class="quiz-option" onclick="selectOption('quiz1', 3, false, '')">
+                        <span class="option-letter">D</span>
+                        <span>古い知識を守る</span>
+                    </div>
+
+                </div>
+
+                <div id="quiz1-result" class="quiz-result"></div>
+                <div id="quiz1-explanation" class="quiz-explanation">
+                    <strong>解説:</strong> 正解は選択肢Bです。このチャプターの内容をしっかり復習しましょう。
+                </div>
+            </div>
+        </section>
+
+        <section class="content-section">
+            <div class="output-exercise">
+                <div class="output-title">✍️ OUTPUT: アウトプット練習</div>
+                <p class="output-prompt">
+                    このチャプターで学んだ「CODEX MASTER認定試験」について、自分の言葉で説明してみましょう。
+                </p>
+                <textarea id="output1-input" class="output-textarea" placeholder="ここに入力..."></textarea>
+                <button class="output-submit" onclick="submitOutput('output1')">回答を保存</button>
+                <div id="output1-feedback" class="output-feedback"></div>
+            </div>
+        </section>
+
+        <section class="content-section">
+            <div class="memory-card">
+                <div class="memory-icon">🔑</div>
+                <div class="memory-title">KEY TAKEAWAYS</div>
+                <div class="memory-content" style="text-align: left; font-size: 1rem;">
+                    <ul style="list-style: none;">
+                        <li>✅ CODEX MASTER認定試験の基本を理解した</li>
+                        <li>✅ 重要な用語を学んだ</li>
+                        <li>✅ 実践への応用方法を知った</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <div class="chapter-nav">
+            <a href="chapter49.html" class="nav-btn">
+                <div class="nav-btn-label">前のチャプター</div>
+                <div class="nav-btn-text">← マスタープロジェクト</div>
+            </a>
+            <a href="../index.html" class="nav-btn next" onclick="completeChapter(500)">
+                <div class="nav-btn-label">次のチャプター</div>
+                <div class="nav-btn-text">ホームに戻る →</div>
+            </a>
+        </div>
+    </main>
+
+    <div class="completion-modal" id="completionModal">
+        <div class="completion-content">
+            <div class="completion-icon">🎉</div>
+            <div class="completion-title">CHAPTER COMPLETE!</div>
+            <p style="color: var(--text-secondary);">Chapter 50をクリアしました！</p>
+            <div class="completion-xp" id="completionXP">+500 XP</div>
+            <button class="completion-btn" onclick="location.href='../index.html'">次へ進む</button>
+        </div>
+    </div>
+
+    <script src="shared.js"></script>
+</body>
+</html>

@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>用語辞典 | CODEX MASTERY</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+JP:wght@400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-cyan: #00ffff;
+            --neon-pink: #ff00ff;
+            --neon-green: #00ff88;
+            --neon-yellow: #ffff00;
+            --neon-purple: #8800ff;
+            --dark-bg: #0a0a0f;
+            --dark-card: #12121a;
+            --dark-surface: #1a1a25;
+            --border-color: #2a2a3a;
+            --text-primary: #ffffff;
+            --text-secondary: #888899;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding-bottom: 80px;
+        }
+
+        .header {
+            background: linear-gradient(180deg, rgba(18, 18, 26, 0.98) 0%, rgba(10, 10, 15, 0.95) 100%);
+            padding: 15px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            background: var(--dark-surface);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: var(--text-primary);
+            font-size: 1.2rem;
+        }
+
+        .header-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            background: linear-gradient(45deg, var(--neon-purple), var(--neon-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .search-section {
+            padding: 20px;
+            background: var(--dark-card);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .search-box {
+            width: 100%;
+            background: var(--dark-surface);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 15px;
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: var(--neon-purple);
+        }
+
+        .search-box::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .category-tabs {
+            display: flex;
+            gap: 8px;
+            padding: 15px 20px;
+            overflow-x: auto;
+            background: var(--dark-card);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .category-tab {
+            padding: 8px 16px;
+            background: var(--dark-surface);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .category-tab.active {
+            background: var(--neon-purple);
+            color: #fff;
+            border-color: var(--neon-purple);
+        }
+
+        .main-content {
+            padding: 20px;
+        }
+
+        .term-count {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        .term-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .term-card {
+            background: var(--dark-card);
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .term-card:active {
+            transform: scale(0.98);
+        }
+
+        .term-card.expanded {
+            border-color: var(--neon-purple);
+        }
+
+        .term-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+        }
+
+        .term-icon {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, var(--neon-purple), var(--neon-pink));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            flex-shrink: 0;
+        }
+
+        .term-info {
+            flex: 1;
+        }
+
+        .term-name {
+            font-weight: 700;
+            font-size: 1.05rem;
+            margin-bottom: 3px;
+        }
+
+        .term-english {
+            font-size: 0.8rem;
+            color: var(--neon-cyan);
+        }
+
+        .term-arrow {
+            color: var(--text-secondary);
+            transition: transform 0.3s ease;
+        }
+
+        .term-card.expanded .term-arrow {
+            transform: rotate(180deg);
+        }
+
+        .term-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .term-card.expanded .term-body {
+            max-height: 500px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .term-definition {
+            color: var(--text-secondary);
+            line-height: 1.8;
+            font-size: 0.95rem;
+            margin-bottom: 15px;
+        }
+
+        .term-meta {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .term-tag {
+            background: rgba(136, 0, 255, 0.2);
+            border: 1px solid var(--neon-purple);
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            color: var(--neon-purple);
+        }
+
+        .term-chapter {
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid var(--neon-cyan);
+            color: var(--neon-cyan);
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(18, 18, 26, 0.98);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            padding-bottom: calc(10px + env(safe-area-inset-bottom));
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-secondary);
+            padding: 5px 15px;
+        }
+
+        .nav-item.active {
+            color: var(--neon-purple);
+        }
+
+        .nav-icon {
+            font-size: 1.5rem;
+            margin-bottom: 3px;
+        }
+
+        .nav-label {
+            font-size: 0.65rem;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+        }
+
+        .no-results-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <a href="../index.html" class="back-btn">←</a>
+        <h1 class="header-title">📖 用語辞典</h1>
+    </header>
+
+    <div class="search-section">
+        <input type="text" class="search-box" id="searchBox" placeholder="🔍 用語を検索...">
+    </div>
+
+    <div class="category-tabs" id="categoryTabs">
+        <div class="category-tab active" data-category="all">すべて</div>
+        <div class="category-tab" data-category="basic">基礎</div>
+        <div class="category-tab" data-category="prompt">プロンプト</div>
+        <div class="category-tab" data-category="model">モデル</div>
+        <div class="category-tab" data-category="api">API</div>
+        <div class="category-tab" data-category="security">セキュリティ</div>
+        <div class="category-tab" data-category="advanced">上級</div>
+    </div>
+
+    <main class="main-content">
+        <div class="term-count" id="termCount">全 0 用語</div>
+        <div class="term-list" id="termList"></div>
+        <div class="no-results" id="noResults" style="display: none;">
+            <div class="no-results-icon">🔍</div>
+            <p>該当する用語が見つかりません</p>
+        </div>
+    </main>
+
+    <nav class="bottom-nav">
+        <a href="../index.html" class="nav-item">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-label">ホーム</span>
+        </a>
+        <a href="../chapters/index.html" class="nav-item">
+            <span class="nav-icon">📚</span>
+            <span class="nav-label">チャプター</span>
+        </a>
+        <a href="../quiz/index.html" class="nav-item">
+            <span class="nav-icon">🎯</span>
+            <span class="nav-label">クイズ</span>
+        </a>
+        <a href="index.html" class="nav-item active">
+            <span class="nav-icon">📖</span>
+            <span class="nav-label">用語</span>
+        </a>
+        <a href="../profile.html" class="nav-item">
+            <span class="nav-icon">👤</span>
+            <span class="nav-label">プロフィール</span>
+        </a>
+    </nav>
+
+    <script>
+        const glossaryData = [
+            // Basic
+            { name: "Codex", english: "OpenAI Codex", icon: "🤖", category: "basic", chapter: 1,
+              def: "OpenAIが開発したAIモデル。自然言語の指示からプログラミングコードを生成する。GPTをベースに、GitHubの数十億行のコードで追加学習されている。" },
+            { name: "プロンプト", english: "Prompt", icon: "💬", category: "prompt", chapter: 3,
+              def: "AIモデルに与える入力テキスト。指示、質問、コンテキストなどを含む。プロンプトの質が出力の質を決定する。" },
+            { name: "トークン", english: "Token", icon: "🪙", category: "basic", chapter: 5,
+              def: "テキストを処理するための最小単位。API利用料金もトークン数で計算される。英語では1トークン≈4文字。" },
+            { name: "自然言語処理", english: "Natural Language Processing (NLP)", icon: "🔤", category: "basic", chapter: 4,
+              def: "人間が日常的に使う言語をコンピュータが理解・処理する技術。Codexはこの技術を活用して指示を理解する。" },
+            { name: "Transformer", english: "Transformer Architecture", icon: "🔧", category: "model", chapter: 2,
+              def: "現代のAI言語モデルの基盤となるニューラルネットワーク構造。Self-Attention機構により文脈を効率的に学習。" },
+            { name: "GPT", english: "Generative Pre-trained Transformer", icon: "🧠", category: "model", chapter: 2,
+              def: "OpenAIが開発した大規模言語モデルシリーズ。事前学習とファインチューニングの2段階学習法を採用。" },
+
+            // Prompt Engineering
+            { name: "プロンプトエンジニアリング", english: "Prompt Engineering", icon: "🔧", category: "prompt", chapter: 11,
+              def: "AIから最適な出力を得るためにプロンプトを設計・最適化する技術。2020年代に登場した新しい専門分野。" },
+            { name: "Few-Shot Learning", english: "Few-Shot Learning", icon: "🎯", category: "prompt", chapter: 12,
+              def: "プロンプト内にいくつかの例を含めて、AIにパターンを学習させる手法。2-5個の例が効果的。" },
+            { name: "Zero-Shot Learning", english: "Zero-Shot Learning", icon: "🎲", category: "prompt", chapter: 13,
+              def: "例を与えずに指示だけでタスクを実行させる手法。シンプルなタスクで有効。" },
+            { name: "Chain of Thought", english: "Chain of Thought (CoT)", icon: "🔗", category: "prompt", chapter: 14,
+              def: "AIに思考プロセスを段階的に説明させる手法。複雑な推論タスクで精度が大幅に向上。" },
+            { name: "システムプロンプト", english: "System Prompt", icon: "⚙️", category: "prompt", chapter: 15,
+              def: "AIの振る舞いや役割を定義する特別なプロンプト。全体の動作に影響を与える。" },
+            { name: "コンテキストウィンドウ", english: "Context Window", icon: "📦", category: "basic", chapter: 6,
+              def: "AIモデルが一度に処理できるトークンの最大範囲。この窓の中にある情報だけを参照できる。" },
+
+            // API & Technical
+            { name: "API", english: "Application Programming Interface", icon: "🔌", category: "api", chapter: 7,
+              def: "異なるソフトウェア間でデータをやり取りするための仕組み。Codex APIで自分のアプリからCodexを呼び出せる。" },
+            { name: "APIキー", english: "API Key", icon: "🔑", category: "api", chapter: 7,
+              def: "APIにアクセスするための認証情報。秘密に保管し、コードにハードコードしてはいけない。" },
+            { name: "エンドポイント", english: "Endpoint", icon: "🎯", category: "api", chapter: 7,
+              def: "APIにリクエストを送る特定のURL。例: /v1/chat/completions" },
+            { name: "Temperature", english: "Temperature Parameter", icon: "🌡️", category: "model", chapter: 8,
+              def: "出力のランダム性を制御するパラメータ。0に近いほど決定的、1に近いほど創造的。コード生成では0〜0.2推奨。" },
+            { name: "埋め込み", english: "Embedding", icon: "📊", category: "model", chapter: 4,
+              def: "各トークンを数値ベクトルに変換すること。意味的に近い単語は空間でも近い位置に配置される。" },
+            { name: "注意機構", english: "Attention Mechanism", icon: "👁️", category: "model", chapter: 4,
+              def: "文中のどの部分に注意を払うべきかを学習する仕組み。代名詞の参照解決などに重要。" },
+
+            // Security
+            { name: "プロンプトインジェクション", english: "Prompt Injection", icon: "💉", category: "security", chapter: 28,
+              def: "悪意あるユーザーがプロンプトを操作してAIの動作を乗っ取る攻撃。入力のサニタイズが必須。" },
+            { name: "レート制限", english: "Rate Limiting", icon: "🚦", category: "api", chapter: 29,
+              def: "一定時間内のAPIリクエスト数の制限。過負荷防止と公平性確保のため。" },
+            { name: "指数バックオフ", english: "Exponential Backoff", icon: "⏳", category: "api", chapter: 29,
+              def: "リトライ間隔を指数的に増やす戦略。1秒→2秒→4秒→8秒のように待機時間を増やす。" },
+
+            // Advanced
+            { name: "AIエージェント", english: "AI Agent", icon: "🤖", category: "advanced", chapter: 41,
+              def: "自律的にタスクを計画・実行するAIシステム。人間の介入なしに複数ステップの作業をこなす。" },
+            { name: "マルチエージェント", english: "Multi-Agent System", icon: "👥", category: "advanced", chapter: 43,
+              def: "複数のAIエージェントが協調して作業するシステム。役割分担で複雑なタスクに対応。" },
+            { name: "メタプロンプト", english: "Meta-Prompt", icon: "🔮", category: "advanced", chapter: 22,
+              def: "プロンプト自体を生成させるプロンプト。AIにプロンプトを最適化させる高度なテクニック。" },
+            { name: "プロンプトチェーン", english: "Prompt Chaining", icon: "🔗", category: "advanced", chapter: 21,
+              def: "複数のプロンプトを連鎖させて複雑なタスクを実行する手法。" },
+            { name: "スキル", english: "Skill", icon: "⚡", category: "advanced", chapter: 44,
+              def: "特定のタスクを実行するための再利用可能な命令セット。Codexでは$skill-nameで呼び出し可能。" },
+
+            // Development
+            { name: "リファクタリング", english: "Refactoring", icon: "🔧", category: "basic", chapter: 18,
+              def: "外部から見た動作を変えずに、コードの内部構造を改善すること。" },
+            { name: "ユニットテスト", english: "Unit Test", icon: "🧪", category: "basic", chapter: 19,
+              def: "個々の関数やメソッドを独立してテストすること。最小単位のテスト。" },
+            { name: "コードスメル", english: "Code Smell", icon: "👃", category: "basic", chapter: 18,
+              def: "コードに問題がある可能性を示す兆候。重複コード、長すぎる関数など。" },
+            { name: "CI/CD", english: "Continuous Integration/Continuous Deployment", icon: "🔄", category: "api", chapter: 34,
+              def: "継続的インテグレーション/デプロイメント。コード変更を自動でテスト・デプロイする仕組み。" },
+            { name: "SDK", english: "Software Development Kit", icon: "📦", category: "api", chapter: 31,
+              def: "特定のプラットフォームやサービスと連携するためのツールキット。" },
+            { name: "レガシーコード", english: "Legacy Code", icon: "🏚️", category: "basic", chapter: 38,
+              def: "古い技術やスタイルで書かれた既存コード。保守が困難だがビジネスで重要な場合が多い。" },
+
+            // More terms
+            { name: "ファインチューニング", english: "Fine-tuning", icon: "🎯", category: "model", chapter: 2,
+              def: "事前学習済みモデルを特定のタスクに特化させるための追加学習。" },
+            { name: "パラメータ", english: "Parameters", icon: "🔢", category: "model", chapter: 2,
+              def: "AIモデルが学習によって調整する数値の数。GPT-3は1750億パラメータ。" },
+            { name: "自己回帰", english: "Autoregressive", icon: "🔮", category: "model", chapter: 4,
+              def: "一度に1トークンずつ、前のトークンを基に次のトークンを予測する生成方式。" },
+            { name: "BPE", english: "Byte Pair Encoding", icon: "🔡", category: "model", chapter: 5,
+              def: "GPTで使われるトークン化アルゴリズム。頻出する文字の組み合わせを1つのトークンとして扱う。" },
+            { name: "コンテキスト圧縮", english: "Context Compression", icon: "🗜️", category: "advanced", chapter: 25,
+              def: "長い会話履歴を要約して、重要な情報だけを保持するテクニック。" },
+            { name: "フォールバック", english: "Fallback Strategy", icon: "🔙", category: "api", chapter: 26,
+              def: "AIの出力が期待通りでない場合の代替処理。再試行、別のプロンプト、人間への委譲など。" },
+            { name: "レイテンシ", english: "Latency", icon: "⏱️", category: "api", chapter: 27,
+              def: "リクエストを送ってから応答を受け取るまでの時間。" },
+            { name: "ワークフロー", english: "Workflow", icon: "🔄", category: "advanced", chapter: 45,
+              def: "一連の作業手順をまとめたもの。コード生成→レビュー→テスト→デプロイなど。" },
+            { name: "オーケストレーション", english: "Orchestration", icon: "🎼", category: "advanced", chapter: 43,
+              def: "複数のエージェントやサービスを統括し、協調動作させる仕組み。" },
+        ];
+
+        let currentCategory = 'all';
+        let searchQuery = '';
+
+        function renderTerms() {
+            const termList = document.getElementById('termList');
+            const noResults = document.getElementById('noResults');
+            const termCount = document.getElementById('termCount');
+
+            let filtered = glossaryData;
+
+            // Filter by category
+            if (currentCategory !== 'all') {
+                filtered = filtered.filter(term => term.category === currentCategory);
+            }
+
+            // Filter by search
+            if (searchQuery) {
+                const query = searchQuery.toLowerCase();
+                filtered = filtered.filter(term =>
+                    term.name.toLowerCase().includes(query) ||
+                    term.english.toLowerCase().includes(query) ||
+                    term.def.toLowerCase().includes(query)
+                );
+            }
+
+            // Sort alphabetically
+            filtered.sort((a, b) => a.name.localeCompare(b.name, 'ja'));
+
+            termCount.textContent = `全 ${filtered.length} 用語`;
+
+            if (filtered.length === 0) {
+                termList.innerHTML = '';
+                noResults.style.display = 'block';
+                return;
+            }
+
+            noResults.style.display = 'none';
+
+            termList.innerHTML = filtered.map(term => `
+                <div class="term-card" onclick="toggleTerm(this)">
+                    <div class="term-header">
+                        <div class="term-icon">${term.icon}</div>
+                        <div class="term-info">
+                            <div class="term-name">${term.name}</div>
+                            <div class="term-english">${term.english}</div>
+                        </div>
+                        <span class="term-arrow">▼</span>
+                    </div>
+                    <div class="term-body">
+                        <p class="term-definition">${term.def}</p>
+                        <div class="term-meta">
+                            <span class="term-tag">${getCategoryName(term.category)}</span>
+                            <span class="term-tag term-chapter">Chapter ${term.chapter}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getCategoryName(category) {
+            const names = {
+                basic: '基礎',
+                prompt: 'プロンプト',
+                model: 'モデル',
+                api: 'API',
+                security: 'セキュリティ',
+                advanced: '上級'
+            };
+            return names[category] || category;
+        }
+
+        function toggleTerm(element) {
+            element.classList.toggle('expanded');
+        }
+
+        // Category tabs
+        document.getElementById('categoryTabs').addEventListener('click', (e) => {
+            if (e.target.classList.contains('category-tab')) {
+                document.querySelectorAll('.category-tab').forEach(tab => tab.classList.remove('active'));
+                e.target.classList.add('active');
+                currentCategory = e.target.dataset.category;
+                renderTerms();
+            }
+        });
+
+        // Search
+        document.getElementById('searchBox').addEventListener('input', (e) => {
+            searchQuery = e.target.value;
+            renderTerms();
+        });
+
+        // Initial render
+        renderTerms();
+    </script>
+</body>
+</html>
