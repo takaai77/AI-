@@ -1,0 +1,1361 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Codex完全ガイド - 歴史・概要・活用のコツ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Orbitron:wght@700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #10a37f;
+            --primary-dark: #0d8a6a;
+            --secondary: #6e42c1;
+            --accent: #00d4aa;
+            --bg-dark: #0f0f0f;
+            --bg-card: #1a1a1a;
+            --bg-card-hover: #222;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --border-color: #333;
+            --gradient-1: linear-gradient(135deg, #10a37f, #6e42c1);
+            --gradient-2: linear-gradient(135deg, #00d4aa, #10a37f);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.8;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(180deg, #1a1a2e 0%, var(--bg-dark) 100%);
+            padding: 80px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(circle at 20% 50%, rgba(16, 163, 127, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 50%, rgba(110, 66, 193, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: var(--gradient-1);
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+        }
+
+        .hero h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3rem;
+            margin-bottom: 20px;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-subtitle {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            max-width: 700px;
+            margin: 0 auto 30px;
+        }
+
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            flex-wrap: wrap;
+            margin-top: 40px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            color: var(--accent);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        /* Navigation */
+        .nav-container {
+            background: rgba(26, 26, 26, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 15px 20px;
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .nav::-webkit-scrollbar {
+            display: none;
+        }
+
+        .nav-link {
+            padding: 10px 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            white-space: nowrap;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 60px 20px;
+        }
+
+        /* Section */
+        .section {
+            margin-bottom: 80px;
+        }
+
+        .section-header {
+            margin-bottom: 40px;
+        }
+
+        .section-tag {
+            display: inline-block;
+            background: rgba(16, 163, 127, 0.2);
+            color: var(--primary);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: var(--gradient-1);
+            border-radius: 2px;
+        }
+
+        .section-desc {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            max-width: 800px;
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 40px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(180deg, var(--primary), var(--secondary));
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 40px;
+            padding: 25px;
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .timeline-item:hover {
+            border-color: var(--primary);
+            transform: translateX(5px);
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -33px;
+            top: 30px;
+            width: 16px;
+            height: 16px;
+            background: var(--primary);
+            border-radius: 50%;
+            border: 3px solid var(--bg-dark);
+        }
+
+        .timeline-date {
+            display: inline-block;
+            background: var(--gradient-1);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .timeline-title {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            color: var(--accent);
+        }
+
+        .timeline-content {
+            color: var(--text-secondary);
+        }
+
+        /* Cards Grid */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: var(--primary);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(16, 163, 127, 0.1);
+        }
+
+        .card-icon {
+            width: 60px;
+            height: 60px;
+            background: var(--gradient-1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        .card-desc {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        /* Feature List */
+        .feature-list {
+            list-style: none;
+        }
+
+        .feature-list li {
+            padding: 15px 0;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+        .feature-list li:last-child {
+            border-bottom: none;
+        }
+
+        .feature-icon {
+            width: 28px;
+            height: 28px;
+            background: rgba(16, 163, 127, 0.2);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .feature-content h4 {
+            margin-bottom: 5px;
+        }
+
+        .feature-content p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        /* Code Block */
+        .code-block {
+            background: #000;
+            border-radius: 12px;
+            margin: 25px 0;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .code-header {
+            background: #1a1a1a;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .code-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .code-dot.red { background: #ff5f56; }
+        .code-dot.yellow { background: #ffbd2e; }
+        .code-dot.green { background: #27ca40; }
+
+        .code-title {
+            margin-left: auto;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .code-body {
+            padding: 20px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.8;
+            overflow-x: auto;
+        }
+
+        .code-body .comment { color: #6a737d; }
+        .code-body .keyword { color: #ff79c6; }
+        .code-body .string { color: #f1fa8c; }
+        .code-body .function { color: #8be9fd; }
+        .code-body .prompt { color: #50fa7b; }
+
+        /* Tips Section */
+        .tips-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+        }
+
+        .tip-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .tip-header {
+            padding: 20px 25px;
+            background: linear-gradient(135deg, rgba(16, 163, 127, 0.1), rgba(110, 66, 193, 0.1));
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .tip-number {
+            width: 40px;
+            height: 40px;
+            background: var(--gradient-1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+        }
+
+        .tip-title {
+            font-size: 1.1rem;
+        }
+
+        .tip-body {
+            padding: 25px;
+        }
+
+        .tip-body p {
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+        }
+
+        .tip-body p:last-child {
+            margin-bottom: 0;
+        }
+
+        .tip-highlight {
+            background: rgba(16, 163, 127, 0.1);
+            border-left: 3px solid var(--primary);
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+            margin-top: 15px;
+        }
+
+        .tip-highlight strong {
+            color: var(--primary);
+        }
+
+        /* Comparison Table */
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            background: var(--bg-card);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 18px 20px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .comparison-table th {
+            background: linear-gradient(135deg, rgba(16, 163, 127, 0.2), rgba(110, 66, 193, 0.2));
+            font-weight: 700;
+        }
+
+        .comparison-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .comparison-table tr:hover td {
+            background: rgba(16, 163, 127, 0.05);
+        }
+
+        .badge-good {
+            display: inline-block;
+            background: rgba(0, 212, 170, 0.2);
+            color: var(--accent);
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        .badge-neutral {
+            display: inline-block;
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        /* Sources Section */
+        .sources {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 30px;
+            margin-top: 60px;
+        }
+
+        .sources h3 {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sources ul {
+            list-style: none;
+        }
+
+        .sources li {
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sources li:last-child {
+            border-bottom: none;
+        }
+
+        .sources a {
+            color: var(--primary);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .sources a:hover {
+            color: var(--accent);
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--bg-card);
+            border-top: 1px solid var(--border-color);
+            padding: 40px 20px;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .hero-stats {
+                gap: 20px;
+            }
+
+            .stat-value {
+                font-size: 1.8rem;
+            }
+
+            .section-title {
+                font-size: 1.5rem;
+            }
+
+            .timeline {
+                padding-left: 30px;
+            }
+
+            .timeline-item::before {
+                left: -23px;
+                width: 12px;
+                height: 12px;
+            }
+
+            .tips-container {
+                grid-template-columns: 1fr;
+            }
+
+            .comparison-table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+
+        /* Smooth Scroll */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 4px;
+        }
+
+        /* Alert Box */
+        .alert-box {
+            background: linear-gradient(135deg, rgba(110, 66, 193, 0.1), rgba(16, 163, 127, 0.1));
+            border: 1px solid var(--secondary);
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        .alert-icon {
+            font-size: 2rem;
+            flex-shrink: 0;
+        }
+
+        .alert-content h4 {
+            color: var(--secondary);
+            margin-bottom: 10px;
+        }
+
+        .alert-content p {
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <span class="hero-badge">COMPLETE GUIDE</span>
+            <h1>CODEX 完全ガイド</h1>
+            <p class="hero-subtitle">
+                OpenAI Codexの歴史から最新機能、効果的な使い方まで。
+                公式ドキュメントを基に日本語でわかりやすく解説します。
+            </p>
+            <div class="hero-stats">
+                <div class="stat-item">
+                    <div class="stat-value">2021</div>
+                    <div class="stat-label">初期リリース</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">GPT-5</div>
+                    <div class="stat-label">最新モデル</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">10+</div>
+                    <div class="stat-label">対応言語</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Navigation -->
+    <div class="nav-container">
+        <nav class="nav">
+            <a href="#history" class="nav-link">歴史</a>
+            <a href="#overview" class="nav-link">概要</a>
+            <a href="#features" class="nav-link">機能</a>
+            <a href="#tips" class="nav-link">活用のコツ</a>
+            <a href="#prompts" class="nav-link">プロンプト例</a>
+            <a href="#comparison" class="nav-link">比較</a>
+            <a href="#resources" class="nav-link">リソース</a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- History Section -->
+        <section id="history" class="section">
+            <div class="section-header">
+                <span class="section-tag">HISTORY</span>
+                <h2 class="section-title">Codexの歴史</h2>
+                <p class="section-desc">
+                    OpenAI Codexは、自然言語をコードに変換するAIシステムとして誕生し、
+                    現在ではソフトウェアエンジニアリング全体をサポートするエージェントへと進化しました。
+                </p>
+            </div>
+
+            <div class="timeline">
+                <div class="timeline-item">
+                    <span class="timeline-date">2021年8月</span>
+                    <h3 class="timeline-title">Codex初期版リリース</h3>
+                    <p class="timeline-content">
+                        OpenAIがCodexをプライベートベータとして公開。GPT-3をベースに、
+                        GitHubの数十億行のコードで追加学習されたモデル。
+                        自然言語からコードを生成する革新的な機能が話題に。
+                        GitHub Copilotの基盤技術として採用される。
+                    </p>
+                </div>
+
+                <div class="timeline-item">
+                    <span class="timeline-date">2022年 - 2023年</span>
+                    <h3 class="timeline-title">進化と統合</h3>
+                    <p class="timeline-content">
+                        GPT-3.5、GPT-4の登場により、コーディング能力が大幅に向上。
+                        独立したCodex APIは段階的に廃止され、
+                        より汎用的なGPTモデルにコーディング機能が統合される方向へ。
+                    </p>
+                </div>
+
+                <div class="timeline-item">
+                    <span class="timeline-date">2024年</span>
+                    <h3 class="timeline-title">旧Codex API廃止</h3>
+                    <p class="timeline-content">
+                        OpenAIは旧来のCodexモデル（code-davinci-002など）を正式に廃止。
+                        開発者にはGPT-4やチャットベースのモデルへの移行を推奨。
+                        コーディングアシスタントは次世代のマルチモーダルモデルへと移行。
+                    </p>
+                </div>
+
+                <div class="timeline-item">
+                    <span class="timeline-date">2025年</span>
+                    <h3 class="timeline-title">新生Codex登場</h3>
+                    <p class="timeline-content">
+                        OpenAIがCodexをクラウドベースのソフトウェアエンジニアリングエージェントとして再ローンチ。
+                        codex-1モデルを搭載し、複数のタスクを並行処理可能。
+                        ChatGPT Pro、Business、Enterpriseユーザーに提供開始。
+                        「AIチームメイト」として、より複雑で長期的なコーディングタスクに対応。
+                    </p>
+                </div>
+
+                <div class="timeline-item">
+                    <span class="timeline-date">2025年後半</span>
+                    <h3 class="timeline-title">GPT-5-Codex / GPT-5.2-Codex</h3>
+                    <p class="timeline-content">
+                        GPT-5をベースにしたCodex専用モデルが登場。
+                        フルプロジェクトの構築、大規模リファクタリング、コードレビューなど
+                        実際のエンジニアリングタスクに最適化。
+                        GPT-5.2-Codexでは、長期タスクのコンテキスト圧縮、
+                        Windows対応強化、サイバーセキュリティ機能が追加。
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Overview Section -->
+        <section id="overview" class="section">
+            <div class="section-header">
+                <span class="section-tag">OVERVIEW</span>
+                <h2 class="section-title">Codexとは？</h2>
+                <p class="section-desc">
+                    Codexは単なるコード生成ツールから、ソフトウェア開発全体を支援する
+                    インテリジェントなエージェントへと進化しました。
+                </p>
+            </div>
+
+            <div class="alert-box">
+                <div class="alert-icon">💡</div>
+                <div class="alert-content">
+                    <h4>2025年のCodexは「ソフトウェアエンジニアのチームメイト」</h4>
+                    <p>
+                        モデル、ローカルツール、クラウドを連携させ、
+                        開発者がより長く複雑なコーディングタスクに取り組むのを支援します。
+                        各タスクは独立した環境で処理され、1〜30分で完了します。
+                    </p>
+                </div>
+            </div>
+
+            <div class="cards-grid">
+                <div class="card">
+                    <div class="card-icon">🧠</div>
+                    <h3 class="card-title">自然言語理解</h3>
+                    <p class="card-desc">
+                        人間の言葉で書かれた指示を理解し、
+                        適切なコードに変換。曖昧な表現も文脈から解釈。
+                    </p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">⚡</div>
+                    <h3 class="card-title">マルチタスク処理</h3>
+                    <p class="card-desc">
+                        複数のタスクを並行して処理。
+                        それぞれ独立した環境でコードベースを操作。
+                    </p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🔧</div>
+                    <h3 class="card-title">ツール統合</h3>
+                    <p class="card-desc">
+                        ファイルの読み書き、テスト実行、リンター、
+                        型チェッカーなどのコマンドを実行可能。
+                    </p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🌐</div>
+                    <h3 class="card-title">多言語対応</h3>
+                    <p class="card-desc">
+                        Python、JavaScript、TypeScript、Go、Rust、Java、
+                        C++など主要言語をサポート。
+                    </p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🔄</div>
+                    <h3 class="card-title">適応的推論</h3>
+                    <p class="card-desc">
+                        タスクの複雑さに応じて推論時間を自動調整。
+                        シンプルな質問は即座に、複雑な問題は深く考察。
+                    </p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">📦</div>
+                    <h3 class="card-title">スキルシステム</h3>
+                    <p class="card-desc">
+                        再利用可能な命令バンドル（スキル）で
+                        特定のタスクを確実に完了。$skill-nameで呼び出し可能。
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section id="features" class="section">
+            <div class="section-header">
+                <span class="section-tag">FEATURES</span>
+                <h2 class="section-title">主要機能</h2>
+                <p class="section-desc">
+                    Codexが提供する主要な機能と、それぞれの活用場面を解説します。
+                </p>
+            </div>
+
+            <ul class="feature-list">
+                <li>
+                    <span class="feature-icon">✨</span>
+                    <div class="feature-content">
+                        <h4>コード生成（Code Generation）</h4>
+                        <p>
+                            自然言語の説明からコードを自動生成。
+                            「ユーザー認証機能を実装して」といった高レベルな指示から、
+                            具体的な関数やクラスを作成します。
+                        </p>
+                    </div>
+                </li>
+                <li>
+                    <span class="feature-icon">🔍</span>
+                    <div class="feature-content">
+                        <h4>コード理解（Code Understanding）</h4>
+                        <p>
+                            既存のコードベースを分析し、複雑なロジックを説明。
+                            「この関数は何をしているか」「このアーキテクチャの意図は」
+                            といった質問に回答します。
+                        </p>
+                    </div>
+                </li>
+                <li>
+                    <span class="feature-icon">🔧</span>
+                    <div class="feature-content">
+                        <h4>リファクタリング＆最適化</h4>
+                        <p>
+                            コードの品質向上、パフォーマンス改善、
+                            モダンなパターンへの書き換えを支援。
+                            DRY、SOLID原則に従った改善を提案します。
+                        </p>
+                    </div>
+                </li>
+                <li>
+                    <span class="feature-icon">🐛</span>
+                    <div class="feature-content">
+                        <h4>デバッグ支援</h4>
+                        <p>
+                            エラーメッセージとコードから問題の原因を特定。
+                            修正案を提示し、テストケースも生成可能。
+                        </p>
+                    </div>
+                </li>
+                <li>
+                    <span class="feature-icon">🧪</span>
+                    <div class="feature-content">
+                        <h4>自動テスト生成</h4>
+                        <p>
+                            ユニットテスト、統合テストを自動生成。
+                            エッジケースを考慮したテストケースで
+                            コードの品質を担保します。
+                        </p>
+                    </div>
+                </li>
+                <li>
+                    <span class="feature-icon">🔄</span>
+                    <div class="feature-content">
+                        <h4>言語間翻訳</h4>
+                        <p>
+                            PythonからJavaScript、RubyからGoなど、
+                            異なるプログラミング言語間でコードを変換。
+                            言語固有のイディオムも考慮します。
+                        </p>
+                    </div>
+                </li>
+            </ul>
+        </section>
+
+        <!-- Tips Section -->
+        <section id="tips" class="section">
+            <div class="section-header">
+                <span class="section-tag">TIPS</span>
+                <h2 class="section-title">活用のコツ</h2>
+                <p class="section-desc">
+                    OpenAI公式のプロンプティングガイドを基に、
+                    Codexを最大限活用するためのベストプラクティスを紹介します。
+                </p>
+            </div>
+
+            <div class="tips-container">
+                <div class="tip-card">
+                    <div class="tip-header">
+                        <span class="tip-number">1</span>
+                        <h3 class="tip-title">推論レベルを調整する</h3>
+                    </div>
+                    <div class="tip-body">
+                        <p>
+                            Codexは「medium」「high」「xhigh」など、
+                            推論の深さを調整できます。
+                        </p>
+                        <div class="tip-highlight">
+                            <strong>推奨:</strong> 通常のインタラクティブなコーディングには
+                            「medium」がバランスが良い。難しいタスクには「high」「xhigh」を使用。
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tip-card">
+                    <div class="tip-header">
+                        <span class="tip-number">2</span>
+                        <h3 class="tip-title">役割を明確に定義する</h3>
+                    </div>
+                    <div class="tip-body">
+                        <p>
+                            エージェントの役割を最初に定義すると、
+                            一貫した高品質な出力が得られます。
+                        </p>
+                        <div class="tip-highlight">
+                            <strong>例:</strong> 「あなたはシニアバックエンドエンジニアです。
+                            セキュリティとパフォーマンスを重視してコードレビューを行ってください。」
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tip-card">
+                    <div class="tip-header">
+                        <span class="tip-number">3</span>
+                        <h3 class="tip-title">ツール使用を構造化する</h3>
+                    </div>
+                    <div class="tip-body">
+                        <p>
+                            ツールの使い方を例示すると、
+                            Codexは意図通りにツールを活用します。
+                        </p>
+                        <div class="tip-highlight">
+                            <strong>ポイント:</strong> 主要なツール使用の決定には、
+                            なぜそのツールを使うかの前置きを含めるよう指示する。
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tip-card">
+                    <div class="tip-header">
+                        <span class="tip-number">4</span>
+                        <h3 class="tip-title">TODOツールで進捗管理</h3>
+                    </div>
+                    <div class="tip-body">
+                        <p>
+                            長時間のタスクでは、TODOツールで
+                            ワークフローと進捗を追跡させましょう。
+                        </p>
+                        <div class="tip-highlight">
+                            <strong>メリット:</strong> タスクの完全な解決を確実にし、
+                            途中で止まることを防ぎます。
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tip-card">
+                    <div class="tip-header">
+                        <span class="tip-number">5</span>
+                        <h3 class="tip-title">既存のスタイルを尊重させる</h3>
+                    </div>
+                    <div class="tip-body">
+                        <p>
+                            既存のコードベースを編集する際は、
+                            既存のスタイルとデザイン標準に従うよう指示します。
+                        </p>
+                        <div class="tip-highlight">
+                            <strong>プロンプト例:</strong> 「このプロジェクトの既存の命名規則、
+                            ディレクトリ構造、エンジニアリング原則に従ってください。」
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tip-card">
+                    <div class="tip-header">
+                        <span class="tip-number">6</span>
+                        <h3 class="tip-title">テストを要求する</h3>
+                    </div>
+                    <div class="tip-body">
+                        <p>
+                            コーディングタスクでは、正確性を確保するため
+                            徹底的なテストを要求しましょう。
+                        </p>
+                        <div class="tip-highlight">
+                            <strong>ベストプラクティス:</strong> 「実装後、ユニットテストを作成し、
+                            エッジケースもカバーしてください。」
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert-box" style="margin-top: 40px;">
+                <div class="alert-icon">⚠️</div>
+                <div class="alert-content">
+                    <h4>避けるべきこと</h4>
+                    <p>
+                        「計画を事前に説明して」「ステータス更新を頻繁に」といった
+                        プロンプトは、モデルが途中で停止する原因になることがあります。
+                        特に長いロールアウト時は、これらの指示を削除することを推奨します。
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Prompts Section -->
+        <section id="prompts" class="section">
+            <div class="section-header">
+                <span class="section-tag">PROMPTS</span>
+                <h2 class="section-title">効果的なプロンプト例</h2>
+                <p class="section-desc">
+                    実際に使える具体的なプロンプト例を紹介します。
+                </p>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-dot red"></span>
+                    <span class="code-dot yellow"></span>
+                    <span class="code-dot green"></span>
+                    <span class="code-title">コード生成 - 関数作成</span>
+                </div>
+                <div class="code-body">
+                    <span class="comment"># 悪い例（曖昧）</span><br>
+                    <span class="string">"ソート関数を作って"</span><br><br>
+                    <span class="comment"># 良い例（具体的）</span><br>
+                    <span class="string">"""</span><br>
+                    <span class="string">TypeScriptで以下の仕様の関数を作成してください：</span><br>
+                    <span class="string"></span><br>
+                    <span class="string">関数名: sortUsersByScore</span><br>
+                    <span class="string">引数: users: User[] (User = { id: string, name: string, score: number })</span><br>
+                    <span class="string">戻り値: User[] (スコアの降順でソート)</span><br>
+                    <span class="string">要件:</span><br>
+                    <span class="string">- 同スコアの場合は名前の昇順</span><br>
+                    <span class="string">- 元の配列を変更しない（イミュータブル）</span><br>
+                    <span class="string">- スコアがnullの場合は最後に配置</span><br>
+                    <span class="string">"""</span>
+                </div>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-dot red"></span>
+                    <span class="code-dot yellow"></span>
+                    <span class="code-dot green"></span>
+                    <span class="code-title">デバッグ - エラー解析</span>
+                </div>
+                <div class="code-body">
+                    <span class="string">"""</span><br>
+                    <span class="string">以下のエラーの原因と解決策を教えてください。</span><br>
+                    <span class="string"></span><br>
+                    <span class="string">エラーメッセージ:</span><br>
+                    <span class="string">TypeError: Cannot read property 'map' of undefined</span><br>
+                    <span class="string">    at UserList (UserList.tsx:15:23)</span><br>
+                    <span class="string"></span><br>
+                    <span class="string">関連コード:</span><br>
+                    <span class="keyword">function</span> <span class="function">UserList</span>({ users }: Props) {<br>
+                    &nbsp;&nbsp;<span class="keyword">return</span> (<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&lt;ul&gt;{users.<span class="function">map</span>(u =&gt; &lt;li&gt;{u.name}&lt;/li&gt;)}&lt;/ul&gt;<br>
+                    &nbsp;&nbsp;);<br>
+                    }<br>
+                    <span class="string"></span><br>
+                    <span class="string">期待する動作: ユーザー一覧を表示したい</span><br>
+                    <span class="string">現状: 初回レンダリング時にエラーが発生</span><br>
+                    <span class="string">"""</span>
+                </div>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-dot red"></span>
+                    <span class="code-dot yellow"></span>
+                    <span class="code-dot green"></span>
+                    <span class="code-title">リファクタリング</span>
+                </div>
+                <div class="code-body">
+                    <span class="string">"""</span><br>
+                    <span class="string">以下のコードをリファクタリングしてください。</span><br>
+                    <span class="string"></span><br>
+                    <span class="string">改善ポイント:</span><br>
+                    <span class="string">1. DRY原則に従って重複を排除</span><br>
+                    <span class="string">2. 関数を小さな単位に分割</span><br>
+                    <span class="string">3. TypeScriptの型を適切に定義</span><br>
+                    <span class="string">4. エラーハンドリングを追加</span><br>
+                    <span class="string"></span><br>
+                    <span class="string">制約:</span><br>
+                    <span class="string">- 既存のAPIインターフェースは変更しない</span><br>
+                    <span class="string">- 外部ライブラリの追加は最小限に</span><br>
+                    <span class="string">"""</span>
+                </div>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-dot red"></span>
+                    <span class="code-dot yellow"></span>
+                    <span class="code-dot green"></span>
+                    <span class="code-title">コードレビュー</span>
+                </div>
+                <div class="code-body">
+                    <span class="string">"""</span><br>
+                    <span class="string">以下のコードをレビューしてください。</span><br>
+                    <span class="string"></span><br>
+                    <span class="string">観点:</span><br>
+                    <span class="string">1. セキュリティ（SQLインジェクション、XSS等）</span><br>
+                    <span class="string">2. パフォーマンス（N+1問題、メモリリーク等）</span><br>
+                    <span class="string">3. 可読性とメンテナンス性</span><br>
+                    <span class="string">4. エッジケースの考慮</span><br>
+                    <span class="string">5. テスタビリティ</span><br>
+                    <span class="string"></span><br>
+                    <span class="string">問題がある場合は、重要度（高/中/低）と</span><br>
+                    <span class="string">具体的な修正案を提示してください。</span><br>
+                    <span class="string">"""</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Comparison Section -->
+        <section id="comparison" class="section">
+            <div class="section-header">
+                <span class="section-tag">COMPARISON</span>
+                <h2 class="section-title">推論モデル vs GPTモデル</h2>
+                <p class="section-desc">
+                    どちらのモデルを使うべきか？タスクに応じた選択ガイド。
+                </p>
+            </div>
+
+            <div class="alert-box">
+                <div class="alert-icon">🎯</div>
+                <div class="alert-content">
+                    <h4>使い分けの基本原則</h4>
+                    <p>
+                        <strong>推論モデル（Codex）</strong> = シニアの同僚。目標を与えれば、詳細は自分で考える。<br>
+                        <strong>GPTモデル</strong> = ジュニアの同僚。具体的な指示があると最高のパフォーマンスを発揮。
+                    </p>
+                </div>
+            </div>
+
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>タスク</th>
+                        <th>推論モデル（Codex）</th>
+                        <th>GPTモデル</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>大規模リファクタリング</td>
+                        <td><span class="badge-good">最適</span></td>
+                        <td>段階的な指示が必要</td>
+                    </tr>
+                    <tr>
+                        <td>新機能の設計と実装</td>
+                        <td><span class="badge-good">最適</span></td>
+                        <td>詳細な仕様が必要</td>
+                    </tr>
+                    <tr>
+                        <td>シンプルな関数作成</td>
+                        <td>可能だがオーバースペック</td>
+                        <td><span class="badge-good">十分</span></td>
+                    </tr>
+                    <tr>
+                        <td>デバッグ（複雑）</td>
+                        <td><span class="badge-good">最適</span></td>
+                        <td>コンテキスト提供が必要</td>
+                    </tr>
+                    <tr>
+                        <td>コード説明</td>
+                        <td>可能</td>
+                        <td><span class="badge-good">十分</span></td>
+                    </tr>
+                    <tr>
+                        <td>テスト生成</td>
+                        <td><span class="badge-good">最適</span></td>
+                        <td><span class="badge-neutral">可能</span></td>
+                    </tr>
+                    <tr>
+                        <td>長時間の自律作業</td>
+                        <td><span class="badge-good">数時間対応</span></td>
+                        <td>頻繁な介入が必要</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Resources Section -->
+        <section id="resources" class="section">
+            <div class="section-header">
+                <span class="section-tag">RESOURCES</span>
+                <h2 class="section-title">公式リソース</h2>
+                <p class="section-desc">
+                    さらに詳しく学ぶための公式ドキュメントとリソース集。
+                </p>
+            </div>
+
+            <div class="cards-grid">
+                <div class="card">
+                    <div class="card-icon">📚</div>
+                    <h3 class="card-title">Codex公式ページ</h3>
+                    <p class="card-desc">
+                        OpenAI CodexのメインページとChatGPTからのアクセス方法。
+                    </p>
+                    <a href="https://openai.com/codex/" target="_blank" style="color: var(--primary); text-decoration: none; display: inline-block; margin-top: 15px;">
+                        openai.com/codex →
+                    </a>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🛠️</div>
+                    <h3 class="card-title">開発者向けドキュメント</h3>
+                    <p class="card-desc">
+                        APIリファレンス、チェンジログ、統合ガイド。
+                    </p>
+                    <a href="https://developers.openai.com/codex/" target="_blank" style="color: var(--primary); text-decoration: none; display: inline-block; margin-top: 15px;">
+                        developers.openai.com/codex →
+                    </a>
+                </div>
+                <div class="card">
+                    <div class="card-icon">📖</div>
+                    <h3 class="card-title">プロンプティングガイド</h3>
+                    <p class="card-desc">
+                        公式のベストプラクティスと効果的なプロンプト作成法。
+                    </p>
+                    <a href="https://developers.openai.com/cookbook/examples/gpt-5/codex_prompting_guide" target="_blank" style="color: var(--primary); text-decoration: none; display: inline-block; margin-top: 15px;">
+                        Codex Prompting Guide →
+                    </a>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🎓</div>
+                    <h3 class="card-title">OpenAI Academy</h3>
+                    <p class="card-desc">
+                        Codex for Buildersなど、体系的な学習リソース。
+                    </p>
+                    <a href="https://academy.openai.com/public/resources/codex-for-builders" target="_blank" style="color: var(--primary); text-decoration: none; display: inline-block; margin-top: 15px;">
+                        Codex for Builders →
+                    </a>
+                </div>
+            </div>
+
+            <!-- Sources -->
+            <div class="sources">
+                <h3>📋 参考リンク（Sources）</h3>
+                <ul>
+                    <li><a href="https://openai.com/codex/" target="_blank">Codex | AI Coding Partner from OpenAI</a></li>
+                    <li><a href="https://developers.openai.com/codex/" target="_blank">Codex - OpenAI Developers</a></li>
+                    <li><a href="https://developers.openai.com/codex/changelog/" target="_blank">Codex Changelog</a></li>
+                    <li><a href="https://developers.openai.com/cookbook/examples/gpt-5/codex_prompting_guide" target="_blank">Codex Prompting Guide</a></li>
+                    <li><a href="https://openai.com/index/introducing-codex/" target="_blank">Introducing Codex | OpenAI</a></li>
+                    <li><a href="https://openai.com/index/introducing-upgrades-to-codex/" target="_blank">Introducing Upgrades to Codex | OpenAI</a></li>
+                    <li><a href="https://openai.com/index/introducing-gpt-5-2-codex/" target="_blank">Introducing GPT-5.2-Codex | OpenAI</a></li>
+                    <li><a href="https://platform.openai.com/docs/guides/prompt-engineering" target="_blank">Prompt Engineering Guide | OpenAI</a></li>
+                    <li><a href="https://help.openai.com/en/articles/6654000-best-practices-for-prompt-engineering-with-the-openai-api" target="_blank">Best Practices for Prompt Engineering | OpenAI Help</a></li>
+                    <li><a href="https://academy.openai.com/public/resources/codex-for-builders" target="_blank">Codex for Builders | OpenAI Academy</a></li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="codex-gaming-learning.html">ゲーミング学習コンテンツ</a>
+            <a href="https://openai.com/codex/" target="_blank">OpenAI Codex公式</a>
+            <a href="https://github.com/anthropics/claude-code" target="_blank">Claude Code</a>
+        </div>
+        <p>このガイドはOpenAI公式ドキュメントを基に作成されています。</p>
+        <p style="margin-top: 10px; font-size: 0.9rem;">最終更新: 2025年</p>
+    </footer>
+
+    <script>
+        // Smooth scroll for navigation
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').substring(1);
+                const targetElement = document.getElementById(targetId);
+                if (targetElement) {
+                    targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+
+                // Update active state
+                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Update active nav on scroll
+        window.addEventListener('scroll', () => {
+            const sections = document.querySelectorAll('.section');
+            let current = '';
+
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (pageYOffset >= sectionTop - 200) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === `#${current}`) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
