@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI- Learning Hub</title>
+    <style>
+      :root {
+        --bg: #f3f7f8;
+        --ink: #132029;
+        --muted: #5a6b76;
+        --line: #d4e2e9;
+        --brand: #0b5c4f;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: "Noto Sans JP", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 8% 2%, #d6ece6 0, transparent 36%),
+          radial-gradient(circle at 96% 0%, #e5eef9 0, transparent 32%),
+          var(--bg);
+      }
+      main {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 28px 16px 24px;
+      }
+      h1 {
+        margin: 0;
+        font-size: clamp(1.8rem, 5vw, 2.6rem);
+      }
+      .lead {
+        margin-top: 12px;
+        color: var(--muted);
+        line-height: 1.7;
+      }
+      .grid {
+        margin-top: 18px;
+        display: grid;
+        gap: 12px;
+      }
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: #fff;
+        padding: 16px;
+      }
+      .card h2 {
+        margin: 0 0 8px;
+      }
+      .card p {
+        margin: 0 0 12px;
+        color: var(--muted);
+        line-height: 1.7;
+      }
+      .btn {
+        display: inline-block;
+        text-decoration: none;
+        color: #fff;
+        background: linear-gradient(120deg, var(--brand), #14826f);
+        padding: 10px 14px;
+        border-radius: 10px;
+        font-weight: 700;
+      }
+      .note {
+        margin-top: 16px;
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>AI- 学習サイト</h1>
+      <p class="lead">用途別に 2つのサイトへ分離しました。以下から選んで利用してください。</p>
+
+      <div class="grid">
+        <section class="card">
+          <h2>1. 学習クイズサイト</h2>
+          <p>
+            セキュリティ重視の学習クイズ。iPhone対応、PWA対応、弱点復習・インシデント対応モードあり。
+          </p>
+          <a class="btn" href="./quiz/index.html">クイズを開く</a>
+        </section>
+
+        <section class="card">
+          <h2>2. 動画分析ツール</h2>
+          <p>日本ヒット曲分析用のHTMLツールです。</p>
+          <a class="btn" href="./video-analysis/index.html">動画分析ツールを開く</a>
+        </section>
+      </div>
+
+      <p class="note">ランディングページ文言は、次の指示内容に合わせて更新できます。</p>
+    </main>
+  </body>
+</html>
