@@ -9,6 +9,9 @@
       name="description"
       content="ショート動画分析MVPを実装・運用するための学習クイズ。セキュリティ重視、スマホ最適、GitHub Pagesで公開可能。"
     />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" href="./icons/icon-192.png" sizes="192x192" />
+    <link rel="apple-touch-icon" href="./icons/icon-192.png" />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
@@ -24,6 +27,10 @@
         <span class="tag">対象: Web / API / Worker / DB / CI/CD</span>
         <span class="tag">スマホ学習対応</span>
       </div>
+      <div class="button-row top-actions">
+        <button id="install-app" class="ghost-btn hidden" type="button">アプリとしてインストール</button>
+        <span id="network-status" class="net-badge">オンライン</span>
+      </div>
     </header>
 
     <main class="container">
@@ -37,6 +44,13 @@
         <p class="muted">
           比喩で意味を先につかみ、次にこのプロジェクトでの具体例に落とします。
         </p>
+        <input
+          id="term-search"
+          class="term-search"
+          type="search"
+          placeholder="用語を検索（例: JWT, キュー, Docker）"
+          autocomplete="off"
+        />
         <div id="terms" class="terms"></div>
       </section>
 
@@ -49,13 +63,21 @@
       </section>
 
       <section class="card">
-        <h2>4. 学習クイズ</h2>
+        <h2>4. 学習ダッシュボード</h2>
+        <p class="muted">前回の結果から、次にやるべき学習を表示します。</p>
+        <div id="dashboard" class="dashboard"></div>
+      </section>
+
+      <section class="card">
+        <h2>5. 学習クイズ</h2>
         <div id="quiz-setup" class="quiz-setup">
           <div class="setup-group">
             <p class="setup-title">出題モード</p>
             <div class="button-row">
               <button id="mode-security" class="mode-btn active" type="button">セキュリティ中心</button>
               <button id="mode-all" class="mode-btn" type="button">全範囲</button>
+              <button id="mode-review" class="mode-btn" type="button">弱点復習</button>
+              <button id="mode-incident" class="mode-btn" type="button">インシデント対応</button>
             </div>
           </div>
 
@@ -69,7 +91,10 @@
           </div>
 
           <p id="history-text" class="muted"></p>
-          <button id="start-quiz" class="primary-btn" type="button">クイズ開始</button>
+          <div class="button-row">
+            <button id="start-quiz" class="primary-btn" type="button">クイズ開始</button>
+            <button id="start-daily" class="ghost-btn" type="button">今日のチャレンジ</button>
+          </div>
         </div>
 
         <div id="quiz-panel" class="quiz-panel hidden">
@@ -94,9 +119,90 @@
 
           <div class="button-row">
             <button id="next-question" class="primary-btn hidden" type="button">次の問題へ</button>
+            <button id="copy-result" class="ghost-btn hidden" type="button">結果をコピー</button>
             <button id="restart-quiz" class="ghost-btn hidden" type="button">もう一度</button>
           </div>
         </div>
+      </section>
+
+      <section class="card">
+        <h2>6. 管理者: 問題を追加</h2>
+        <p class="muted">この端末だけに保存されます。JSONファイルの直接編集は不要です。</p>
+
+        <form id="admin-form" class="admin-form">
+          <div class="admin-grid">
+            <label>
+              <span>カテゴリ</span>
+              <input id="admin-category" type="text" maxlength="40" placeholder="例: Auth" required />
+            </label>
+            <label>
+              <span>フォーカス</span>
+              <select id="admin-focus" required>
+                <option value="security">security</option>
+                <option value="architecture">architecture</option>
+                <option value="ops">ops</option>
+                <option value="incident">incident</option>
+              </select>
+            </label>
+          </div>
+
+          <label>
+            <span>問題文</span>
+            <textarea id="admin-question" rows="3" maxlength="220" required></textarea>
+          </label>
+
+          <div class="admin-grid">
+            <label>
+              <span>選択肢1</span>
+              <input id="admin-option-1" type="text" maxlength="120" required />
+            </label>
+            <label>
+              <span>選択肢2</span>
+              <input id="admin-option-2" type="text" maxlength="120" required />
+            </label>
+            <label>
+              <span>選択肢3</span>
+              <input id="admin-option-3" type="text" maxlength="120" />
+            </label>
+            <label>
+              <span>選択肢4</span>
+              <input id="admin-option-4" type="text" maxlength="120" />
+            </label>
+          </div>
+
+          <div class="admin-grid">
+            <label>
+              <span>正解番号</span>
+              <select id="admin-answer" required>
+                <option value="0">1</option>
+                <option value="1">2</option>
+                <option value="2">3</option>
+                <option value="3">4</option>
+              </select>
+            </label>
+            <label>
+              <span>たとえ</span>
+              <input id="admin-analogy" type="text" maxlength="140" required />
+            </label>
+          </div>
+
+          <label>
+            <span>解説</span>
+            <textarea id="admin-explanation" rows="3" maxlength="220" required></textarea>
+          </label>
+
+          <p id="admin-status" class="muted"></p>
+
+          <div class="button-row">
+            <button class="primary-btn" type="submit">問題を保存</button>
+            <button id="admin-reset" class="ghost-btn" type="button">入力をクリア</button>
+            <button id="admin-export" class="ghost-btn" type="button">追加問題をエクスポート</button>
+            <button id="admin-import-trigger" class="ghost-btn" type="button">インポート</button>
+          </div>
+          <input id="admin-import-file" type="file" accept=".json,application/json" class="hidden" />
+        </form>
+
+        <div id="admin-list" class="admin-list"></div>
       </section>
     </main>
 

@@ -419,5 +419,117 @@ const QUIZ_QUESTIONS = [
     answer: 0,
     explanation: "再現可能な型を増やすほど成長速度が上がります。",
     analogy: "売れる接客トークをマニュアル化して全員で使う。"
+  },
+  {
+    id: "q25",
+    focus: "incident",
+    category: "Incident-Initial",
+    question: "APIキー漏えいの可能性を検知した直後、最優先の対応は？",
+    options: [
+      "キーを失効し、新しいキーへ即時ローテーションする",
+      "とりあえず様子を見る",
+      "先にUIデザインを直す"
+    ],
+    answer: 0,
+    explanation: "漏えい確定前でも被害最小化を優先し、鍵を無効化するのが基本です。",
+    analogy: "鍵を落としたら、見つかる前提で玄関の鍵を交換する。"
+  },
+  {
+    id: "q26",
+    focus: "incident",
+    category: "Incident-Containment",
+    question: "不正アクセス疑い時の封じ込めとして最も適切なのは？",
+    options: [
+      "影響範囲の機能を一時停止し、トークン・セッションを失効する",
+      "通知せずに通常運用を続ける",
+      "ログを削除して痕跡を消す"
+    ],
+    answer: 0,
+    explanation: "封じ込めは被害拡大を防ぐ段階で、監査証跡の保全も必要です。",
+    analogy: "漏水時にまず元栓を止めて、被害拡大を止める。"
+  },
+  {
+    id: "q27",
+    focus: "incident",
+    category: "Incident-Logging",
+    question: "インシデント調査で絶対に避けるべき行為は？",
+    options: [
+      "証跡ログを上書き・削除する",
+      "タイムラインを時系列で整理する",
+      "関係者の作業履歴を記録する"
+    ],
+    answer: 0,
+    explanation: "監査証跡を失うと根本原因分析と再発防止ができなくなります。",
+    analogy: "事故現場を記録前に片付けてしまうのと同じです。"
+  },
+  {
+    id: "q28",
+    focus: "incident",
+    category: "Incident-Communication",
+    question: "障害連絡の初報で重要な要素はどれ？",
+    options: [
+      "事象・影響範囲・暫定対応・次回報告時刻を明記する",
+      "原因が分かるまで一切連絡しない",
+      "技術詳細だけを大量に貼る"
+    ],
+    answer: 0,
+    explanation: "初報は完全性より迅速性と共通認識が重要です。",
+    analogy: "火災時に『どこが燃えているか・避難経路』を先に伝える。"
+  },
+  {
+    id: "q29",
+    focus: "incident",
+    category: "Incident-Recovery",
+    question: "復旧時に必要な観点として最も適切なのは？",
+    options: [
+      "復旧後の監視強化と再発検知ルールを同時に設定する",
+      "復旧確認なしで即クローズする",
+      "原因分析は次回に回す"
+    ],
+    answer: 0,
+    explanation: "復旧だけで終えると再発時に同じ障害を繰り返します。",
+    analogy: "修理後に試運転せず納品しないのと同じです。"
+  },
+  {
+    id: "q30",
+    focus: "incident",
+    category: "Incident-RootCause",
+    question: "再発防止策として弱いものはどれ？",
+    options: [
+      "担当者の注意喚起だけで終える",
+      "仕組みで防ぐガード（バリデーション、権限、監視）を追加する",
+      "テストケースに事故パターンを追加する"
+    ],
+    answer: 0,
+    explanation: "人の注意だけでは継続的な再発防止になりません。",
+    analogy: "『気をつけて』だけでは交通事故は減らない。"
+  },
+  {
+    id: "q31",
+    focus: "incident",
+    category: "Incident-Data",
+    question: "個人情報漏えい疑い時に最初に整理すべき情報は？",
+    options: [
+      "漏えい対象データの種類・件数・期間",
+      "担当者の好みの開発ツール",
+      "デスクトップの壁紙設定"
+    ],
+    answer: 0,
+    explanation: "法務・顧客対応に必要な事実を最速で整理する必要があります。",
+    analogy: "配送事故で『何個・どの荷物・いつ』を先に確定する。"
+  },
+  {
+    id: "q32",
+    focus: "incident",
+    category: "Incident-Postmortem",
+    question: "ポストモーテム（振り返り）で重要なのは？",
+    options: [
+      "個人攻撃ではなく、仕組み改善に焦点を当てる",
+      "責任者を吊し上げて終了する",
+      "再発防止項目を作らない"
+    ],
+    answer: 0,
+    explanation: "責任追及中心だと報告文化が壊れ、将来の事故検知が遅れます。",
+    analogy: "失点した選手を責めるだけではチームは強くならない。"
   }
 ];
