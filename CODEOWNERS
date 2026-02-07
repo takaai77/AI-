@@ -1,0 +1,9 @@
+﻿# Default owner
+* @takaai77
+
+# Security and CI files
+/.github/ @takaai77
+/SECURITY.md @takaai77
+
+# Learning content
+/quiz-site/ @takaai77

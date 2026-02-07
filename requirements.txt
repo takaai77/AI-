@@ -1,0 +1,25 @@
+# 動画分析Pro Max - 必要なパッケージ
+
+# Web Framework
+streamlit==1.31.0
+streamlit-option-menu==0.3.12
+
+# Video Processing
+yt-dlp==2024.3.10
+opencv-python==4.9.0.80
+Pillow==10.2.0
+
+# AI APIs
+anthropic==0.21.3
+google-generativeai==0.4.1
+
+# Database
+sqlalchemy==2.0.27
+
+# Scheduling
+APScheduler==3.10.4
+
+# Utilities
+python-dotenv==1.0.1
+requests==2.31.0
+pandas==2.2.0

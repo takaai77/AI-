@@ -1,0 +1,50 @@
+﻿name: Feature Request
+description: Suggest an improvement
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What pain are you trying to solve?
+      placeholder: Describe the current pain
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed Solution
+      description: What should be built?
+      placeholder: Describe the idea
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      placeholder: Optional alternatives
+  - type: textarea
+    id: success
+    attributes:
+      label: Success Criteria
+      description: How do we measure success?
+      placeholder: Example: reduce failure rate by 20%
+  - type: dropdown
+    id: security_review
+    attributes:
+      label: Security Review Needed?
+      options:
+        - No
+        - Yes
+        - Unsure
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Confirmation
+      options:
+        - label: I considered security and privacy impact.
+          required: true

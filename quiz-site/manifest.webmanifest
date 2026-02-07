@@ -1,0 +1,11 @@
+﻿{
+  "name": "Kamui Learning Quiz",
+  "short_name": "KamuiQuiz",
+  "description": "Mobile learning quiz for implementation and security fundamentals.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f3f7f8",
+  "theme_color": "#0b5c4f",
+  "lang": "ja",
+  "icons": []
+}
