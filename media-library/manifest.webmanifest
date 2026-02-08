@@ -1,0 +1,19 @@
+{
+  "name": "AI Media Library - AI生成メディア図書館",
+  "short_name": "AI Media Library",
+  "description": "AI画像・動画生成のための知識・プロンプト・アイデア貯蔵庫",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0f0f23",
+  "theme_color": "#0f0f23",
+  "lang": "ja",
+  "orientation": "any",
+  "categories": ["productivity", "utilities"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

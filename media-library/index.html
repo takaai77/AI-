@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Media Library - AI生成メディア図書館</title>
+  <meta name="description" content="AI画像・動画生成のための知識・プロンプト・アイデア貯蔵庫">
+  <meta name="theme-color" content="#0f0f23">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="app-layout">
+  <!-- ─── Sidebar ──────────────────────────────────────── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="logo-icon">📚</div>
+        <div>
+          <h1>AI Media Library</h1>
+          <span class="subtitle">AI生成メディア図書館</span>
+        </div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-section-title">メイン</div>
+        <div class="nav-item active" data-view="dashboard">
+          <span class="nav-icon">📊</span>
+          <span>ダッシュボード</span>
+        </div>
+        <div class="nav-item" data-view="library">
+          <span class="nav-icon">🖼️</span>
+          <span>ライブラリ</span>
+          <span class="nav-badge" id="nav-media-count">0</span>
+        </div>
+        <div class="nav-item" data-view="favorites">
+          <span class="nav-icon">⭐</span>
+          <span>お気に入り</span>
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">整理</div>
+        <div class="nav-item" data-view="categories">
+          <span class="nav-icon">📁</span>
+          <span>カテゴリ</span>
+        </div>
+        <div class="nav-item" data-view="collections">
+          <span class="nav-icon">📂</span>
+          <span>コレクション</span>
+        </div>
+        <div class="nav-item" data-view="tags">
+          <span class="nav-icon">🏷️</span>
+          <span>タグ</span>
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">ツール</div>
+        <div class="nav-item" data-view="templates">
+          <span class="nav-icon">📝</span>
+          <span>プロンプトテンプレート</span>
+        </div>
+        <div class="nav-item" data-view="settings">
+          <span class="nav-icon">⚙️</span>
+          <span>設定・データ管理</span>
+        </div>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="storage-info" id="storage-info">データ: 読み込み中...</div>
+    </div>
+  </aside>
+
+  <!-- ─── Main Content ─────────────────────────────────── -->
+  <main class="main-content">
+    <!-- Header -->
+    <header class="main-header">
+      <button class="btn-sidebar-toggle" id="btn-sidebar-toggle">☰</button>
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="global-search" placeholder="メディア、プロンプト、タグを検索...">
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-primary" id="btn-add-media">+ 新規登録</button>
+      </div>
+    </header>
+
+    <!-- ─── Dashboard View ───────────────────────────── -->
+    <div class="page-content view active" id="view-dashboard">
+      <h2 class="page-title">ダッシュボード</h2>
+      <p class="page-subtitle">AI生成メディアライブラリの概要</p>
+
+      <div class="stats-grid" id="stats-grid"></div>
+
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+        <div>
+          <h3 style="margin-bottom: 12px; color: var(--text-accent);">よく使うタグ TOP 10</h3>
+          <div id="dashboard-top-tags" class="tag-cloud"></div>
+        </div>
+        <div>
+          <h3 style="margin-bottom: 12px; color: var(--text-accent);">AI ツール使用状況</h3>
+          <div id="dashboard-tool-usage"></div>
+        </div>
+      </div>
+
+      <div style="margin-top: 32px;">
+        <h3 style="margin-bottom: 12px; color: var(--text-accent);">最近追加されたメディア</h3>
+        <div class="media-grid" id="dashboard-recent"></div>
+      </div>
+    </div>
+
+    <!-- ─── Library View ─────────────────────────────── -->
+    <div class="page-content view" id="view-library">
+      <h2 class="page-title">ライブラリ</h2>
+      <p class="page-subtitle">登録されたすべてのAI生成メディア</p>
+
+      <div class="toolbar">
+        <button class="btn btn-sm" id="btn-toggle-filters">🔽 フィルター</button>
+        <div class="toolbar-group">
+          <select class="form-select" id="filter-sort" style="width: auto; padding: 6px 32px 6px 10px;">
+            <option value="updatedAt-desc">更新日 (新しい順)</option>
+            <option value="createdAt-desc">作成日 (新しい順)</option>
+            <option value="title-asc">タイトル (A→Z)</option>
+            <option value="rating-desc">評価 (高い順)</option>
+          </select>
+        </div>
+        <div class="toolbar-group view-toggle">
+          <button class="btn btn-sm btn-icon active" data-layout="grid" title="グリッド表示">⊞</button>
+          <button class="btn btn-sm btn-icon" data-layout="list" title="リスト表示">☰</button>
+        </div>
+        <span style="color: var(--text-muted); font-size: 0.8rem; margin-left: auto;" id="library-count"></span>
+      </div>
+
+      <div class="filters-panel" id="filters-panel">
+        <div class="filters-grid">
+          <div class="form-group">
+            <label class="form-label">メディアタイプ</label>
+            <select class="form-select" id="filter-type">
+              <option value="">すべて</option>
+              <option value="image">画像</option>
+              <option value="video">動画</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">カテゴリ</label>
+            <select class="form-select" id="filter-category"></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">AI ツール</label>
+            <select class="form-select" id="filter-tool">
+              <option value="">すべて</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">最低評価</label>
+            <select class="form-select" id="filter-rating">
+              <option value="">すべて</option>
+              <option value="5">★★★★★</option>
+              <option value="4">★★★★☆ 以上</option>
+              <option value="3">★★★☆☆ 以上</option>
+              <option value="2">★★☆☆☆ 以上</option>
+              <option value="1">★☆☆☆☆ 以上</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">ショットタイプ</label>
+            <select class="form-select" id="filter-shot">
+              <option value="">すべて</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">カメラアングル</label>
+            <select class="form-select" id="filter-angle">
+              <option value="">すべて</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin-top: 12px; display: flex; gap: 8px;">
+          <button class="btn btn-sm btn-primary" id="btn-apply-filters">適用</button>
+          <button class="btn btn-sm" id="btn-clear-filters">クリア</button>
+        </div>
+      </div>
+
+      <div id="library-content"></div>
+    </div>
+
+    <!-- ─── Favorites View ───────────────────────────── -->
+    <div class="page-content view" id="view-favorites">
+      <h2 class="page-title">お気に入り</h2>
+      <p class="page-subtitle">スターをつけたメディア</p>
+      <div class="media-grid" id="favorites-grid"></div>
+    </div>
+
+    <!-- ─── Categories View ──────────────────────────── -->
+    <div class="page-content view" id="view-categories">
+      <h2 class="page-title">カテゴリ</h2>
+      <p class="page-subtitle">メディアの分類管理</p>
+      <div class="toolbar">
+        <button class="btn btn-primary btn-sm" id="btn-add-category">+ カテゴリ追加</button>
+      </div>
+      <div class="category-list" id="category-list"></div>
+    </div>
+
+    <!-- ─── Collections View ─────────────────────────── -->
+    <div class="page-content view" id="view-collections">
+      <h2 class="page-title">コレクション</h2>
+      <p class="page-subtitle">関連するメディアをグループ化</p>
+      <div class="toolbar">
+        <button class="btn btn-primary btn-sm" id="btn-add-collection">+ コレクション作成</button>
+      </div>
+      <div class="collection-grid" id="collection-grid"></div>
+    </div>
+
+    <!-- ─── Tags View ────────────────────────────────── -->
+    <div class="page-content view" id="view-tags">
+      <h2 class="page-title">タグ</h2>
+      <p class="page-subtitle">使用されているすべてのタグ</p>
+      <div class="tag-cloud" id="tags-cloud"></div>
+    </div>
+
+    <!-- ─── Templates View ───────────────────────────── -->
+    <div class="page-content view" id="view-templates">
+      <h2 class="page-title">プロンプトテンプレート</h2>
+      <p class="page-subtitle">再利用可能なプロンプトパターンの管理</p>
+      <div class="toolbar">
+        <button class="btn btn-primary btn-sm" id="btn-add-template">+ テンプレート追加</button>
+      </div>
+      <div class="template-list" id="template-list"></div>
+    </div>
+
+    <!-- ─── Settings View ────────────────────────────── -->
+    <div class="page-content view" id="view-settings">
+      <h2 class="page-title">設定・データ管理</h2>
+      <p class="page-subtitle">インポート・エクスポート・バックアップ</p>
+
+      <div class="info-section" style="max-width: 600px; margin-bottom: 20px;">
+        <h3>データのエクスポート</h3>
+        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px;">
+          すべてのメディア情報、カテゴリ、コレクション、テンプレートをJSONファイルとしてエクスポートします。
+        </p>
+        <button class="btn btn-primary" id="btn-export">📤 エクスポート</button>
+      </div>
+
+      <div class="info-section" style="max-width: 600px; margin-bottom: 20px;">
+        <h3>データのインポート</h3>
+        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px;">
+          エクスポートしたJSONファイルをインポートします。
+        </p>
+        <div class="form-group">
+          <select class="form-select" id="import-mode" style="max-width: 300px;">
+            <option value="merge">マージ (既存データに追加)</option>
+            <option value="replace">置換 (既存データを削除して上書き)</option>
+          </select>
+        </div>
+        <input type="file" id="import-file" accept=".json" style="display:none;">
+        <button class="btn" id="btn-import">📥 インポート</button>
+      </div>
+
+      <div class="info-section" style="max-width: 600px;">
+        <h3>データの削除</h3>
+        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px;">
+          すべてのデータを完全に削除します。この操作は取り消せません。
+        </p>
+        <button class="btn btn-danger" id="btn-clear-all">🗑️ 全データ削除</button>
+      </div>
+    </div>
+
+    <!-- ─── Detail View ──────────────────────────────── -->
+    <div class="page-content view" id="view-detail">
+      <div style="margin-bottom: 16px;">
+        <button class="btn btn-sm btn-ghost" id="btn-back-to-library">← ライブラリに戻る</button>
+      </div>
+      <div id="detail-content"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ─── Modals ────────────────────────────────────────── -->
+
+<!-- Media Edit Modal -->
+<div class="modal-overlay" id="modal-media">
+  <div class="modal" style="max-width: 900px;">
+    <div class="modal-header">
+      <h2 id="modal-media-title">メディアを登録</h2>
+      <button class="btn btn-ghost btn-icon" id="modal-media-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="tabs" id="media-tabs">
+        <div class="tab active" data-tab="basic">基本情報</div>
+        <div class="tab" data-tab="prompt">プロンプト</div>
+        <div class="tab" data-tab="composition">カット割・構図</div>
+        <div class="tab" data-tab="params">パラメータ</div>
+        <div class="tab" data-tab="notes">メモ・学び</div>
+      </div>
+
+      <!-- Basic Tab -->
+      <div class="tab-content active" data-tab="basic">
+        <div class="form-group">
+          <label class="form-label">サムネイル画像</label>
+          <div class="thumbnail-upload" id="thumbnail-upload">
+            <span class="upload-icon">📷</span>
+            <span class="upload-text">クリックまたはドラッグ&ドロップで画像をアップロード</span>
+          </div>
+          <input type="file" id="thumbnail-input" accept="image/*" style="display:none;">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">タイトル *</label>
+            <input type="text" class="form-input" id="media-title" placeholder="メディアのタイトル">
+          </div>
+          <div class="form-group">
+            <label class="form-label">メディアタイプ</label>
+            <select class="form-select" id="media-type">
+              <option value="image">画像</option>
+              <option value="video">動画</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">説明</label>
+          <textarea class="form-textarea" id="media-description" placeholder="このメディアの説明..."></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">AI ツール</label>
+            <select class="form-select" id="media-tool">
+              <option value="">選択してください</option>
+              <option value="Midjourney">Midjourney</option>
+              <option value="DALL-E 3">DALL-E 3</option>
+              <option value="Stable Diffusion">Stable Diffusion</option>
+              <option value="ComfyUI">ComfyUI</option>
+              <option value="Flux">Flux</option>
+              <option value="Firefly">Adobe Firefly</option>
+              <option value="Runway">Runway</option>
+              <option value="Sora">Sora</option>
+              <option value="Kling">Kling</option>
+              <option value="Pika">Pika</option>
+              <option value="Luma">Luma Dream Machine</option>
+              <option value="Veo">Google Veo</option>
+              <option value="HailuoAI">HailuoAI (MiniMax)</option>
+              <option value="Suno">Suno (Music)</option>
+              <option value="Udio">Udio (Music)</option>
+              <option value="Other">その他</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">モデルバージョン</label>
+            <input type="text" class="form-input" id="media-model" placeholder="例: v6.1, SDXL, etc.">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">カテゴリ</label>
+            <select class="form-select" id="media-category"></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">評価</label>
+            <div class="rating-input" id="media-rating">
+              <span class="star" data-value="1">★</span>
+              <span class="star" data-value="2">★</span>
+              <span class="star" data-value="3">★</span>
+              <span class="star" data-value="4">★</span>
+              <span class="star" data-value="5">★</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">タグ (カンマ区切り)</label>
+          <input type="text" class="form-input" id="media-tags" placeholder="例: ファンタジー, 風景, 夕焼け">
+          <div class="form-hint">カンマで区切って複数のタグを入力</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">ファイルURL (外部リンク)</label>
+          <input type="text" class="form-input" id="media-file-url" placeholder="https://...">
+        </div>
+      </div>
+
+      <!-- Prompt Tab -->
+      <div class="tab-content" data-tab="prompt">
+        <div class="form-group">
+          <label class="form-label">ポジティブプロンプト</label>
+          <textarea class="form-textarea" id="media-prompt-pos" rows="6"
+            placeholder="masterpiece, best quality, 1girl, beautiful detailed eyes..."></textarea>
+          <div class="form-hint">生成に使用したメインのプロンプト</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">ネガティブプロンプト</label>
+          <textarea class="form-textarea" id="media-prompt-neg" rows="4"
+            placeholder="worst quality, low quality, blurry..."></textarea>
+        </div>
+      </div>
+
+      <!-- Composition Tab -->
+      <div class="tab-content" data-tab="composition">
+        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 16px;">
+          カメラワークや構図に関する情報を記録して、映像制作の知識を蓄積しましょう。
+        </p>
+
+        <div class="form-row-3">
+          <div class="form-group">
+            <label class="form-label">ショットタイプ</label>
+            <select class="form-select" id="media-shot-type">
+              <option value="">選択してください</option>
+              <option value="extreme-long">エクストリームロングショット (ELS)</option>
+              <option value="long">ロングショット (LS)</option>
+              <option value="full">フルショット (FS)</option>
+              <option value="medium-long">ミディアムロングショット (MLS)</option>
+              <option value="medium">ミディアムショット (MS)</option>
+              <option value="medium-close">ミディアムクローズアップ (MCU)</option>
+              <option value="close-up">クローズアップ (CU)</option>
+              <option value="extreme-close">エクストリームクローズアップ (ECU)</option>
+              <option value="over-shoulder">オーバーザショルダー (OTS)</option>
+              <option value="pov">POV (主観)</option>
+              <option value="aerial">空撮・鳥瞰</option>
+              <option value="dutch">ダッチアングル</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">カメラアングル</label>
+            <select class="form-select" id="media-camera-angle">
+              <option value="">選択してください</option>
+              <option value="eye-level">アイレベル</option>
+              <option value="high">ハイアングル</option>
+              <option value="low">ローアングル</option>
+              <option value="birds-eye">バードアイ (真上)</option>
+              <option value="worms-eye">ワームアイ (真下)</option>
+              <option value="tilted">ティルト</option>
+              <option value="overhead">俯瞰</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">カメラムーブメント</label>
+            <select class="form-select" id="media-camera-movement">
+              <option value="">選択してください (動画向け)</option>
+              <option value="static">スタティック (固定)</option>
+              <option value="pan">パン</option>
+              <option value="tilt">ティルト</option>
+              <option value="dolly">ドリー</option>
+              <option value="truck">トラック</option>
+              <option value="zoom">ズーム</option>
+              <option value="crane">クレーン</option>
+              <option value="handheld">ハンドヘルド</option>
+              <option value="steadicam">ステディカム</option>
+              <option value="drone">ドローン</option>
+              <option value="orbit">オービット</option>
+              <option value="whip-pan">ウィップパン</option>
+              <option value="rack-focus">ラックフォーカス</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">ライティング</label>
+            <input type="text" class="form-input" id="media-lighting"
+              placeholder="例: ゴールデンアワー, スタジオ照明, ネオン">
+          </div>
+          <div class="form-group">
+            <label class="form-label">ムード・雰囲気</label>
+            <input type="text" class="form-input" id="media-mood"
+              placeholder="例: ダーク, 幻想的, ポップ, シネマティック">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">シーン説明</label>
+          <textarea class="form-textarea" id="media-scene" rows="3"
+            placeholder="このカットのシーンを自由に記述..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">カラーパレット</label>
+          <div class="color-palette-input" id="color-palette">
+            <div class="color-swatch add-color" id="add-color-btn" title="色を追加">+</div>
+            <input type="color" id="color-picker" style="display:none;" value="#6366f1">
+          </div>
+        </div>
+      </div>
+
+      <!-- Parameters Tab -->
+      <div class="tab-content" data-tab="params">
+        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 16px;">
+          生成時に使用したパラメータを記録しておくと、再現や改善に役立ちます。
+        </p>
+
+        <div class="form-row-3">
+          <div class="form-group">
+            <label class="form-label">Seed</label>
+            <input type="number" class="form-input" id="param-seed" placeholder="例: 12345">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Steps</label>
+            <input type="number" class="form-input" id="param-steps" placeholder="例: 30">
+          </div>
+          <div class="form-group">
+            <label class="form-label">CFG Scale</label>
+            <input type="number" class="form-input" id="param-cfg" step="0.1" placeholder="例: 7.5">
+          </div>
+        </div>
+
+        <div class="form-row-3">
+          <div class="form-group">
+            <label class="form-label">サンプラー</label>
+            <input type="text" class="form-input" id="param-sampler" placeholder="例: DPM++ 2M Karras">
+          </div>
+          <div class="form-group">
+            <label class="form-label">スケジューラー</label>
+            <input type="text" class="form-input" id="param-scheduler" placeholder="例: Normal">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Denoise</label>
+            <input type="number" class="form-input" id="param-denoise" step="0.01" placeholder="例: 0.75">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">解像度</label>
+            <input type="text" class="form-input" id="param-resolution" placeholder="例: 1024x1024">
+          </div>
+          <div class="form-group">
+            <label class="form-label">アスペクト比</label>
+            <input type="text" class="form-input" id="param-aspect" placeholder="例: 16:9">
+          </div>
+        </div>
+
+        <div class="form-row" id="video-params">
+          <div class="form-group">
+            <label class="form-label">FPS (動画)</label>
+            <input type="number" class="form-input" id="param-fps" placeholder="例: 24">
+          </div>
+          <div class="form-group">
+            <label class="form-label">長さ (秒)</label>
+            <input type="number" class="form-input" id="param-duration" step="0.1" placeholder="例: 4">
+          </div>
+        </div>
+      </div>
+
+      <!-- Notes Tab -->
+      <div class="tab-content" data-tab="notes">
+        <div class="form-group">
+          <label class="form-label">メモ・ノート</label>
+          <textarea class="form-textarea" id="media-notes" rows="5"
+            placeholder="自由にメモを残しましょう..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">学び・気づき (What worked / What didn't)</label>
+          <textarea class="form-textarea" id="media-learnings" rows="5"
+            placeholder="この生成で学んだこと、うまくいったこと、改善点..."></textarea>
+          <div class="form-hint">良い結果を生み出すためのノウハウを蓄積しましょう</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">参考URL (1行に1つ)</label>
+          <textarea class="form-textarea" id="media-ref-urls" rows="3"
+            placeholder="https://example.com/reference1&#10;https://example.com/reference2"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" id="modal-media-cancel">キャンセル</button>
+      <button class="btn btn-primary" id="modal-media-save">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Category Edit Modal -->
+<div class="modal-overlay" id="modal-category">
+  <div class="modal" style="max-width: 500px;">
+    <div class="modal-header">
+      <h2 id="modal-category-title">カテゴリを追加</h2>
+      <button class="btn btn-ghost btn-icon" id="modal-category-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">アイコン</label>
+          <input type="text" class="form-input" id="cat-icon" placeholder="📁" maxlength="4">
+        </div>
+        <div class="form-group">
+          <label class="form-label">カラー</label>
+          <input type="color" class="form-input" id="cat-color" value="#6366f1" style="height: 42px; padding: 4px;">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">カテゴリ名 *</label>
+        <input type="text" class="form-input" id="cat-name" placeholder="カテゴリ名">
+      </div>
+      <div class="form-group">
+        <label class="form-label">親カテゴリ</label>
+        <select class="form-select" id="cat-parent"></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">説明</label>
+        <textarea class="form-textarea" id="cat-description" rows="2" placeholder="説明（任意）"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" id="modal-category-cancel">キャンセル</button>
+      <button class="btn btn-primary" id="modal-category-save">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Collection Edit Modal -->
+<div class="modal-overlay" id="modal-collection">
+  <div class="modal" style="max-width: 500px;">
+    <div class="modal-header">
+      <h2 id="modal-collection-title">コレクションを作成</h2>
+      <button class="btn btn-ghost btn-icon" id="modal-collection-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">コレクション名 *</label>
+        <input type="text" class="form-input" id="col-name" placeholder="コレクション名">
+      </div>
+      <div class="form-group">
+        <label class="form-label">説明</label>
+        <textarea class="form-textarea" id="col-description" rows="3" placeholder="コレクションの説明"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" id="modal-collection-cancel">キャンセル</button>
+      <button class="btn btn-primary" id="modal-collection-save">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Template Edit Modal -->
+<div class="modal-overlay" id="modal-template">
+  <div class="modal" style="max-width: 700px;">
+    <div class="modal-header">
+      <h2 id="modal-template-title">プロンプトテンプレートを追加</h2>
+      <button class="btn btn-ghost btn-icon" id="modal-template-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">テンプレート名 *</label>
+          <input type="text" class="form-input" id="tmpl-name" placeholder="テンプレート名">
+        </div>
+        <div class="form-group">
+          <label class="form-label">AI ツール</label>
+          <select class="form-select" id="tmpl-tool">
+            <option value="">汎用</option>
+            <option value="Midjourney">Midjourney</option>
+            <option value="DALL-E 3">DALL-E 3</option>
+            <option value="Stable Diffusion">Stable Diffusion</option>
+            <option value="ComfyUI">ComfyUI</option>
+            <option value="Flux">Flux</option>
+            <option value="Runway">Runway</option>
+            <option value="Sora">Sora</option>
+            <option value="Kling">Kling</option>
+            <option value="Other">その他</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">カテゴリ</label>
+        <input type="text" class="form-input" id="tmpl-category" placeholder="例: ポートレート, 風景, UI">
+      </div>
+      <div class="form-group">
+        <label class="form-label">ポジティブプロンプト</label>
+        <textarea class="form-textarea" id="tmpl-prompt-pos" rows="5"
+          placeholder="テンプレートのプロンプト..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">ネガティブプロンプト</label>
+        <textarea class="form-textarea" id="tmpl-prompt-neg" rows="3"
+          placeholder="ネガティブプロンプト..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">メモ・使い方</label>
+        <textarea class="form-textarea" id="tmpl-notes" rows="3"
+          placeholder="このテンプレートの使い方や注意点..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" id="modal-template-cancel">キャンセル</button>
+      <button class="btn btn-primary" id="modal-template-save">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toast-container"></div>
+
+<script src="db.js"></script>
+<script src="app.js"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  }
+</script>
+
+</body>
+</html>
