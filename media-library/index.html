@@ -65,6 +65,10 @@
           <span class="nav-icon">📝</span>
           <span>プロンプトテンプレート</span>
         </div>
+        <div class="nav-item" data-view="learn">
+          <span class="nav-icon">🎓</span>
+          <span>学習ガイド</span>
+        </div>
         <div class="nav-item" data-view="settings">
           <span class="nav-icon">⚙️</span>
           <span>設定・データ管理</span>
@@ -232,6 +236,88 @@
         <button class="btn btn-primary btn-sm" id="btn-add-template">+ テンプレート追加</button>
       </div>
       <div class="template-list" id="template-list"></div>
+    </div>
+
+    <!-- ─── Learn View ────────────────────────────────── -->
+    <div class="page-content view" id="view-learn">
+      <h2 class="page-title">🎓 学習ガイド</h2>
+      <p class="page-subtitle">非エンジニアのためのAI画像・動画生成 完全学習ガイド</p>
+
+      <div class="info-section" style="max-width: 700px; margin-bottom: 20px;">
+        <h3>このシステムを最大限活用するための知識</h3>
+        <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.8;">
+          AI画像・動画生成は「センス」だけでなく「知識と記録」で確実に上達します。<br>
+          プロンプトの書き方、パラメータの意味、カメラワークの知識、AIツールの選び方まで、<br>
+          非エンジニアがゼロから学べる完全ガイドを用意しました。
+        </p>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px;">
+          <span style="padding: 4px 12px; background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.3); border-radius: 20px; font-size: 0.78rem; color: #818cf8;">プロンプト設計</span>
+          <span style="padding: 4px 12px; background: rgba(168,85,247,0.15); border: 1px solid rgba(168,85,247,0.3); border-radius: 20px; font-size: 0.78rem; color: #c084fc;">パラメータ理解</span>
+          <span style="padding: 4px 12px; background: rgba(236,72,153,0.15); border: 1px solid rgba(236,72,153,0.3); border-radius: 20px; font-size: 0.78rem; color: #f472b6;">カット割・構図</span>
+          <span style="padding: 4px 12px; background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.3); border-radius: 20px; font-size: 0.78rem; color: #4ade80;">AIツール比較</span>
+          <span style="padding: 4px 12px; background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3); border-radius: 20px; font-size: 0.78rem; color: #fbbf24;">ワークフロー</span>
+          <span style="padding: 4px 12px; background: rgba(6,182,212,0.15); border: 1px solid rgba(6,182,212,0.3); border-radius: 20px; font-size: 0.78rem; color: #22d3ee;">用語集</span>
+        </div>
+        <a href="learn.html" class="btn btn-primary" style="text-decoration: none; font-size: 1rem; padding: 14px 32px;">
+          📖 学習ガイドを開く
+        </a>
+      </div>
+
+      <div style="max-width: 700px;">
+        <h3 style="margin-bottom: 12px; color: var(--text-accent);">学習トピック一覧</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <a href="learn.html#s1" style="text-decoration:none; display:block; padding:14px; background:var(--bg-card, #1e1e42); border:1px solid rgba(255,255,255,0.06); border-radius:10px; color: var(--text-primary, #e8e8f0);">
+            <div style="font-size:1.2rem; margin-bottom:4px;">🧠</div>
+            <div style="font-weight:700; font-size:0.88rem;">1. AI生成の全体像</div>
+            <div style="font-size:0.75rem; color:var(--text-muted, #6b6b8d); margin-top:2px;">基本原理と図書館の意義</div>
+          </a>
+          <a href="learn.html#s2" style="text-decoration:none; display:block; padding:14px; background:var(--bg-card, #1e1e42); border:1px solid rgba(255,255,255,0.06); border-radius:10px; color: var(--text-primary, #e8e8f0);">
+            <div style="font-size:1.2rem; margin-bottom:4px;">📝</div>
+            <div style="font-weight:700; font-size:0.88rem;">2. プロンプト設計</div>
+            <div style="font-size:0.75rem; color:var(--text-muted, #6b6b8d); margin-top:2px;">構造・重み付け・言語選択</div>
+          </a>
+          <a href="learn.html#s3" style="text-decoration:none; display:block; padding:14px; background:var(--bg-card, #1e1e42); border:1px solid rgba(255,255,255,0.06); border-radius:10px; color: var(--text-primary, #e8e8f0);">
+            <div style="font-size:1.2rem; margin-bottom:4px;">🎚️</div>
+            <div style="font-weight:700; font-size:0.88rem;">3. パラメータ理解</div>
+            <div style="font-size:0.75rem; color:var(--text-muted, #6b6b8d); margin-top:2px;">Seed・Steps・CFG・サンプラー</div>
+          </a>
+          <a href="learn.html#s4" style="text-decoration:none; display:block; padding:14px; background:var(--bg-card, #1e1e42); border:1px solid rgba(255,255,255,0.06); border-radius:10px; color: var(--text-primary, #e8e8f0);">
+            <div style="font-size:1.2rem; margin-bottom:4px;">🎬</div>
+            <div style="font-weight:700; font-size:0.88rem;">4. カット割・構図</div>
+            <div style="font-size:0.75rem; color:var(--text-muted, #6b6b8d); margin-top:2px;">ショット・アングル・カメラワーク</div>
+          </a>
+          <a href="learn.html#s5" style="text-decoration:none; display:block; padding:14px; background:var(--bg-card, #1e1e42); border:1px solid rgba(255,255,255,0.06); border-radius:10px; color: var(--text-primary, #e8e8f0);">
+            <div style="font-size:1.2rem; margin-bottom:4px;">🔧</div>
+            <div style="font-weight:700; font-size:0.88rem;">5. AIツール比較</div>
+            <div style="font-size:0.75rem; color:var(--text-muted, #6b6b8d); margin-top:2px;">目的別の最適ツール選び</div>
+          </a>
+          <a href="learn.html#s6" style="text-decoration:none; display:block; padding:14px; background:var(--bg-card, #1e1e42); border:1px solid rgba(255,255,255,0.06); border-radius:10px; color: var(--text-primary, #e8e8f0);">
+            <div style="font-size:1.2rem; margin-bottom:4px;">🔄</div>
+            <div style="font-weight:700; font-size:0.88rem;">6. ワークフロー</div>
+            <div style="font-size:0.75rem; color:var(--text-muted, #6b6b8d); margin-top:2px;">プロの制作フロー設計</div>
+          </a>
+          <a href="learn.html#s7" style="text-decoration:none; display:block; padding:14px; background:var(--bg-card, #1e1e42); border:1px solid rgba(255,255,255,0.06); border-radius:10px; color: var(--text-primary, #e8e8f0);">
+            <div style="font-size:1.2rem; margin-bottom:4px;">🖼️</div>
+            <div style="font-weight:700; font-size:0.88rem;">7. フォーマット知識</div>
+            <div style="font-size:0.75rem; color:var(--text-muted, #6b6b8d); margin-top:2px;">画像・動画の形式と使い分け</div>
+          </a>
+          <a href="learn.html#s8" style="text-decoration:none; display:block; padding:14px; background:var(--bg-card, #1e1e42); border:1px solid rgba(255,255,255,0.06); border-radius:10px; color: var(--text-primary, #e8e8f0);">
+            <div style="font-size:1.2rem; margin-bottom:4px;">✨</div>
+            <div style="font-weight:700; font-size:0.88rem;">8. 品質向上テクニック</div>
+            <div style="font-size:0.75rem; color:var(--text-muted, #6b6b8d); margin-top:2px;">アップスケール・ControlNet・LoRA</div>
+          </a>
+          <a href="learn.html#s9" style="text-decoration:none; display:block; padding:14px; background:var(--bg-card, #1e1e42); border:1px solid rgba(255,255,255,0.06); border-radius:10px; color: var(--text-primary, #e8e8f0);">
+            <div style="font-size:1.2rem; margin-bottom:4px;">📁</div>
+            <div style="font-weight:700; font-size:0.88rem;">9. メディア整理術</div>
+            <div style="font-size:0.75rem; color:var(--text-muted, #6b6b8d); margin-top:2px;">カテゴリ・タグ・コレクション設計</div>
+          </a>
+          <a href="learn.html#s10" style="text-decoration:none; display:block; padding:14px; background:var(--bg-card, #1e1e42); border:1px solid rgba(255,255,255,0.06); border-radius:10px; color: var(--text-primary, #e8e8f0);">
+            <div style="font-size:1.2rem; margin-bottom:4px;">📖</div>
+            <div style="font-weight:700; font-size:0.88rem;">10. 用語集</div>
+            <div style="font-size:0.75rem; color:var(--text-muted, #6b6b8d); margin-top:2px;">専門用語リファレンス</div>
+          </a>
+        </div>
+      </div>
     </div>
 
     <!-- ─── Settings View ────────────────────────────── -->
