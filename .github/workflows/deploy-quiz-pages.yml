@@ -6,6 +6,7 @@ on:
       - main
       - master
       - claude/video-analysis-ai-tool-leAxs
+      - sync/pr2-quiz-ci
     paths:
       - "quiz-site/**"
       - ".github/workflows/deploy-quiz-pages.yml"
