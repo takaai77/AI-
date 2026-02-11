@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0f766e" />
+    <title>内タワビ学習室 | 非エンジニア向け運用理解</title>
+    <meta
+      name="description"
+      content="内部API・Cloud Tasks・Worker・BigQueryを、語呂と比喩で覚える非エンジニア向け学習ページ。"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="grain"></div>
+    <header class="hero reveal">
+      <p class="eyebrow">Ops Automation Memory Studio</p>
+      <h1>語呂で覚える「内タワビ」</h1>
+      <p class="lead">
+        内部API → Cloud Tasks → Worker → BigQuery
+        を、業務の流れとして理解して、説明できる状態を目指します。
+      </p>
+      <div class="chips">
+        <span class="chip">語呂: 内タワビ</span>
+        <span class="chip">5分で復習</span>
+        <span class="chip">運用チェック付き</span>
+      </div>
+      <a class="back-link" href="../index.html">既存の学習クイズに戻る</a>
+    </header>
+
+    <main class="layout">
+      <section class="panel reveal">
+        <h2>1. まず全体像</h2>
+        <p class="hint">レストランで置き換えると覚えやすいです。</p>
+        <div class="steps">
+          <article class="step-card">
+            <p class="step-no">01</p>
+            <h3>内部API = 受付</h3>
+            <p>注文を受ける。受けたらすぐ「受付番号(jobId)」を渡す。</p>
+          </article>
+          <article class="step-card">
+            <p class="step-no">02</p>
+            <h3>Cloud Tasks = 整理券</h3>
+            <p>注文票を順番待ちの箱へ。混雑時も崩れず並ぶ。</p>
+          </article>
+          <article class="step-card">
+            <p class="step-no">03</p>
+            <h3>Worker = 調理担当</h3>
+            <p>順番に実行。今回はPlaywrightでURLを開いてタイトル取得。</p>
+          </article>
+          <article class="step-card">
+            <p class="step-no">04</p>
+            <h3>BigQuery = 仕込み日誌</h3>
+            <p>成功/失敗、時間、エラー、依頼内容を記録して振り返る。</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel reveal">
+        <h2>2. 定着する語呂</h2>
+        <div class="mnemonics">
+          <article class="mnemonic-card">
+            <h3>内タワビ</h3>
+            <p>内(内部API) → タ(Tasks) → ワ(Worker) → ビ(BigQuery)</p>
+            <p class="memory-tip">迷ったら「受付→整理券→作業→日誌」の順で口に出す。</p>
+          </article>
+          <article class="mnemonic-card">
+            <h3>ト・ス・ノ</h3>
+            <p>トークン認証 / すぐ200返却 / 後で実行</p>
+            <p class="memory-tip">APIの目的は「すぐ返す、重い処理は後ろへ」。</p>
+          </article>
+          <article class="mnemonic-card">
+            <h3>成時エ依</h3>
+            <p>成功失敗 / 時間 / エラー / 依頼内容</p>
+            <p class="memory-tip">Workerログはこの4点が最低ライン。</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel reveal">
+        <h2>3. 90秒チェック</h2>
+        <p class="hint">声に出して答えると記憶に残ります。</p>
+        <div id="quiz-card" class="quiz-card">
+          <p id="quiz-progress" class="quiz-progress"></p>
+          <h3 id="quiz-question"></h3>
+          <div id="quiz-options" class="quiz-options"></div>
+          <p id="quiz-feedback" class="quiz-feedback"></p>
+          <button id="quiz-next" class="action-btn" type="button">次へ</button>
+        </div>
+      </section>
+
+      <section class="panel reveal">
+        <h2>4. 管理者チェックリスト</h2>
+        <p class="hint">毎回チェックすることで、属人化を防げます。</p>
+        <div id="checklist" class="checklist">
+          <label><input type="checkbox" data-key="token" /> INTERNAL_API_TOKENが設定されている</label>
+          <label><input type="checkbox" data-key="queue" /> queueがops-automation-queueになっている</label>
+          <label><input type="checkbox" data-key="retry" /> max_concurrent_dispatches=2 / retry設定を確認した</label>
+          <label><input type="checkbox" data-key="worker" /> workerが/tasks/executeを受けられる</label>
+          <label><input type="checkbox" data-key="bq" /> BigQueryに実行ログが入ることを確認した</label>
+        </div>
+        <button id="reset-check" class="ghost-btn" type="button">チェックをリセット</button>
+      </section>
+
+      <section class="panel panel-compact reveal">
+        <h2>5. 一言で説明できる状態へ</h2>
+        <p>
+          「内タワビです。APIは受付、Tasksで順番待ち、Workerが処理、BigQueryで記録します。
+          APIはすぐ返し、処理は後で安全に回します。」
+        </p>
+      </section>
+    </main>
+
+    <footer class="footnote">
+      <p>
+        GitHub Pages公開先: <code>/ops-automation-memory/</code>
+      </p>
+    </footer>
+    <script src="./app.js"></script>
+  </body>
+</html>
