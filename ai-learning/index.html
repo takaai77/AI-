@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>AI Master Quest - Lv1~100 実務AI学習RPG</title>
+<link rel="stylesheet" href="style.css">
+<meta name="description" content="G検定の知識を土台に、実務でAI/MLを設計・評価・運用できるレベルまで引き上げるゲーミング学習サイト。100レベルの体系的カリキュラム。">
+<meta name="theme-color" content="#0a0a1a">
+</head>
+<body>
+<!-- Loading Screen -->
+<div id="loading-screen">
+  <div class="loading-content">
+    <div class="loading-logo">AI MASTER QUEST</div>
+    <div class="loading-bar-container">
+      <div class="loading-bar" id="loading-bar"></div>
+    </div>
+    <div class="loading-text">データロード中...</div>
+  </div>
+</div>
+
+<!-- Main App -->
+<div id="app" class="hidden">
+  <!-- Header -->
+  <header id="header">
+    <div class="header-top">
+      <h1 class="logo" id="logo-btn">AI Master Quest</h1>
+      <div class="header-actions">
+        <button id="search-toggle" class="icon-btn" aria-label="検索">&#128269;</button>
+        <button id="menu-toggle" class="icon-btn" aria-label="メニュー">&#9776;</button>
+      </div>
+    </div>
+    <!-- Player Status Bar -->
+    <div class="player-bar">
+      <div class="player-info">
+        <span class="player-title" id="player-title">見習い</span>
+        <span class="player-level" id="player-level-display">Lv.0</span>
+      </div>
+      <div class="xp-bar-container">
+        <div class="xp-bar" id="xp-bar"></div>
+        <span class="xp-text" id="xp-text">0 / 100 XP</span>
+      </div>
+      <div class="player-stats">
+        <span class="stat" id="stat-cleared">&#9989; 0</span>
+        <span class="stat" id="stat-combo">&#128293; 0連</span>
+        <span class="stat" id="stat-badges">&#127942; 0</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Search Panel -->
+  <div id="search-panel" class="panel hidden">
+    <div class="search-box">
+      <input type="text" id="search-input" placeholder="レベル番号, タグ, キーワードで検索..." autocomplete="off">
+      <button id="search-clear" class="icon-btn">&#10005;</button>
+    </div>
+    <div class="filter-row">
+      <select id="filter-category">
+        <option value="all">全カテゴリ</option>
+        <option value="data">データ/評価</option>
+        <option value="linear">線形/NN基礎</option>
+        <option value="backprop">誤差逆伝播</option>
+        <option value="optimize">最適化/正則化</option>
+        <option value="representation">表現学習/Transformer</option>
+        <option value="llm">LLM/RAG</option>
+        <option value="ops">運用/安全</option>
+      </select>
+      <select id="filter-difficulty">
+        <option value="all">全難易度</option>
+        <option value="beginner">初級</option>
+        <option value="intermediate">中級</option>
+        <option value="advanced">上級</option>
+        <option value="expert">エキスパート</option>
+      </select>
+      <select id="filter-priority">
+        <option value="all">全優先度</option>
+        <option value="critical">最重要</option>
+        <option value="high">重要</option>
+        <option value="medium">普通</option>
+      </select>
+    </div>
+    <div id="search-results"></div>
+  </div>
+
+  <!-- Menu Panel -->
+  <div id="menu-panel" class="panel hidden">
+    <nav class="menu-nav">
+      <button class="menu-item" id="menu-home">&#127968; ホーム</button>
+      <button class="menu-item" id="menu-map">&#128506; 学習マップ</button>
+      <button class="menu-item" id="menu-badges">&#127942; バッジ一覧</button>
+      <button class="menu-item" id="menu-stats">&#128200; 統計</button>
+      <button class="menu-item" id="menu-games">&#127918; ミニゲーム</button>
+      <button class="menu-item" id="menu-recommend">&#128161; 次に学ぶ</button>
+      <hr>
+      <button class="menu-item danger" id="menu-reset">&#9888; データリセット</button>
+    </nav>
+  </div>
+
+  <!-- Main Content Area -->
+  <main id="main-content">
+    <!-- Home View -->
+    <div id="view-home" class="view">
+      <div class="welcome-card">
+        <h2>&#127775; 今日の学習</h2>
+        <div id="daily-recommend"></div>
+      </div>
+      <div class="combo-card" id="combo-card">
+        <div class="combo-flames" id="combo-flames"></div>
+        <div class="combo-count" id="combo-count">0</div>
+        <div class="combo-label">日連続学習</div>
+      </div>
+      <div class="progress-overview">
+        <h3>進捗サマリー</h3>
+        <div class="category-progress" id="category-progress"></div>
+      </div>
+      <div class="level-grid" id="level-grid">
+        <!-- Levels rendered by JS -->
+      </div>
+    </div>
+
+    <!-- Level Detail View -->
+    <div id="view-level" class="view hidden">
+      <button class="back-btn" id="back-btn">&#8592; 戻る</button>
+      <div id="level-content"></div>
+    </div>
+
+    <!-- Map View -->
+    <div id="view-map" class="view hidden">
+      <button class="back-btn" id="back-map-btn">&#8592; 戻る</button>
+      <h2>&#128506; 学習マップ（依存関係）</h2>
+      <div id="map-container"></div>
+    </div>
+
+    <!-- Badges View -->
+    <div id="view-badges" class="view hidden">
+      <button class="back-btn" id="back-badges-btn">&#8592; 戻る</button>
+      <h2>&#127942; バッジコレクション</h2>
+      <div id="badges-container"></div>
+    </div>
+
+    <!-- Stats View -->
+    <div id="view-stats" class="view hidden">
+      <button class="back-btn" id="back-stats-btn">&#8592; 戻る</button>
+      <h2>&#128200; 学習統計</h2>
+      <div id="stats-container"></div>
+    </div>
+
+    <!-- Games View -->
+    <div id="view-games" class="view hidden">
+      <button class="back-btn" id="back-games-btn">&#8592; 戻る</button>
+      <h2>&#127918; インタラクティブ演習</h2>
+      <div id="games-container"></div>
+    </div>
+
+    <!-- Recommend View -->
+    <div id="view-recommend" class="view hidden">
+      <button class="back-btn" id="back-recommend-btn">&#8592; 戻る</button>
+      <h2>&#128161; 次に学ぶべきレベル</h2>
+      <div id="recommend-container"></div>
+    </div>
+  </main>
+
+  <!-- Reset Confirm Modal -->
+  <div id="modal-overlay" class="modal-overlay hidden">
+    <div class="modal">
+      <h3 id="modal-title">確認</h3>
+      <p id="modal-message"></p>
+      <div class="modal-actions">
+        <button id="modal-cancel" class="btn btn-secondary">キャンセル</button>
+        <button id="modal-confirm" class="btn btn-danger">リセット</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast hidden"></div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
