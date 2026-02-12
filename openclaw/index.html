@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <title>OpenClaw セットアップガイド - AI-</title>
+    <style>
+      :root {
+        --bg: #f3f7f8;
+        --ink: #132029;
+        --muted: #5a6b76;
+        --line: #d4e2e9;
+        --brand: #0b5c4f;
+        --accent: #e8533f;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: "Noto Sans JP", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 8% 2%, #d6ece6 0, transparent 36%),
+          radial-gradient(circle at 96% 0%, #e5eef9 0, transparent 32%),
+          var(--bg);
+      }
+      main {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 24px 16px 40px;
+      }
+      .back { color: var(--brand); text-decoration: none; font-size: 0.9rem; }
+      h1 { margin: 16px 0 8px; font-size: clamp(1.6rem, 4.5vw, 2.2rem); }
+      .lead { margin: 0 0 20px; color: var(--muted); line-height: 1.7; }
+      .section {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: #fff;
+        padding: 20px;
+        margin-bottom: 16px;
+      }
+      .section h2 {
+        margin: 0 0 12px;
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .step-num {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: var(--brand);
+        color: #fff;
+        font-size: 0.85rem;
+        font-weight: 700;
+        flex-shrink: 0;
+      }
+      .section p, .section li {
+        color: var(--muted);
+        line-height: 1.7;
+        margin: 0 0 8px;
+      }
+      .section ul { padding-left: 20px; margin: 8px 0 0; }
+      code {
+        background: #eef3f6;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.9em;
+      }
+      pre {
+        background: #1a2633;
+        color: #e8f0e8;
+        padding: 14px;
+        border-radius: 10px;
+        overflow-x: auto;
+        font-size: 0.88rem;
+        line-height: 1.6;
+      }
+      .highlight { border-left: 4px solid var(--accent); padding-left: 12px; }
+      .tag {
+        display: inline-block;
+        background: #e6f4f0;
+        color: var(--brand);
+        padding: 3px 10px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        margin-bottom: 8px;
+      }
+      .btn {
+        display: inline-block;
+        text-decoration: none;
+        color: #fff;
+        background: linear-gradient(120deg, var(--brand), #14826f);
+        padding: 12px 18px;
+        border-radius: 10px;
+        font-weight: 700;
+        margin-top: 4px;
+      }
+      .btn-outline {
+        display: inline-block;
+        text-decoration: none;
+        color: var(--brand);
+        border: 2px solid var(--brand);
+        padding: 10px 16px;
+        border-radius: 10px;
+        font-weight: 700;
+        margin-top: 4px;
+      }
+      .iphone-section {
+        border-color: var(--accent);
+        border-width: 2px;
+      }
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      @media (max-width: 480px) {
+        .grid-2 { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <a class="back" href="../index.html">&larr; トップに戻る</a>
+      <h1>OpenClaw セットアップガイド</h1>
+      <p class="lead">
+        OpenClaw はオープンソースのパーソナルAIアシスタントです。
+        PCで Gateway を起動し、iPhone からも接続できます。
+      </p>
+
+      <!-- Step 1 -->
+      <div class="section">
+        <h2><span class="step-num">1</span> 前提条件の確認</h2>
+        <p>以下が必要です:</p>
+        <ul>
+          <li><strong>Node.js v22 以上</strong> &mdash; <a href="https://nodejs.org/" target="_blank">nodejs.org</a></li>
+          <li><strong>Anthropic API キー</strong> (Claude) または <strong>OpenAI API キー</strong></li>
+          <li>PC (macOS / Linux / Windows WSL2)</li>
+        </ul>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="section">
+        <h2><span class="step-num">2</span> OpenClaw のインストール</h2>
+        <span class="tag">PC で実行</span>
+        <p>ターミナルで以下を実行:</p>
+        <pre>npm install -g openclaw@latest
+openclaw onboard --install-daemon</pre>
+        <p>または、このリポジトリのセットアップスクリプトを使用:</p>
+        <pre>bash openclaw/setup.sh</pre>
+        <p>オンボーディングウィザードが順番にガイドします。</p>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="section">
+        <h2><span class="step-num">3</span> Gateway を起動</h2>
+        <span class="tag">PC で実行</span>
+        <pre>openclaw gateway --port 18789 --verbose</pre>
+        <p>起動後、WebChat が以下で利用可能になります:</p>
+        <pre>http://127.0.0.1:18789/chat</pre>
+      </div>
+
+      <!-- Step 4: iPhone -->
+      <div class="section iphone-section">
+        <h2><span class="step-num">4</span> iPhone から接続</h2>
+        <span class="tag">iPhone</span>
+
+        <div class="highlight">
+          <p><strong>App Store から OpenClaw をインストール:</strong></p>
+          <a class="btn" href="https://apps.apple.com/app/openclaw/id6740261825" target="_blank">App Store で開く</a>
+        </div>
+
+        <h3 style="margin-top:16px;">接続方法 A: 自動検出 (同じ Wi-Fi)</h3>
+        <ul>
+          <li>iPhone と PC を同じ Wi-Fi ネットワークに接続</li>
+          <li>OpenClaw アプリを開くと Gateway が自動検出されます</li>
+          <li>タップして接続</li>
+        </ul>
+
+        <h3>接続方法 B: 手動接続</h3>
+        <ul>
+          <li>OpenClaw アプリ &gt; <strong>Settings</strong> を開く</li>
+          <li><strong>Manual Host</strong> を有効にする</li>
+          <li>Gateway の <strong>IPアドレス:18789</strong> を入力</li>
+        </ul>
+        <p>PC の IP アドレスの確認方法:</p>
+        <pre># macOS
+ipconfig getifaddr en0
+
+# Linux
+hostname -I | awk '{print $1}'</pre>
+
+        <h3>接続方法 C: リモートアクセス (外出先)</h3>
+        <ul>
+          <li>Tailscale を使用してどこからでも接続可能</li>
+        </ul>
+        <pre>openclaw tailscale serve</pre>
+      </div>
+
+      <!-- Step 5 -->
+      <div class="section">
+        <h2><span class="step-num">5</span> iPhone でできること</h2>
+        <div class="grid-2">
+          <div>
+            <p><strong>Canvas</strong></p>
+            <p>AIが生成するビジュアルをリアルタイム表示</p>
+          </div>
+          <div>
+            <p><strong>Voice Mode</strong></p>
+            <p>音声で会話。ハンズフリー操作</p>
+          </div>
+          <div>
+            <p><strong>Camera</strong></p>
+            <p>カメラ画像をAIに送信して分析</p>
+          </div>
+          <div>
+            <p><strong>WebChat</strong></p>
+            <p>Safari からもアクセス可能</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Config -->
+      <div class="section">
+        <h2>設定ファイル</h2>
+        <p>このプロジェクト用の設定は <code>openclaw/openclaw.json</code> にあります。
+        セットアップスクリプトが <code>~/.openclaw/openclaw.json</code> にコピーします。</p>
+        <pre>{
+  "agent": {
+    "model": "anthropic/claude-opus-4-6",
+    "thinking": "medium",
+    "systemPrompt": "AI-学習サイトのアシスタント..."
+  },
+  "channels": {
+    "webchat": { "enabled": true }
+  },
+  "nodes": {
+    "ios": { "enabled": true }
+  }
+}</pre>
+      </div>
+
+      <!-- Links -->
+      <div class="section">
+        <h2>参考リンク</h2>
+        <ul>
+          <li><a href="https://github.com/openclaw/openclaw" target="_blank">OpenClaw GitHub</a></li>
+          <li><a href="https://openclaw.ai/" target="_blank">OpenClaw 公式サイト</a></li>
+          <li><a href="https://docs.openclaw.ai/platforms/ios" target="_blank">iOS ドキュメント</a></li>
+        </ul>
+      </div>
+
+    </main>
+  </body>
+</html>

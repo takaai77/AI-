@@ -1,0 +1,29 @@
+{
+  "$schema": "https://openclaw.ai/schema/openclaw.json",
+  "gateway": {
+    "port": 18789,
+    "host": "127.0.0.1"
+  },
+  "agent": {
+    "model": "anthropic/claude-opus-4-6",
+    "thinking": "medium",
+    "systemPrompt": "あなたはAI-学習サイトのアシスタントです。セキュリティ学習クイズや動画分析ツールについて日本語でサポートします。"
+  },
+  "channels": {
+    "webchat": {
+      "enabled": true
+    }
+  },
+  "nodes": {
+    "ios": {
+      "enabled": true,
+      "capabilities": ["canvas", "voice", "camera"]
+    }
+  },
+  "canvas": {
+    "enabled": true
+  },
+  "workspace": {
+    "path": "./workspace"
+  }
+}
