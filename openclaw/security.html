@@ -1,0 +1,838 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <title>OpenClaw セキュリティ冒険マップ - AI-</title>
+    <style>
+      :root {
+        --bg: #0d1117;
+        --ink: #e6edf3;
+        --muted: #8b949e;
+        --green: #3fb950;
+        --yellow: #d29922;
+        --red: #f85149;
+        --blue: #58a6ff;
+        --purple: #bc8cff;
+        --cyan: #39d353;
+        --panel: #161b22;
+        --border: #30363d;
+        --gold: #ffd700;
+        --xp-bar: #238636;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        font-family: "Noto Sans JP", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+        color: var(--ink);
+        background: var(--bg);
+        min-height: 100vh;
+      }
+      /* Pixel-art inspired scanline overlay */
+      body::after {
+        content: "";
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 2px,
+          rgba(0,0,0,0.03) 2px,
+          rgba(0,0,0,0.03) 4px
+        );
+        pointer-events: none;
+        z-index: 9999;
+      }
+
+      main {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px 16px 60px;
+      }
+      .back { color: var(--blue); text-decoration: none; font-size: 0.9rem; }
+      .back:hover { text-decoration: underline; }
+
+      /* === HERO === */
+      .hero {
+        text-align: center;
+        padding: 32px 16px;
+        margin: 16px 0 24px;
+        background: linear-gradient(135deg, #0d1117 0%, #1a1e2e 50%, #0d1117 100%);
+        border: 2px solid var(--border);
+        border-radius: 16px;
+        position: relative;
+        overflow: hidden;
+      }
+      .hero::before {
+        content: "";
+        position: absolute;
+        top: -50%; left: -50%; width: 200%; height: 200%;
+        background: conic-gradient(from 0deg, transparent, rgba(59,130,246,0.1), transparent, rgba(56,189,248,0.05), transparent);
+        animation: rotate 20s linear infinite;
+      }
+      @keyframes rotate { to { transform: rotate(360deg); } }
+      .hero > * { position: relative; z-index: 1; }
+      .hero-icon { font-size: 4rem; margin-bottom: 8px; }
+      .hero h1 {
+        font-size: clamp(1.4rem, 4vw, 2rem);
+        background: linear-gradient(90deg, var(--cyan), var(--blue), var(--purple));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      .hero .sub {
+        color: var(--muted);
+        margin-top: 8px;
+        font-size: 0.95rem;
+        line-height: 1.6;
+      }
+
+      /* === SCORE BOARD === */
+      .scoreboard {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+      .score-card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px 12px;
+        text-align: center;
+      }
+      .score-card .num {
+        font-size: 2rem;
+        font-weight: 900;
+      }
+      .score-card .label {
+        font-size: 0.75rem;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+      .score-green .num { color: var(--green); }
+      .score-yellow .num { color: var(--yellow); }
+      .score-red .num { color: var(--red); }
+
+      /* === XP BAR === */
+      .xp-section {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 24px;
+      }
+      .xp-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+      .xp-header .level {
+        font-weight: 700;
+        color: var(--gold);
+      }
+      .xp-header .xp-text {
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+      .xp-bar-bg {
+        width: 100%;
+        height: 20px;
+        background: var(--border);
+        border-radius: 10px;
+        overflow: hidden;
+        position: relative;
+      }
+      .xp-bar-fill {
+        height: 100%;
+        border-radius: 10px;
+        background: linear-gradient(90deg, var(--xp-bar), var(--cyan));
+        transition: width 1.5s ease;
+        position: relative;
+      }
+      .xp-bar-fill::after {
+        content: "";
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.2) 50%, transparent 100%);
+        animation: shimmer 2s infinite;
+      }
+      @keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+      }
+
+      /* === STAGE SECTIONS === */
+      .stage {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        margin-bottom: 16px;
+        overflow: hidden;
+      }
+      .stage-header {
+        padding: 16px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        user-select: none;
+        transition: background 0.2s;
+      }
+      .stage-header:hover { background: rgba(255,255,255,0.03); }
+      .stage-badge {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+      }
+      .badge-green { background: rgba(63,185,80,0.15); border: 1px solid rgba(63,185,80,0.3); }
+      .badge-yellow { background: rgba(210,153,34,0.15); border: 1px solid rgba(210,153,34,0.3); }
+      .badge-red { background: rgba(248,81,73,0.15); border: 1px solid rgba(248,81,73,0.3); }
+      .stage-info { flex: 1; }
+      .stage-info h2 { font-size: 1rem; margin-bottom: 2px; }
+      .stage-info .stage-sub { font-size: 0.8rem; color: var(--muted); }
+      .stage-toggle {
+        font-size: 1.2rem;
+        color: var(--muted);
+        transition: transform 0.3s;
+      }
+      .stage.open .stage-toggle { transform: rotate(90deg); }
+      .stage-body {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease;
+      }
+      .stage.open .stage-body {
+        max-height: 5000px;
+      }
+      .stage-content {
+        padding: 0 16px 16px;
+      }
+
+      /* === QUEST ITEMS === */
+      .quest {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 14px;
+        margin-bottom: 10px;
+      }
+      .quest-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 700;
+        margin-bottom: 8px;
+      }
+      .quest-title .icon { font-size: 1.2rem; }
+      .status-tag {
+        display: inline-block;
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 6px;
+        margin-left: auto;
+      }
+      .tag-cleared {
+        background: rgba(63,185,80,0.15);
+        color: var(--green);
+      }
+      .tag-caution {
+        background: rgba(210,153,34,0.15);
+        color: var(--yellow);
+      }
+      .tag-danger {
+        background: rgba(248,81,73,0.15);
+        color: var(--red);
+      }
+      .quest p, .quest li {
+        color: var(--muted);
+        font-size: 0.88rem;
+        line-height: 1.7;
+        margin-bottom: 4px;
+      }
+      .quest ul {
+        padding-left: 18px;
+        margin: 6px 0;
+      }
+      .explain {
+        background: rgba(88,166,255,0.08);
+        border-left: 3px solid var(--blue);
+        padding: 10px 12px;
+        border-radius: 0 8px 8px 0;
+        margin-top: 8px;
+      }
+      .explain p {
+        color: var(--blue) !important;
+        font-size: 0.85rem !important;
+      }
+      .explain strong { color: var(--ink); }
+
+      /* === FINAL RESULT === */
+      .result-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+        margin-top: 12px;
+      }
+      .result-table th, .result-table td {
+        padding: 10px 12px;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+      }
+      .result-table th {
+        color: var(--muted);
+        font-weight: 600;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .result-table tr:hover { background: rgba(255,255,255,0.02); }
+      .dot {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin-right: 6px;
+      }
+      .dot-green { background: var(--green); }
+      .dot-yellow { background: var(--yellow); }
+      .dot-red { background: var(--red); }
+
+      /* === CONCLUSION === */
+      .conclusion {
+        background: linear-gradient(135deg, rgba(63,185,80,0.08), rgba(88,166,255,0.08));
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 20px;
+        margin-top: 24px;
+      }
+      .conclusion h2 {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      .conclusion p {
+        color: var(--muted);
+        line-height: 1.8;
+        font-size: 0.9rem;
+        margin-bottom: 8px;
+      }
+      .conclusion strong { color: var(--ink); }
+
+      /* === SOURCES === */
+      .sources {
+        margin-top: 20px;
+        padding: 16px;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+      }
+      .sources h3 {
+        font-size: 0.85rem;
+        color: var(--muted);
+        margin-bottom: 8px;
+      }
+      .sources a {
+        display: block;
+        color: var(--blue);
+        text-decoration: none;
+        font-size: 0.8rem;
+        margin-bottom: 4px;
+      }
+      .sources a:hover { text-decoration: underline; }
+
+      /* === RESPONSIVE === */
+      @media (max-width: 480px) {
+        .scoreboard { grid-template-columns: 1fr; }
+        .score-card { padding: 12px 10px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <a class="back" href="index.html">&larr; OpenClaw ガイドに戻る</a>
+
+      <!-- ===== HERO ===== -->
+      <div class="hero">
+        <div class="hero-icon">🛡️🦞</div>
+        <h1>OpenClaw セキュリティ冒険マップ</h1>
+        <p class="sub">
+          バージョン v2026.2.12〜2.15 のアップデートで<br>
+          どの「モンスター（弱点）」がたおされたのか、冒険マップで見てみよう！
+        </p>
+      </div>
+
+      <!-- ===== SCORE BOARD ===== -->
+      <div class="scoreboard">
+        <div class="score-card score-green">
+          <div class="num">10</div>
+          <div class="label">✅ クリアずみ</div>
+        </div>
+        <div class="score-card score-yellow">
+          <div class="num">4</div>
+          <div class="label">🟡 もうちょっと</div>
+        </div>
+        <div class="score-card score-red">
+          <div class="num">4</div>
+          <div class="label">🔴 のこってる</div>
+        </div>
+      </div>
+
+      <!-- ===== XP BAR ===== -->
+      <div class="xp-section">
+        <div class="xp-header">
+          <span class="level">🏆 セキュリティ Lv. 72 / 100</span>
+          <span class="xp-text">10 / 18 クエストクリア</span>
+        </div>
+        <div class="xp-bar-bg">
+          <div class="xp-bar-fill" style="width: 72%;"></div>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- STAGE 1: GREEN - CLEARED -->
+      <!-- ============================================================ -->
+      <div class="stage open" id="stage1">
+        <div class="stage-header" onclick="toggleStage('stage1')">
+          <div class="stage-badge badge-green">⚔️</div>
+          <div class="stage-info">
+            <h2>ステージ1：たおしたモンスター（かいけつずみ！）</h2>
+            <div class="stage-sub">10体のモンスターをやっつけたよ 🎉</div>
+          </div>
+          <div class="stage-toggle">▶</div>
+        </div>
+        <div class="stage-body">
+          <div class="stage-content">
+
+            <!-- Quest 1.1 -->
+            <div class="quest">
+              <div class="quest-title">
+                <span class="icon">👾</span>
+                <span>ボス：リモートのっとりモンスター（RCE）</span>
+                <span class="status-tag tag-cleared">✅ クリア</span>
+              </div>
+              <div class="explain">
+                <p>🧒 <strong>かんたん説明：</strong>カギをかけわすれたドアから、わるい人がかってに入ってこれたよ。いまはちゃんとカギがかかった！</p>
+              </div>
+              <ul>
+                <li>ブラウザ操作のドアに「カギなし」で入れた → 1クリックでのっとり＆パスワードぬすみが可能だった</li>
+                <li>🔧 修正（v2.12）：カギ（認証）を必ずつけるようにした。カギがなければ自動で作る</li>
+              </ul>
+            </div>
+
+            <!-- Quest 1.2 -->
+            <div class="quest">
+              <div class="quest-title">
+                <span class="icon">🕵️</span>
+                <span>スパイモンスター（SSRF）</span>
+                <span class="status-tag tag-cleared">✅ クリア</span>
+              </div>
+              <div class="explain">
+                <p>🧒 <strong>かんたん説明：</strong>AIをだまして「ないしょの場所」をのぞかせるワザ。いまはAIが「のぞいちゃダメ」リストを持ってる！</p>
+              </div>
+              <ul>
+                <li>AIをだまして、ないしょのネットワークを調べさせられた</li>
+                <li>🔧 修正（v2.12）：のぞいちゃダメリスト＋しらべる回数制限＋記録（ログ）を追加</li>
+              </ul>
+            </div>
+
+            <!-- Quest 1.3 -->
+            <div class="quest">
+              <div class="quest-title">
+                <span class="icon">🔓</span>
+                <span>カギなし設定へんこうモンスター</span>
+                <span class="status-tag tag-cleared">✅ クリア</span>
+              </div>
+              <div class="explain">
+                <p>🧒 <strong>かんたん説明：</strong>だれでもAIの設定をかえられた。いまはパスワードが必要！</p>
+              </div>
+              <ul>
+                <li>プロフィール設定がカギなしで変更できた</li>
+                <li>🔧 修正（v2.12）：パッチで修正ずみ</li>
+              </ul>
+            </div>
+
+            <!-- Quest 1.4 -->
+            <div class="quest">
+              <div class="quest-title">
+                <span class="icon">🎭</span>
+                <span>なりすましモンスター（セッションハイジャック）</span>
+                <span class="status-tag tag-cleared">✅ クリア</span>
+              </div>
+              <div class="explain">
+                <p>🧒 <strong>かんたん説明：</strong>ほかの人の「おへや」にこっそり入れた。いまは「おへやのカギ」の上書きはきんし！</p>
+              </div>
+              <ul>
+                <li>セッションキーを上書きして、ほかの人のセッションに入れた</li>
+                <li>🔧 修正（v2.12）：カギの上書きをデフォルトで「きんし」にした</li>
+              </ul>
+            </div>
+
+            <!-- Quest 1.5 -->
+            <div class="quest">
+              <div class="quest-title">
+                <span class="icon">📂</span>
+                <span>ファイル脱出モンスター（ディレクトリトラバーサル）</span>
+                <span class="status-tag tag-cleared">✅ クリア</span>
+              </div>
+              <div class="explain">
+                <p>🧒 <strong>かんたん説明：</strong>「スキル」のなまえをズルして、さわっちゃいけないファイルに書きこめた。いまはスキル専用のお部屋しかつかえない！</p>
+              </div>
+              <ul>
+                <li>スキルの名前をパスとして悪用し、サンドボックスの外に書きこみ可能だった</li>
+                <li>🔧 修正（v2.12＋v2.15）：スキル専用フォルダに制限</li>
+              </ul>
+            </div>
+
+            <!-- Quest 1.6 -->
+            <div class="quest">
+              <div class="quest-title">
+                <span class="icon">🌐</span>
+                <span>Webわなモンスター（プロンプトインジェクション再送）</span>
+                <span class="status-tag tag-cleared">✅ クリア</span>
+              </div>
+              <div class="explain">
+                <p>🧒 <strong>かんたん説明：</strong>わるいWebページに「こっそりめいれい」がかくれていて、AIがだまされた。いまはWebのことばを「しんようしない」ようになった！</p>
+              </div>
+              <ul>
+                <li>Webコンテンツ内の隠し命令がそのままAIに実行された</li>
+                <li>🔧 修正（v2.12）：Webコンテンツを「デフォルト信用しない」に変更</li>
+              </ul>
+            </div>
+
+            <!-- Quest 1.7 -->
+            <div class="quest">
+              <div class="quest-title">
+                <span class="icon">📦</span>
+                <span>コンテナ脱走モンスター</span>
+                <span class="status-tag tag-cleared">✅ クリア</span>
+              </div>
+              <div class="explain">
+                <p>🧒 <strong>かんたん説明：</strong>「安全なはこ（コンテナ）」からぬけだす方法があった。いまは、はこのカベがもっとがんじょうになった！</p>
+              </div>
+              <ul>
+                <li>サンドボックスの設定であぶない機能を有効にできた</li>
+                <li>🔧 修正（v2.15）：危険な設定をブロック＋暗号化を強化（SHA-256へ）</li>
+              </ul>
+            </div>
+
+            <!-- Quest 1.8 -->
+            <div class="quest">
+              <div class="quest-title">
+                <span class="icon">🔑</span>
+                <span>パスワードもれモンスター（情報漏洩）</span>
+                <span class="status-tag tag-cleared">✅ クリア</span>
+              </div>
+              <div class="explain">
+                <p>🧒 <strong>かんたん説明：</strong>ひみつのパスワードが日記（ログ）に書いてあって、みんなに見えてた。いまはかくしてある！</p>
+              </div>
+              <ul>
+                <li>Telegramトークンがログに丸見え、セッション詳細が非管理者にも見えた</li>
+                <li>🔧 修正（v2.15）：トークンを隠し、セッション情報を制限</li>
+              </ul>
+            </div>
+
+            <!-- Quest 1.9 -->
+            <div class="quest">
+              <div class="quest-title">
+                <span class="icon">💉</span>
+                <span>注入モンスター（XSS・インジェクション）</span>
+                <span class="status-tag tag-cleared">✅ クリア</span>
+              </div>
+              <div class="explain">
+                <p>🧒 <strong>かんたん説明：</strong>チャット画面にワルいスクリプト（おまじない）をしこめた。いまは「おまじないきんし」フィルターがついた！</p>
+              </div>
+              <ul>
+                <li>コントロールUIでXSS、チャットで制御文字の注入が可能だった</li>
+                <li>🔧 修正（v2.15）：スクリプト制限＋制御文字の除去＋Unicode正規化</li>
+              </ul>
+            </div>
+
+            <!-- Quest 1.10 -->
+            <div class="quest">
+              <div class="quest-title">
+                <span class="icon">🗂️</span>
+                <span>かくし文字モンスター（パス経由インジェクション）</span>
+                <span class="status-tag tag-cleared">✅ クリア</span>
+              </div>
+              <div class="explain">
+                <p>🧒 <strong>かんたん説明：</strong>フォルダの名前に「目に見えないめいれい」をかくせた。いまは見えない文字をぜんぶ消してから使う！</p>
+              </div>
+              <ul>
+                <li>ディレクトリ名にUnicode制御文字を仕込み、AIへの命令を注入できた</li>
+                <li>🔧 修正（v2.15）：パスに入れる前にUnicode制御文字を除去</li>
+              </ul>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- STAGE 2: YELLOW - IMPROVED BUT NOT PERFECT -->
+      <!-- ============================================================ -->
+      <div class="stage" id="stage2">
+        <div class="stage-header" onclick="toggleStage('stage2')">
+          <div class="stage-badge badge-yellow">🛡️</div>
+          <div class="stage-info">
+            <h2>ステージ2：よわくなったけど、まだいるモンスター</h2>
+            <div class="stage-sub">だいぶよわくしたけど、まだ気をつけてね 🟡</div>
+          </div>
+          <div class="stage-toggle">▶</div>
+        </div>
+        <div class="stage-body">
+          <div class="stage-content">
+
+            <!-- Quest 2.1 -->
+            <div class="quest">
+              <div class="quest-title">
+                <span class="icon">🧪</span>
+                <span>にせスキルモンスター（ClawHub悪意スキル）</span>
+                <span class="status-tag tag-caution">🟡 よわくなった</span>
+              </div>
+              <div class="explain">
+                <p>🧒 <strong>かんたん説明：</strong>スキルの「おみせ（ClawHub）」にニセモノが20%もあった！いまはウイルスチェックで大そうじしたけど、コピーがネットに残ってることがある</p>
+              </div>
+              <ul>
+                <li>約900個のワルいスキルが存在（Bitdefender調査）</li>
+                <li>✅ 2026年2月にVirusTotal提携で3,016スキルを自動分析し削除</li>
+                <li>⚠️ GitHubにコピーが残っている可能性あり</li>
+              </ul>
+            </div>
+
+            <!-- Quest 2.2 -->
+            <div class="quest">
+              <div class="quest-title">
+                <span class="icon">🏠</span>
+                <span>「じもと」なりすましモンスター（localhost信頼バイパス）</span>
+                <span class="status-tag tag-caution">🟡 設定しだい</span>
+              </div>
+              <div class="explain">
+                <p>🧒 <strong>かんたん説明：</strong>とおくからのアクセスを「すぐそば」と思いこませられた。いまは「ほんとうの友だちリスト」を作れるけど、ちゃんと設定しないとダメ</p>
+              </div>
+              <ul>
+                <li>リバースプロキシ経由の接続がすべてローカルに見えた</li>
+                <li>✅ trustedProxies設定を導入</li>
+                <li>⚠️ ユーザーが正しく設定しないとバイパス可能</li>
+              </ul>
+            </div>
+
+            <!-- Quest 2.3 -->
+            <div class="quest">
+              <div class="quest-title">
+                <span class="icon">🔌</span>
+                <span>つなぎっぱなしモンスター（WebSocket保護）</span>
+                <span class="status-tag tag-caution">🟡 よくなった</span>
+              </div>
+              <div class="explain">
+                <p>🧒 <strong>かんたん説明：</strong>だれでも「直通の電話線」をつなげた。いまは電話するのにパスワードが必要。ただしパスワードのつよさは自分しだい</p>
+              </div>
+              <ul>
+                <li>どこからでもWebSocket接続できた</li>
+                <li>✅ Gateway認証がデフォルト必須に（カギなし＝つながらない）</li>
+                <li>⚠️ トークンの強さ・管理はユーザー次第</li>
+              </ul>
+            </div>
+
+            <!-- Quest 2.4 -->
+            <div class="quest">
+              <div class="quest-title">
+                <span class="icon">🔍</span>
+                <span>日本語けんさくモンスター（CJK検索）</span>
+                <span class="status-tag tag-caution">🟡 よくなった</span>
+              </div>
+              <div class="explain">
+                <p>🧒 <strong>かんたん説明：</strong>日本語でさがしものすると、ちゃんと見つからなかった。いまはだいぶよくなったけど、AIのかしこさに影響するよ</p>
+              </div>
+              <ul>
+                <li>日本語の検索がベクトル検索のみにフォールバックしていた</li>
+                <li>✅ v2.15でUnicode対応に改善</li>
+                <li>⚠️ セキュリティ直結ではないが、AIの判断品質に影響</li>
+              </ul>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- STAGE 3: RED - STRUCTURAL RISKS -->
+      <!-- ============================================================ -->
+      <div class="stage" id="stage3">
+        <div class="stage-header" onclick="toggleStage('stage3')">
+          <div class="stage-badge badge-red">🐉</div>
+          <div class="stage-info">
+            <h2>ステージ3：たおせないラスボスたち（こうぞう的リスク）</h2>
+            <div class="stage-sub">アプデだけではたおせない。ずっと気をつけるしかない 🔴</div>
+          </div>
+          <div class="stage-toggle">▶</div>
+        </div>
+        <div class="stage-body">
+          <div class="stage-content">
+
+            <!-- Quest 3.1 -->
+            <div class="quest">
+              <div class="quest-title">
+                <span class="icon">🐉</span>
+                <span>3つのチカラが合体！「さんじゅうく」のドラゴン</span>
+                <span class="status-tag tag-danger">🔴 たおせない</span>
+              </div>
+              <div class="explain">
+                <p>🧒 <strong>かんたん説明：</strong>「ひみつのデータを見れる」＋「しらないWebを見る」＋「外にメッセージを送れる」の3つが合わさると、どうしてもキケンが残る。これはOpenClawの<strong>できること</strong>そのものだから、なくすことはできない。ばくはつ（ひがい）を小さくするしかない！</p>
+              </div>
+              <ul>
+                <li>プライベートデータアクセス＋非信頼コンテンツ＋外部通信＝設計上の特性</li>
+                <li>パッチでは直せない → ひがいを最小限にするアプローチが必要</li>
+              </ul>
+            </div>
+
+            <!-- Quest 3.2 -->
+            <div class="quest">
+              <div class="quest-title">
+                <span class="icon">🧙</span>
+                <span>ことばのまほうモンスター（プロンプトインジェクション）</span>
+                <span class="status-tag tag-danger">🔴 業界全体のもんだい</span>
+              </div>
+              <div class="explain">
+                <p>🧒 <strong>かんたん説明：</strong>AIは「データ」と「めいれい」のくべつがにがて。ワルい「ことばのまほう」でAIをだませる問題は、世界中のAI全部がかかえている。OpenClawだけのもんだいじゃないよ。いまは「サンドボックス」と「つかえるツールを制限」してひがいを減らしてる</p>
+              </div>
+              <ul>
+                <li>v2.12でWebコンテンツの非信頼化、v2.15でパス経由の防止は実装ずみ</li>
+                <li>「AIがデータと命令を区別できない」という根本問題は未解決</li>
+                <li>Opus 4.6推奨＋サンドボックス＋ツール制限で被害を限定する方針</li>
+              </ul>
+            </div>
+
+            <!-- Quest 3.3 -->
+            <div class="quest">
+              <div class="quest-title">
+                <span class="icon">😴</span>
+                <span>アプデしないモンスター（運用/設定ミス）</span>
+                <span class="status-tag tag-danger">🔴 人間のもんだい</span>
+              </div>
+              <div class="explain">
+                <p>🧒 <strong>かんたん説明：</strong>せっかくバグをなおしても、アプデしなかったら意味がない！じつは13万5千台以上のOpenClawがインターネットにむき出しになっている（SecurityScorecard調査）。ゲームでいうと「つよい防具があるのに装備してない」状態！</p>
+              </div>
+              <ul>
+                <li>パッチが出てもアップデートしないユーザーが多数</li>
+                <li>OpenClaw側の問題ではなく運用側の問題</li>
+              </ul>
+            </div>
+
+            <!-- Quest 3.4 -->
+            <div class="quest">
+              <div class="quest-title">
+                <span class="icon">🏗️</span>
+                <span>チームたいせいモンスター（組織の課題）</span>
+                <span class="status-tag tag-danger">🔴 これから</span>
+              </div>
+              <div class="explain">
+                <p>🧒 <strong>かんたん説明：</strong>バグを見つけてくれた人にごほうびをあげるしくみ（バグバウンティ）がまだない。セキュリティ専門のチームもいない。みんなでつくるソフト（OSS）のいいところはあるけど、会社で使うにはまだ心配なところもある</p>
+              </div>
+              <ul>
+                <li>バグバウンティプログラムなし、専任セキュリティチームなし</li>
+                <li>コミュニティ貢献者40名超で活発だが、体系的レビュー体制は未整備</li>
+              </ul>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- RESULT TABLE -->
+      <!-- ============================================================ -->
+      <div class="stage open" id="stage-result">
+        <div class="stage-header" onclick="toggleStage('stage-result')">
+          <div class="stage-badge badge-green">📊</div>
+          <div class="stage-info">
+            <h2>けっかひょう：ぜんぶまとめ</h2>
+            <div class="stage-sub">どのモンスターがどうなったか一覧で確認</div>
+          </div>
+          <div class="stage-toggle">▶</div>
+        </div>
+        <div class="stage-body">
+          <div class="stage-content">
+            <table class="result-table">
+              <thead>
+                <tr>
+                  <th>モンスター</th>
+                  <th>じょうたい</th>
+                  <th>バージョン</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td><span class="dot dot-green"></span>リモートのっとり（RCE）</td><td>✅ クリア</td><td>v2.12</td></tr>
+                <tr><td><span class="dot dot-green"></span>スパイ（SSRF）</td><td>✅ クリア</td><td>v2.12</td></tr>
+                <tr><td><span class="dot dot-green"></span>なりすまし（セッション乗っ取り）</td><td>✅ クリア</td><td>v2.12</td></tr>
+                <tr><td><span class="dot dot-green"></span>カギなし設定へんこう</td><td>✅ クリア</td><td>v2.12</td></tr>
+                <tr><td><span class="dot dot-green"></span>ファイル脱出</td><td>✅ クリア</td><td>v2.12+2.15</td></tr>
+                <tr><td><span class="dot dot-green"></span>Webわな（再送攻撃）</td><td>✅ クリア</td><td>v2.12</td></tr>
+                <tr><td><span class="dot dot-green"></span>コンテナ脱走</td><td>✅ クリア</td><td>v2.15</td></tr>
+                <tr><td><span class="dot dot-green"></span>パスワードもれ</td><td>✅ クリア</td><td>v2.15</td></tr>
+                <tr><td><span class="dot dot-green"></span>注入（XSS）</td><td>✅ クリア</td><td>v2.15</td></tr>
+                <tr><td><span class="dot dot-green"></span>かくし文字（パス注入）</td><td>✅ クリア</td><td>v2.15</td></tr>
+                <tr><td><span class="dot dot-yellow"></span>にせスキル（ClawHub）</td><td>🟡 だいぶよくなった</td><td>2026年2月</td></tr>
+                <tr><td><span class="dot dot-yellow"></span>「じもと」なりすまし</td><td>🟡 設定しだい</td><td>v2.12〜</td></tr>
+                <tr><td><span class="dot dot-yellow"></span>つなぎっぱなし（WebSocket）</td><td>🟡 よくなった</td><td>v2.12〜</td></tr>
+                <tr><td><span class="dot dot-yellow"></span>日本語けんさく</td><td>🟡 よくなった</td><td>v2.15</td></tr>
+                <tr><td><span class="dot dot-red"></span>さんじゅうくドラゴン</td><td>🔴 たおせない</td><td>—</td></tr>
+                <tr><td><span class="dot dot-red"></span>ことばのまほう</td><td>🔴 業界全体</td><td>—</td></tr>
+                <tr><td><span class="dot dot-red"></span>アプデしない問題</td><td>🔴 人間のもんだい</td><td>—</td></tr>
+                <tr><td><span class="dot dot-red"></span>チームたいせい</td><td>🔴 これから</td><td>—</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- CONCLUSION -->
+      <!-- ============================================================ -->
+      <div class="conclusion">
+        <h2>🏆 ぼうけんのまとめ</h2>
+        <p>
+          v2026.2.12〜2.15のアップデートで、<strong>「みつかった具体的な攻撃ルート」はかなりふさがれた</strong>よ！
+          とくにRCE・SSRF・セッションハイジャック・XSSといった<strong>大きなモンスターはたおされた</strong>。
+        </p>
+        <p>
+          でも、<strong>「AIが強い力をもつ」という構造的なリスク</strong>と<strong>プロンプトインジェクション</strong>は、
+          OpenClawだけじゃなく<strong>世界中のAI全部の課題</strong>。
+        </p>
+        <p>
+          だから大事なのは：<br>
+          🔄 <strong>アプデする</strong> ＋ ⚙️ <strong>正しく設定する</strong> ＋ 🔒 <strong>さいしょう権限にする</strong> ＋ 📋 <strong>ときどきチェックする</strong><br>
+          この4つをセットでやること！
+        </p>
+        <p>
+          ぎゃくに言えば、ここまでセキュリティ修正に本気でとりくんでいる<strong>OSSのAIフレームワークはめずらしい</strong>よ 🦞🔐
+        </p>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- SOURCES -->
+      <!-- ============================================================ -->
+      <div class="sources">
+        <h3>📚 さんこうリンク</h3>
+        <a href="https://github.com/openclaw/openclaw/releases" target="_blank">GitHub - OpenClaw Releases</a>
+        <a href="https://docs.openclaw.ai/gateway/security" target="_blank">OpenClaw Security Documentation</a>
+        <a href="https://adversa.ai/blog/openclaw-security" target="_blank">Adversa AI - OpenClaw Security Guide</a>
+      </div>
+
+    </main>
+
+    <script>
+      function toggleStage(id) {
+        document.getElementById(id).classList.toggle('open');
+      }
+    </script>
+  </body>
+</html>
