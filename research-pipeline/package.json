@@ -1,0 +1,29 @@
+{
+  "name": "saji-research-pipeline",
+  "version": "1.0.0",
+  "description": "サジー（sea buckthorn）論文自動リサーチパイプライン",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node index.js",
+    "test": "node -e \"const {researchPipeline} = require('./index'); researchPipeline({method:'GET'}, {json: (d) => console.log(JSON.stringify(d,null,2)), status: (c) => ({json: (d) => console.error(c, d)})});\""
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "googleapis": "^144.0.0",
+    "node-fetch": "^2.7.0",
+    "xml2js": "^0.6.2"
+  },
+  "keywords": [
+    "sea-buckthorn",
+    "saji",
+    "research",
+    "pubmed",
+    "cloud-functions"
+  ],
+  "author": "Research Pipeline",
+  "license": "MIT"
+}
