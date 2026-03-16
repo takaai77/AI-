@@ -1,0 +1,61 @@
+{
+  "manifest_version": 3,
+  "name": "Chatwork AI返信下書きサポート",
+  "version": "0.1.0",
+  "description": "Chatwork Web版でAIによる返信下書きを作成する拡張機能。送信は行いません。",
+
+  "permissions": [
+    "storage"
+  ],
+
+  "host_permissions": [
+    "https://www.chatwork.com/*",
+    "https://kcw.kddi.ne.jp/*"
+  ],
+
+  "background": {
+    "service_worker": "service-worker.js"
+  },
+
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.chatwork.com/*",
+        "https://kcw.kddi.ne.jp/*"
+      ],
+      "js": [
+        "lib/dom-selectors.js",
+        "lib/extract-context.js",
+        "lib/mask-sensitive.js",
+        "lib/insert-draft.js",
+        "lib/storage-session.js",
+        "lib/api-client.js",
+        "ui/ai-card.js",
+        "content.js"
+      ],
+      "css": [
+        "ui/ai-card.css"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+
+  "options_ui": {
+    "page": "options/options.html",
+    "open_in_tab": true
+  },
+
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+
+  "action": {
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png"
+    },
+    "default_title": "AI返信下書きサポート"
+  }
+}

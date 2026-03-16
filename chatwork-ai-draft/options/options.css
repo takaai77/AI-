@@ -1,0 +1,142 @@
+/**
+ * options.css
+ * 設定画面のスタイル
+ */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", sans-serif;
+  background: #f6f8fa;
+  color: #24292f;
+  line-height: 1.6;
+  padding: 24px;
+}
+
+.options-container {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.options-header {
+  margin-bottom: 32px;
+}
+
+.options-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #24292f;
+}
+
+.options-subtitle {
+  font-size: 14px;
+  color: #8b949e;
+  margin-top: 4px;
+}
+
+.options-section {
+  background: #ffffff;
+  border: 1px solid #e1e4e8;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.options-section--info {
+  background: #f6f8fa;
+}
+
+.options-section-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.options-description {
+  font-size: 13px;
+  color: #57606a;
+  margin-bottom: 16px;
+}
+
+.options-field {
+  margin-bottom: 16px;
+}
+
+.options-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+.options-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.options-input:focus {
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.15);
+}
+
+.options-input--small {
+  width: 80px;
+}
+
+.options-hint {
+  font-size: 12px;
+  color: #8b949e;
+  margin-top: 6px;
+}
+
+.options-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.options-btn {
+  padding: 8px 20px;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.options-btn--primary {
+  background: #4a90e2;
+  color: #fff;
+  border-color: #4a90e2;
+}
+
+.options-btn--primary:hover {
+  background: #3a7dd1;
+}
+
+.options-save-status {
+  font-size: 13px;
+  color: #2da44e;
+}
+
+.options-info-list {
+  padding-left: 20px;
+  font-size: 13px;
+  color: #57606a;
+}
+
+.options-info-list li {
+  margin-bottom: 6px;
+}
