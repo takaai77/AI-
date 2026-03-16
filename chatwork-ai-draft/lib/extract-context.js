@@ -71,9 +71,11 @@ var CW_EXTRACT = (() => {
    * @param {string} [params.tone='neutral'] - トーン指定
    * @param {boolean} [params.retryMode=false] - 再生成かどうか
    * @param {number} [params.limit] - メッセージ取得件数
+   * @param {string} [params.customPrompt=''] - カスタムシステムプロンプト
+   * @param {string} [params.templateName=''] - 使用テンプレート名（ログ用）
    * @returns {object} APIに送るペイロード
    */
-  function buildPayload({ intent, tone = 'neutral', retryMode = false, limit }) {
+  function buildPayload({ intent, tone = 'neutral', retryMode = false, limit, customPrompt = '', templateName = '' }) {
     const roomName = CW_SELECTORS.getRoomName();
     const rawMessages = getRecentMessages(limit || DEFAULT_LIMIT);
 
@@ -83,13 +85,25 @@ var CW_EXTRACT = (() => {
       text: CW_MASK.maskText(msg.text),
     }));
 
-    return {
+    const payload = {
       roomName: CW_MASK.maskText(roomName),
       threadContext: maskedMessages,
       intent: intent || '',
       tone,
       retryMode,
     };
+
+    // カスタムプロンプトがあればペイロードに追加（n8n側で活用）
+    if (customPrompt) {
+      payload.customPrompt = customPrompt;
+    }
+
+    // テンプレート名は参考情報として付与（生データではないため安全）
+    if (templateName) {
+      payload.templateName = templateName;
+    }
+
+    return payload;
   }
 
   return {

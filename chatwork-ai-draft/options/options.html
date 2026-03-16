@@ -13,6 +13,7 @@
       <p class="options-subtitle">設定画面</p>
     </header>
 
+    <!-- Webhook設定 -->
     <section class="options-section">
       <h2 class="options-section-title">Webhook設定</h2>
       <p class="options-description">
@@ -35,6 +36,7 @@
       </div>
     </section>
 
+    <!-- コンテキスト設定 -->
     <section class="options-section">
       <h2 class="options-section-title">コンテキスト設定</h2>
 
@@ -55,11 +57,86 @@
       </div>
     </section>
 
+    <!-- カスタムプロンプト -->
+    <section class="options-section">
+      <h2 class="options-section-title">カスタムプロンプト</h2>
+      <p class="options-description">
+        AIに追加の指示を与えたい場合に設定してください。<br>
+        例: 「です・ます調で統一」「社名は株式会社○○」「敬語レベルを高めに」<br>
+        空欄の場合はデフォルトの動作になります。
+      </p>
+
+      <div class="options-field">
+        <label for="customPrompt" class="options-label">追加プロンプト（任意）</label>
+        <textarea
+          id="customPrompt"
+          class="options-input options-textarea"
+          rows="4"
+          placeholder="例: 返信はです・ます調で統一してください。社名は「株式会社サンプル」です。"
+        ></textarea>
+        <p class="options-hint">
+          この内容は n8n 経由でAIに追加指示として送られます。<br>
+          機密情報（パスワード、APIキー等）は絶対に書かないでください。
+        </p>
+      </div>
+    </section>
+
+    <!-- テンプレート管理 -->
+    <section class="options-section">
+      <h2 class="options-section-title">返信テンプレート管理</h2>
+      <p class="options-description">
+        よく使う返信パターンをテンプレートとして保存できます。<br>
+        カード上の「📋 テンプレートから選ぶ」から素早くアクセスできます。
+      </p>
+
+      <!-- 既存テンプレート一覧 -->
+      <div id="templateList" class="options-tpl-list">
+        <!-- JS で動的に構築 -->
+      </div>
+
+      <!-- テンプレート追加フォーム -->
+      <div class="options-tpl-add">
+        <h3 class="options-tpl-add-title">新しいテンプレートを追加</h3>
+        <div class="options-field">
+          <label for="tplName" class="options-label">テンプレート名</label>
+          <input type="text" id="tplName" class="options-input" placeholder="例: 納期回答">
+        </div>
+        <div class="options-field">
+          <label for="tplIntent" class="options-label">AIへの指示（intent）</label>
+          <textarea id="tplIntent" class="options-input options-textarea" rows="2"
+            placeholder="例: 納期について丁寧に回答したい。未確定の場合は確認中と伝える"></textarea>
+        </div>
+        <div class="options-field-row">
+          <div class="options-field">
+            <label for="tplIcon" class="options-label">アイコン（絵文字1文字）</label>
+            <input type="text" id="tplIcon" class="options-input options-input--small" placeholder="📌" maxlength="2">
+          </div>
+          <div class="options-field">
+            <label for="tplCategory" class="options-label">カテゴリ</label>
+            <input type="text" id="tplCategory" class="options-input" placeholder="カスタム">
+          </div>
+          <div class="options-field">
+            <label for="tplTone" class="options-label">デフォルトトーン</label>
+            <select id="tplTone" class="options-input">
+              <option value="neutral">通常</option>
+              <option value="polite">丁寧</option>
+              <option value="soft">やわらかい</option>
+              <option value="short">短い</option>
+              <option value="summary">要点のみ</option>
+            </select>
+          </div>
+        </div>
+        <button id="addTemplateBtn" class="options-btn options-btn--secondary">テンプレートを追加</button>
+      </div>
+    </section>
+
+    <!-- 保存ボタン -->
     <div class="options-actions">
       <button id="saveBtn" class="options-btn options-btn--primary">設定を保存</button>
       <span id="saveStatus" class="options-save-status"></span>
     </div>
 
+    <!-- セキュリティ情報 -->
     <section class="options-section options-section--info">
       <h2 class="options-section-title">セキュリティについて</h2>
       <ul class="options-info-list">
@@ -67,6 +144,7 @@
         <li>送信データは直近の数件のメッセージのみです</li>
         <li>個人情報らしき文字列は送信前に自動マスクされます</li>
         <li>下書き履歴は永続的に保存しません</li>
+        <li>カスタムプロンプトとテンプレートは設定値として保存されます</li>
         <li>この拡張機能は送信ボタンを自動で押しません</li>
       </ul>
     </section>

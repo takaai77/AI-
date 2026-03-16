@@ -6,6 +6,7 @@
  * UI構成:
  *   - トリガーボタン（入力欄付近に表示）
  *   - AIカード（ミニカードUI）
+ *     - テンプレート選択パネル（折りたたみ式）
  *     - 意図入力テキストエリア
  *     - 返信提案ボタン
  *     - トーン変更ボタン群
@@ -32,6 +33,8 @@ var CW_CARD = (() => {
     toneLabel: '',
     notes: '',
     error: '',
+    templatePanelOpen: false,
+    selectedTemplate: null,  // 選択中のテンプレートオブジェクト
   };
 
   // ── DOM参照 ──
@@ -39,19 +42,16 @@ var CW_CARD = (() => {
 
   // ── トーン定義 ──
   const TONES = [
-    { key: 'polite', label: 'もっと丁寧に' },
-    { key: 'soft', label: 'やわらかく' },
-    { key: 'short', label: '短く' },
-    { key: 'summary', label: '要点だけ' },
+    { key: 'polite', label: '丁寧に', icon: '🎩' },
+    { key: 'soft', label: 'やわらかく', icon: '🌸' },
+    { key: 'short', label: '短く', icon: '✂️' },
+    { key: 'summary', label: '要点だけ', icon: '📌' },
   ];
 
   // ─────────────────────────────────────────────
   // DOM要素生成ヘルパー（innerHTML を避ける）
   // ─────────────────────────────────────────────
 
-  /**
-   * 要素を安全に生成する
-   */
   function el(tag, attrs = {}, children = []) {
     const elem = document.createElement(tag);
     for (const [key, val] of Object.entries(attrs)) {
@@ -80,15 +80,104 @@ var CW_CARD = (() => {
   // ─────────────────────────────────────────────
 
   function createTriggerButton() {
-    const btn = el('button', {
+    return el('button', {
       className: 'cw-ai-trigger-btn',
-      title: 'AI返信下書きを作成',
+      title: 'AI返信の下書きを作成（送信はしません）',
       onClick: toggleCard,
     }, [
       el('span', { className: 'cw-ai-trigger-btn__icon', textContent: '✨' }),
       el('span', { textContent: 'AI返信' }),
     ]);
-    return btn;
+  }
+
+  // ─────────────────────────────────────────────
+  // テンプレートパネルの生成
+  // ─────────────────────────────────────────────
+
+  function createTemplatePanel() {
+    // トグルボタン
+    const toggleBtn = el('button', {
+      className: 'cw-ai-tpl__toggle',
+      onClick: toggleTemplatePanel,
+    }, [
+      el('span', { textContent: '📋 テンプレートから選ぶ' }),
+      el('span', { className: 'cw-ai-tpl__arrow', textContent: '▼' }),
+    ]);
+
+    // テンプレート一覧コンテナ（初期非表示）
+    const listContainer = el('div', { className: 'cw-ai-tpl__list' });
+
+    const panel = el('div', { className: 'cw-ai-tpl' }, [
+      toggleBtn,
+      listContainer,
+    ]);
+
+    return { panel, listContainer, toggleBtn };
+  }
+
+  /**
+   * テンプレート一覧を非同期で構築する
+   */
+  async function renderTemplateList() {
+    if (!_els.tplList) return;
+    // 子要素をクリア
+    while (_els.tplList.firstChild) {
+      _els.tplList.removeChild(_els.tplList.firstChild);
+    }
+
+    const grouped = await CW_TEMPLATES.getTemplatesByCategory();
+
+    for (const [category, templates] of grouped) {
+      // カテゴリラベル
+      _els.tplList.appendChild(
+        el('div', { className: 'cw-ai-tpl__category', textContent: category })
+      );
+
+      for (const tpl of templates) {
+        const chip = el('button', {
+          className: 'cw-ai-tpl__chip' + (tpl.isPreset ? '' : ' cw-ai-tpl__chip--user'),
+          title: tpl.intent,
+          onClick: () => selectTemplate(tpl),
+        }, [
+          el('span', { className: 'cw-ai-tpl__chip-icon', textContent: tpl.icon || '📌' }),
+          el('span', { textContent: tpl.name }),
+        ]);
+        _els.tplList.appendChild(chip);
+      }
+    }
+  }
+
+  /**
+   * テンプレートを選択したとき
+   */
+  function selectTemplate(tpl) {
+    _state.selectedTemplate = tpl;
+    // テキストエリアにintentを反映
+    if (_els.textarea) {
+      _els.textarea.value = tpl.intent;
+    }
+    // トーンも反映
+    if (tpl.tone) {
+      _state.currentTone = tpl.tone;
+    }
+    // パネルを閉じる
+    _state.templatePanelOpen = false;
+    updateTemplatePanelUI();
+  }
+
+  function toggleTemplatePanel() {
+    _state.templatePanelOpen = !_state.templatePanelOpen;
+    updateTemplatePanelUI();
+    if (_state.templatePanelOpen) {
+      renderTemplateList();
+    }
+  }
+
+  function updateTemplatePanelUI() {
+    if (!_els.tplList || !_els.tplToggleBtn) return;
+    _els.tplList.classList.toggle('cw-ai-tpl__list--open', _state.templatePanelOpen);
+    const arrow = _els.tplToggleBtn.querySelector('.cw-ai-tpl__arrow');
+    if (arrow) arrow.textContent = _state.templatePanelOpen ? '▲' : '▼';
   }
 
   // ─────────────────────────────────────────────
@@ -112,16 +201,19 @@ var CW_CARD = (() => {
       closeBtn,
     ]);
 
-    // ── 安心メッセージ ──
-    const notice = el('div', {
-      className: 'cw-ai-card__notice',
-      textContent: '💡 送信はされません。下書きのみ作成します。',
-    });
+    // ── 安心バッジ ──
+    const safeBadge = el('div', { className: 'cw-ai-card__safe-badge' }, [
+      el('span', { className: 'cw-ai-card__safe-icon', textContent: '🔒' }),
+      el('span', { textContent: '下書きのみ作成します。送信はされません。' }),
+    ]);
+
+    // ── テンプレートパネル ──
+    const { panel: tplPanel, listContainer: tplList, toggleBtn: tplToggleBtn } = createTemplatePanel();
 
     // ── テキスト入力エリア ──
     const textarea = el('textarea', {
       className: 'cw-ai-card__textarea',
-      placeholder: 'どう返信したいですか？（例：丁寧にお断りしたい）',
+      placeholder: 'どう返信したいですか？\n例: 丁寧にお断りしたい、日程を提案したい…',
     });
     textarea.rows = 2;
 
@@ -129,31 +221,33 @@ var CW_CARD = (() => {
 
     // ── 提案ボタン ──
     const suggestBtn = el('button', {
-      className: 'cw-ai-card__btn cw-ai-card__btn--primary',
-      textContent: '返信を提案',
+      className: 'cw-ai-card__btn cw-ai-card__btn--primary cw-ai-card__btn--suggest',
       onClick: handleSuggest,
-    });
+    }, [
+      el('span', { textContent: '✨ 返信を提案' }),
+    ]);
 
     const actions = el('div', { className: 'cw-ai-card__actions' }, [suggestBtn]);
 
     // ── トーン変更ボタン群 ──
     const toneLabel = el('div', {
-      className: 'cw-ai-card__tone-label',
-      textContent: 'トーンを変更:',
+      className: 'cw-ai-card__section-label',
+      textContent: 'トーンを変更',
     });
 
     const toneButtons = TONES.map(tone =>
       el('button', {
-        className: 'cw-ai-card__btn',
-        textContent: tone.label,
+        className: 'cw-ai-card__btn cw-ai-card__btn--tone',
         'data-tone': tone.key,
         onClick: () => handleToneChange(tone.key),
-      })
+      }, [
+        el('span', { textContent: tone.icon + ' ' + tone.label }),
+      ])
     );
 
     const toneGroup = el('div', { className: 'cw-ai-card__tone-group' }, [
       toneLabel,
-      ...toneButtons,
+      el('div', { className: 'cw-ai-card__tone-buttons' }, toneButtons),
     ]);
 
     // ── ステータス表示（ローディング・エラー） ──
@@ -170,33 +264,30 @@ var CW_CARD = (() => {
 
     // ── フッター（操作ボタン） ──
     const retryBtn = el('button', {
-      className: 'cw-ai-card__btn',
-      textContent: '再生成',
+      className: 'cw-ai-card__btn cw-ai-card__btn--secondary',
       onClick: handleRetry,
-    });
+    }, [el('span', { textContent: '🔄 再生成' })]);
 
     const undoBtn = el('button', {
-      className: 'cw-ai-card__btn',
-      textContent: '元に戻す',
+      className: 'cw-ai-card__btn cw-ai-card__btn--secondary',
       onClick: handleUndo,
-    });
+    }, [el('span', { textContent: '↩️ 元に戻す' })]);
 
     const insertBtn = el('button', {
       className: 'cw-ai-card__btn cw-ai-card__btn--insert',
-      textContent: '入力欄に挿入',
       onClick: handleInsert,
-    });
+    }, [el('span', { textContent: '📥 入力欄に挿入' })]);
 
     const footer = el('div', { className: 'cw-ai-card__footer' }, [
-      retryBtn,
-      undoBtn,
+      el('div', { className: 'cw-ai-card__footer-left' }, [retryBtn, undoBtn]),
       insertBtn,
     ]);
 
     // ── カード本体 ──
     const card = el('div', { className: 'cw-ai-card' }, [
       header,
-      notice,
+      safeBadge,
+      tplPanel,
       inputArea,
       actions,
       toneGroup,
@@ -221,6 +312,8 @@ var CW_CARD = (() => {
       retryBtn,
       undoBtn,
       insertBtn,
+      tplList,
+      tplToggleBtn,
     };
 
     return card;
@@ -238,7 +331,7 @@ var CW_CARD = (() => {
 
     // ローディング状態
     if (_state.isLoading) {
-      showStatus('loading', '生成中…');
+      showStatus('loading', '下書きを考えています…');
       setButtonsDisabled(true);
     } else if (_state.error) {
       showStatus('error', _state.error);
@@ -250,7 +343,6 @@ var CW_CARD = (() => {
 
     // プレビュー表示
     if (_state.currentDraft) {
-      // textContent で安全に表示（XSS防止）
       _els.preview.textContent = _state.currentDraft;
       _els.preview.classList.add('cw-ai-card__preview--visible');
       _els.footer.classList.add('cw-ai-card__footer--visible');
@@ -262,7 +354,7 @@ var CW_CARD = (() => {
 
     // トーン情報
     if (_state.toneLabel) {
-      _els.toneInfo.textContent = `トーン: ${_state.toneLabel}`;
+      _els.toneInfo.textContent = 'トーン: ' + _state.toneLabel;
       _els.toneInfo.classList.add('cw-ai-card__tone-info--visible');
     } else {
       _els.toneInfo.classList.remove('cw-ai-card__tone-info--visible');
@@ -270,7 +362,7 @@ var CW_CARD = (() => {
 
     // 注意メモ
     if (_state.notes) {
-      _els.notesEl.textContent = `⚠️ ${_state.notes}`;
+      _els.notesEl.textContent = '💡 ' + _state.notes;
       _els.notesEl.classList.add('cw-ai-card__notes--visible');
     } else {
       _els.notesEl.classList.remove('cw-ai-card__notes--visible');
@@ -283,15 +375,20 @@ var CW_CARD = (() => {
   }
 
   function showStatus(type, message) {
-    _els.statusEl.className = `cw-ai-card__status cw-ai-card__status--visible cw-ai-card__status--${type}`;
+    _els.statusEl.className = 'cw-ai-card__status cw-ai-card__status--visible cw-ai-card__status--' + type;
 
-    // 子要素をクリアして再構築
     while (_els.statusEl.firstChild) {
       _els.statusEl.removeChild(_els.statusEl.firstChild);
     }
 
     if (type === 'loading') {
-      _els.statusEl.appendChild(el('div', { className: 'cw-ai-spinner' }));
+      // パルスドット風ローディング
+      const dots = el('div', { className: 'cw-ai-dots' }, [
+        el('span', { className: 'cw-ai-dot' }),
+        el('span', { className: 'cw-ai-dot' }),
+        el('span', { className: 'cw-ai-dot' }),
+      ]);
+      _els.statusEl.appendChild(dots);
     }
     _els.statusEl.appendChild(document.createTextNode(message));
   }
@@ -318,6 +415,10 @@ var CW_CARD = (() => {
     _state.isOpen = !_state.isOpen;
     _state.error = '';
     updateUI();
+    // カードを開いた時にテンプレート一覧をプリロード
+    if (_state.isOpen && _state.templatePanelOpen) {
+      renderTemplateList();
+    }
   }
 
   function closeCard() {
@@ -325,33 +426,21 @@ var CW_CARD = (() => {
     updateUI();
   }
 
-  /**
-   * 「返信を提案」ボタンのハンドラ
-   */
   async function handleSuggest() {
     const intent = _els.textarea.value.trim();
     await requestDraft(intent, 'neutral', false);
   }
 
-  /**
-   * トーン変更ハンドラ
-   */
   async function handleToneChange(tone) {
     const intent = _els.textarea.value.trim();
     await requestDraft(intent, tone, false);
   }
 
-  /**
-   * 「再生成」ハンドラ
-   */
   async function handleRetry() {
     const intent = _els.textarea.value.trim();
     await requestDraft(intent, _state.currentTone, true);
   }
 
-  /**
-   * 「元に戻す」ハンドラ
-   */
   function handleUndo() {
     if (_state.previousDraft) {
       const temp = _state.currentDraft;
@@ -361,26 +450,23 @@ var CW_CARD = (() => {
     }
   }
 
-  /**
-   * 「入力欄に挿入」ハンドラ
-   */
   function handleInsert() {
     if (!_state.currentDraft) return;
 
     const success = CW_INSERT.insertToChatInput(_state.currentDraft);
     if (success) {
-      // 挿入成功 → カードを閉じる
       _state.isOpen = false;
       _state.error = '';
       updateUI();
     } else {
-      _state.error = '入力欄にテキストを挿入できませんでした。画面を確認してください。';
+      _state.error = '入力欄が見つかりませんでした。画面を更新して再試行してください。';
       updateUI();
     }
   }
 
   /**
    * 下書きリクエストの共通処理
+   * カスタムプロンプトとテンプレート情報を含めて送信する
    */
   async function requestDraft(intent, tone, retryMode) {
     _state.isLoading = true;
@@ -389,24 +475,32 @@ var CW_CARD = (() => {
     updateUI();
 
     try {
-      // ペイロード組み立て
-      const payload = CW_EXTRACT.buildPayload({ intent, tone, retryMode });
+      // カスタムプロンプトを読み込む
+      const customPrompt = await CW_TEMPLATES.loadCustomPrompt();
+      const templateName = _state.selectedTemplate ? _state.selectedTemplate.name : '';
 
-      // API呼び出し
+      // ペイロード組み立て
+      const payload = CW_EXTRACT.buildPayload({
+        intent,
+        tone,
+        retryMode,
+        customPrompt,
+        templateName,
+      });
+
       const result = await CW_API.requestDraft(payload);
 
       if (result.ok) {
-        // 成功 → 前の下書きを退避してから更新
         _state.previousDraft = _state.currentDraft;
         _state.currentDraft = result.draft;
         _state.toneLabel = result.toneLabel || '';
         _state.notes = result.notes || '';
         _state.error = '';
       } else {
-        _state.error = result.error || 'エラーが発生しました。';
+        _state.error = result.error || 'うまくいきませんでした。もう一度お試しください。';
       }
     } catch (e) {
-      _state.error = '予期しないエラーが発生しました。';
+      _state.error = 'うまくいきませんでした。しばらく待ってから再試行してください。';
     } finally {
       _state.isLoading = false;
       updateUI();
@@ -414,37 +508,27 @@ var CW_CARD = (() => {
   }
 
   // ─────────────────────────────────────────────
-  // 初期化（外部から呼ばれる）
+  // 初期化
   // ─────────────────────────────────────────────
 
-  /**
-   * AIカードUIを初期化してDOMに追加する
-   */
   function init() {
-    // 既に初期化済みの場合はスキップ
     if (document.querySelector('.cw-ai-card')) return;
 
-    // トリガーボタンを入力欄付近に配置
     const triggerBtn = createTriggerButton();
     const inputContainer = CW_SELECTORS.getInputContainer();
 
     if (inputContainer) {
       inputContainer.appendChild(triggerBtn);
     } else {
-      // 入力欄が見つからない場合は body 末尾に追加（フォールバック）
       document.body.appendChild(triggerBtn);
     }
 
-    // AIカード本体を body に追加
     const card = createCard();
     document.body.appendChild(card);
 
     updateUI();
   }
 
-  /**
-   * UIを破棄する（ルーム切り替え時などに使用）
-   */
   function destroy() {
     const existingCard = document.querySelector('.cw-ai-card');
     if (existingCard) existingCard.remove();
@@ -462,6 +546,8 @@ var CW_CARD = (() => {
       toneLabel: '',
       notes: '',
       error: '',
+      templatePanelOpen: false,
+      selectedTemplate: null,
     };
   }
 

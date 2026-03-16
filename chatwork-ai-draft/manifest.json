@@ -29,6 +29,7 @@
         "lib/mask-sensitive.js",
         "lib/insert-draft.js",
         "lib/storage-session.js",
+        "lib/templates.js",
         "lib/api-client.js",
         "ui/ai-card.js",
         "content.js"
