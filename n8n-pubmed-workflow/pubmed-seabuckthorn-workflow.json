@@ -1,0 +1,393 @@
+{
+  "name": "【R&D】サジー論文 自動取得・要約・通知",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 6
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "⏰ 毎朝6時に実行",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"searchQuery\": \"(\\\"sea buckthorn\\\" OR \\\"hippophae rhamnoides\\\")\",\n  \"themes\": [\"fatigue\", \"iron\", \"glucose\", \"lipid\", \"skin\", \"women\", \"safety\", \"inflammation\"],\n  \"maxResults\": 50,\n  \"importanceThreshold\": 4,\n  \"notifyAll\": false,\n  \"geminiModel\": \"gemini-2.0-flash\",\n  \"daysBack\": 7,\n  \"recipientEmail\": \"{{ $env.NOTIFICATION_EMAIL }}\",\n  \"adminEmail\": \"{{ $env.ADMIN_EMAIL }}\"\n}",
+        "options": {}
+      },
+      "id": "set-config",
+      "name": "⚙️ 検索条件・設定",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [220, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "// ========================================\n// PubMed検索URLを組み立てるノード\n// ========================================\n\nconst config = $input.first().json;\n\n// --- 検索日付範囲の計算 ---\n// daysBack日前から今日までを対象にする\nconst today = new Date();\nconst fromDate = new Date();\nfromDate.setDate(today.getDate() - config.daysBack);\n\n// PubMed APIが求める日付形式: YYYY/MM/DD\nconst formatDate = (d) => {\n  const y = d.getFullYear();\n  const m = String(d.getMonth() + 1).padStart(2, '0');\n  const day = String(d.getDate()).padStart(2, '0');\n  return `${y}/${m}/${day}`;\n};\n\nconst minDate = formatDate(fromDate);\nconst maxDate = formatDate(today);\n\n// --- 検索クエリの構築 ---\n// テーマが設定されていれば OR で繋げてANDする\nlet query = config.searchQuery;\n\n// テーマ別絞り込みが必要な場合はここをカスタマイズ\n// 現在はベース検索式のみ（全テーマ横断）\n// テーマ別に分けたい場合は、themesをループして複数回検索する拡張も可能\n\n// --- esearch APIのURL ---\nconst esearchUrl = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi'\n  + '?db=pubmed'\n  + '&term=' + encodeURIComponent(query)\n  + '&retmax=' + config.maxResults\n  + '&sort=date'\n  + '&datetype=pdat'\n  + '&mindate=' + encodeURIComponent(minDate)\n  + '&maxdate=' + encodeURIComponent(maxDate)\n  + '&retmode=json'\n  + ($env.PUBMED_API_KEY ? '&api_key=' + $env.PUBMED_API_KEY : '');\n\nreturn [{\n  json: {\n    ...config,\n    esearchUrl,\n    minDate,\n    maxDate\n  }\n}];"
+      },
+      "id": "build-search-url",
+      "name": "🔍 検索URL構築",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 0]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.esearchUrl }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "pubmed-esearch",
+      "name": "📡 PubMed検索（esearch）",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [660, 0],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000
+    },
+    {
+      "parameters": {
+        "jsCode": "// ========================================\n// esearch結果からPMIDリストを取得し、\n// efetch用URLを構築するノード\n// ========================================\n\nconst input = $input.first().json;\nconst config = $('⚙️ 検索条件・設定').first().json;\n\n// --- esearch結果の解析 ---\nconst esearchResult = input.esearchresult || input;\nconst idList = esearchResult.idlist || [];\nconst count = parseInt(esearchResult.count || '0');\n\n// 結果が0件の場合は空で返す（後続ノードで分岐）\nif (idList.length === 0) {\n  return [{ json: { pmids: [], count: 0, hasResults: false, config } }];\n}\n\n// --- efetch URLの構築 ---\n// PMIDをカンマ区切りで結合\nconst pmidString = idList.join(',');\n\nconst efetchUrl = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi'\n  + '?db=pubmed'\n  + '&id=' + pmidString\n  + '&retmode=xml'\n  + ($env.PUBMED_API_KEY ? '&api_key=' + $env.PUBMED_API_KEY : '');\n\nreturn [{\n  json: {\n    pmids: idList,\n    count: idList.length,\n    totalFound: count,\n    hasResults: true,\n    efetchUrl,\n    config\n  }\n}];"
+      },
+      "id": "parse-pmids",
+      "name": "📋 PMID取得・efetchURL構築",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [880, 0]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "check-has-results",
+              "leftValue": "={{ $json.hasResults }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "if-has-results",
+      "name": "❓ 論文あり？",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [1100, 0]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.efetchUrl }}",
+        "options": {
+          "timeout": 60000,
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "id": "pubmed-efetch",
+      "name": "📄 論文詳細取得（efetch）",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1320, -100],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "jsCode": "// ========================================\n// PubMed XMLを解析して論文データを整形するノード\n// - タイトル、要旨、著者、掲載誌、出版日を抽出\n// - PubMed URLを生成\n// - 重複PMIDを除外\n// ========================================\n\nconst xmlData = $input.first().json.data || $input.first().json.body || '';\nconst config = $('⚙️ 検索条件・設定').first().json;\n\n// --- XML文字列から論文情報を抽出する簡易パーサー ---\n// n8nのCodeノードではDOMParserが使えないため、正規表現で抽出\n\nfunction extractBetween(xml, tag) {\n  const regex = new RegExp(`<${tag}[^>]*>([\\\\s\\\\S]*?)<\\\\/${tag}>`, 'g');\n  const matches = [];\n  let match;\n  while ((match = regex.exec(xml)) !== null) {\n    matches.push(match[1].trim());\n  }\n  return matches;\n}\n\nfunction extractFirst(xml, tag) {\n  const regex = new RegExp(`<${tag}[^>]*>([\\\\s\\\\S]*?)<\\\\/${tag}>`);\n  const match = xml.match(regex);\n  return match ? match[1].trim() : '';\n}\n\nfunction stripTags(str) {\n  return str.replace(/<[^>]+>/g, '').trim();\n}\n\n// --- 各論文（PubmedArticle）を分割 ---\nconst articleBlocks = xmlData.split('<PubmedArticle>');\narticleBlocks.shift(); // 最初の空要素を除去\n\nconst articles = [];\nconst seenPmids = new Set();\n\nfor (const block of articleBlocks) {\n  try {\n    // PMID\n    const pmid = extractFirst(block, 'PMID');\n    if (!pmid || seenPmids.has(pmid)) continue;\n    seenPmids.add(pmid);\n\n    // タイトル\n    const title = stripTags(extractFirst(block, 'ArticleTitle')) || 'タイトル不明';\n\n    // 要旨（Abstract）\n    const abstractBlock = extractFirst(block, 'Abstract');\n    const abstractTexts = extractBetween(abstractBlock || '', 'AbstractText');\n    const abstract = abstractTexts.map(t => stripTags(t)).join(' ') || 'アブストラクトなし';\n\n    // 著者\n    const authorBlock = extractFirst(block, 'AuthorList');\n    const lastNames = extractBetween(authorBlock || '', 'LastName');\n    const foreNames = extractBetween(authorBlock || '', 'ForeName');\n    const authors = lastNames.map((ln, i) => {\n      return foreNames[i] ? `${ln} ${foreNames[i]}` : ln;\n    }).slice(0, 5); // 最大5名まで表示\n    const authorStr = authors.join(', ') + (lastNames.length > 5 ? ' et al.' : '');\n\n    // 掲載誌\n    const journal = stripTags(extractFirst(block, 'Title')) || '掲載誌不明';\n\n    // 出版日\n    const pubDateBlock = extractFirst(block, 'PubDate');\n    const year = extractFirst(pubDateBlock || '', 'Year') || '';\n    const month = extractFirst(pubDateBlock || '', 'Month') || '';\n    const day = extractFirst(pubDateBlock || '', 'Day') || '';\n    const pubDate = [year, month, day].filter(Boolean).join('-') || '日付不明';\n\n    // PubMed URL\n    const pubmedUrl = `https://pubmed.ncbi.nlm.nih.gov/${pmid}/`;\n\n    articles.push({\n      pmid,\n      title,\n      abstract,\n      authors: authorStr,\n      journal,\n      pubDate,\n      pubmedUrl\n    });\n  } catch (e) {\n    // パースエラーが出ても他の論文の処理を続行\n    console.log(`論文パースエラー: ${e.message}`);\n  }\n}\n\n// 各論文を個別アイテムとして返す（後続のループ処理用）\nreturn articles.map(article => ({ json: { ...article, config } }));"
+      },
+      "id": "parse-articles",
+      "name": "📝 論文データ整形・重複除外",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1540, -100]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/{{ $('⚙️ 検索条件・設定').first().json.geminiModel }}:generateContent?key={{ $env.GEMINI_API_KEY }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [{\n    \"parts\": [{\n      \"text\": \"あなたは製薬・健康食品分野の研究論文アナリストです。以下の論文情報を分析し、JSON形式で回答してください。\\n\\n【論文情報】\\nタイトル: {{ $json.title }}\\n要旨: {{ $json.abstract }}\\n掲載誌: {{ $json.journal }}\\n出版日: {{ $json.pubDate }}\\n\\n【回答形式（必ずこのJSON形式で）】\\n{\\n  \\\"summary\\\": \\\"3〜5行の日本語要約\\\",\\n  \\\"researchType\\\": \\\"研究タイプ（RCT/観察研究/レビュー/メタ分析/動物実験/in vitro/症例報告/その他）\\\",\\n  \\\"productRelevance\\\": \\\"商品訴求との近さ（高/中/低）と理由を1行で\\\",\\n  \\\"cautions\\\": \\\"注意点や限界を1〜2行で\\\",\\n  \\\"importanceScore\\\": 5\\n}\\n\\n【重要度スコアの基準（1〜5）】\\n5: RCTやメタ分析でサジーの健康効果を直接実証\\n4: 観察研究やレビューでサジーの有用性を示唆\\n3: 関連成分の基礎研究で間接的に関連\\n2: 動物実験やin vitroの基礎データ\\n1: 直接的な関連が薄い\\n\\n必ずJSON形式のみで回答してください。説明文は不要です。\"\n    }]\n  }],\n  \"generationConfig\": {\n    \"temperature\": 0.2,\n    \"maxOutputTokens\": 1024\n  }\n}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "gemini-api",
+      "name": "🤖 Gemini要約・分析",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1760, -100],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "jsCode": "// ========================================\n// Gemini APIレスポンスをパースするノード\n// - JSON形式の応答を解析\n// - パース失敗時はフォールバック値を使用\n// ========================================\n\nconst geminiResponse = $input.first().json;\nconst article = {\n  pmid: $('📝 論文データ整形・重複除外').item.json.pmid,\n  title: $('📝 論文データ整形・重複除外').item.json.title,\n  abstract: $('📝 論文データ整形・重複除外').item.json.abstract,\n  authors: $('📝 論文データ整形・重複除外').item.json.authors,\n  journal: $('📝 論文データ整形・重複除外').item.json.journal,\n  pubDate: $('📝 論文データ整形・重複除外').item.json.pubDate,\n  pubmedUrl: $('📝 論文データ整形・重複除外').item.json.pubmedUrl,\n  config: $('📝 論文データ整形・重複除外').item.json.config\n};\n\n// --- Gemini応答からテキストを取得 ---\nlet responseText = '';\ntry {\n  responseText = geminiResponse.candidates[0].content.parts[0].text || '';\n} catch (e) {\n  responseText = '';\n}\n\n// --- JSONパース ---\nlet analysis;\ntry {\n  // コードブロック記法（```json ... ```）を除去\n  let cleaned = responseText.replace(/```json\\n?/g, '').replace(/```\\n?/g, '').trim();\n  analysis = JSON.parse(cleaned);\n} catch (e) {\n  // パース失敗時のフォールバック\n  console.log(`Gemini応答のJSONパースに失敗: ${e.message}`);\n  console.log(`応答テキスト: ${responseText.substring(0, 200)}`);\n  analysis = {\n    summary: '（要約の自動生成に失敗しました。原文をご確認ください）',\n    researchType: '不明',\n    productRelevance: '判定不可',\n    cautions: '自動分析が失敗したため、原文の確認を推奨します',\n    importanceScore: 3\n  };\n}\n\n// --- 重要度スコアのバリデーション ---\nconst score = parseInt(analysis.importanceScore) || 3;\nconst validScore = Math.max(1, Math.min(5, score));\n\nreturn [{\n  json: {\n    ...article,\n    summary: analysis.summary || '要約なし',\n    researchType: analysis.researchType || '不明',\n    productRelevance: analysis.productRelevance || '判定不可',\n    cautions: analysis.cautions || 'なし',\n    importanceScore: validScore,\n    analyzedAt: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "parse-gemini",
+      "name": "📊 要約結果パース",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1980, -100]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "={{ $env.GOOGLE_SHEET_ID }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "byName",
+          "value": "論文データ"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "PMID": "={{ $json.pmid }}",
+            "タイトル": "={{ $json.title }}",
+            "要旨": "={{ $json.abstract }}",
+            "著者": "={{ $json.authors }}",
+            "掲載誌": "={{ $json.journal }}",
+            "出版日": "={{ $json.pubDate }}",
+            "PubMedURL": "={{ $json.pubmedUrl }}",
+            "日本語要約": "={{ $json.summary }}",
+            "研究タイプ": "={{ $json.researchType }}",
+            "商品訴求との近さ": "={{ $json.productRelevance }}",
+            "注意点": "={{ $json.cautions }}",
+            "重要度スコア": "={{ $json.importanceScore }}",
+            "取得日時": "={{ $json.analyzedAt }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "google-sheets-save",
+      "name": "💾 Google Sheetsに保存",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [2200, -100]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "check-importance-or-all",
+              "leftValue": "={{ $json.importanceScore >= $json.config.importanceThreshold || $json.config.notifyAll }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "if-important",
+      "name": "⭐ 重要論文？",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [2420, -100]
+    },
+    {
+      "parameters": {
+        "jsCode": "// ========================================\n// 通知対象の論文をHTML形式のメール本文に整形するノード\n// ========================================\n\nconst items = $input.all();\nconst today = new Date().toLocaleDateString('ja-JP');\nconst articleCount = items.length;\n\nif (articleCount === 0) {\n  return [{ json: { hasNotification: false } }];\n}\n\n// --- 重要度に応じた色分け ---\nfunction getScoreColor(score) {\n  if (score >= 5) return '#e74c3c'; // 赤\n  if (score >= 4) return '#e67e22'; // オレンジ\n  if (score >= 3) return '#f1c40f'; // 黄\n  return '#95a5a6'; // グレー\n}\n\nfunction getScoreLabel(score) {\n  const stars = '★'.repeat(score) + '☆'.repeat(5 - score);\n  return stars;\n}\n\n// --- HTMLメール本文の構築 ---\nlet htmlBody = `\n<div style=\"font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', sans-serif; max-width: 700px; margin: 0 auto; background: #f8f9fa; padding: 20px;\">\n  <div style=\"background: #2c3e50; color: white; padding: 20px; border-radius: 8px 8px 0 0;\">\n    <h1 style=\"margin: 0; font-size: 20px;\">🔬 R&D論文速報：サジー関連</h1>\n    <p style=\"margin: 5px 0 0; font-size: 14px; opacity: 0.8;\">${today} ｜ 新着 ${articleCount}件</p>\n  </div>\n  <div style=\"background: white; padding: 20px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);\">\n`;\n\nfor (const item of items) {\n  const d = item.json;\n  const scoreColor = getScoreColor(d.importanceScore);\n  \n  htmlBody += `\n    <div style=\"border-left: 4px solid ${scoreColor}; padding: 15px; margin: 15px 0; background: #fafafa; border-radius: 0 4px 4px 0;\">\n      <div style=\"display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;\">\n        <span style=\"background: ${scoreColor}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px;\">重要度 ${getScoreLabel(d.importanceScore)}</span>\n        <span style=\"font-size: 12px; color: #888;\">${d.researchType} ｜ ${d.pubDate}</span>\n      </div>\n      <h3 style=\"margin: 0 0 8px; font-size: 15px; color: #2c3e50;\">\n        <a href=\"${d.pubmedUrl}\" style=\"color: #2c3e50; text-decoration: none;\">${d.title}</a>\n      </h3>\n      <p style=\"margin: 0 0 8px; font-size: 13px; color: #555; line-height: 1.6;\">${d.summary}</p>\n      <table style=\"width: 100%; font-size: 12px; color: #666;\">\n        <tr><td style=\"padding: 2px 0;\"><strong>商品訴求との近さ：</strong>${d.productRelevance}</td></tr>\n        <tr><td style=\"padding: 2px 0;\"><strong>注意点：</strong>${d.cautions}</td></tr>\n        <tr><td style=\"padding: 2px 0;\"><strong>著者：</strong>${d.authors}</td></tr>\n        <tr><td style=\"padding: 2px 0;\"><strong>掲載誌：</strong>${d.journal}</td></tr>\n      </table>\n      <div style=\"margin-top: 8px;\">\n        <a href=\"${d.pubmedUrl}\" style=\"color: #3498db; font-size: 12px;\">📎 PubMedで原文を見る →</a>\n      </div>\n    </div>\n  `;\n}\n\nhtmlBody += `\n    <div style=\"margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee; font-size: 11px; color: #999;\">\n      <p>このメールはn8nワークフローにより自動送信されています。</p>\n      <p>検索式: (\"sea buckthorn\" OR \"hippophae rhamnoides\") ｜ 対象期間: 過去${items[0].json.config?.daysBack || 7}日間</p>\n    </div>\n  </div>\n</div>\n`;\n\n// メール件名\nconst subject = `【R&D論文速報】サジー関連の新着論文 ${articleCount}件（${today}）`;\n\nreturn [{\n  json: {\n    hasNotification: true,\n    subject,\n    htmlBody,\n    articleCount,\n    recipientEmail: items[0].json.config?.recipientEmail || '',\n    adminEmail: items[0].json.config?.adminEmail || ''\n  }\n}];"
+      },
+      "id": "build-email",
+      "name": "✉️ メール本文HTML構築",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2640, -200]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.recipientEmail }}",
+        "subject": "={{ $json.subject }}",
+        "emailType": "html",
+        "html": "={{ $json.htmlBody }}",
+        "options": {}
+      },
+      "id": "send-email",
+      "name": "📧 メール送信",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [2860, -200],
+      "credentials": {
+        "smtp": {
+          "id": "SMTP_CREDENTIAL_ID",
+          "name": "SMTP設定"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// ========================================\n// 論文0件時のログ出力ノード\n// ========================================\nconsole.log('新着論文は0件でした。メール通知はスキップします。');\nreturn [{ json: { message: '新着論文なし', timestamp: new Date().toISOString() } }];"
+      },
+      "id": "no-results-log",
+      "name": "📭 結果なし（ログ出力）",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1320, 150]
+    },
+    {
+      "parameters": {
+        "jsCode": "// ========================================\n// 重要度が閾値未満の論文はスキップ\n// Google Sheetsには保存済み\n// ========================================\nconsole.log('重要度が閾値未満のためメール通知をスキップしました。');\nreturn $input.all();"
+      },
+      "id": "skip-notification",
+      "name": "⏭️ 通知スキップ",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2640, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "// ========================================\n// エラー発生時に管理者へ通知メールを送るノード\n// ========================================\n\nconst errorData = $input.first().json;\nconst today = new Date().toLocaleDateString('ja-JP');\nconst timestamp = new Date().toISOString();\n\n// エラー情報の整形\nconst nodeName = errorData.execution?.error?.node?.name || '不明なノード';\nconst errorMessage = errorData.execution?.error?.message || JSON.stringify(errorData).substring(0, 500);\n\nconst subject = `⚠️【エラー】サジー論文ワークフロー障害（${today}）`;\n\nconst htmlBody = `\n<div style=\"font-family: sans-serif; max-width: 600px; margin: 0 auto;\">\n  <div style=\"background: #e74c3c; color: white; padding: 15px; border-radius: 8px 8px 0 0;\">\n    <h2 style=\"margin: 0;\">⚠️ ワークフローエラー通知</h2>\n  </div>\n  <div style=\"background: white; padding: 20px; border: 1px solid #ddd; border-radius: 0 0 8px 8px;\">\n    <table style=\"width: 100%; font-size: 14px;\">\n      <tr><td style=\"padding: 8px; font-weight: bold;\">発生日時</td><td style=\"padding: 8px;\">${timestamp}</td></tr>\n      <tr><td style=\"padding: 8px; font-weight: bold;\">エラー箇所</td><td style=\"padding: 8px;\">${nodeName}</td></tr>\n      <tr><td style=\"padding: 8px; font-weight: bold;\">エラー内容</td><td style=\"padding: 8px; color: #e74c3c;\">${errorMessage}</td></tr>\n    </table>\n    <p style=\"margin-top: 15px; font-size: 13px; color: #666;\">n8nの実行ログを確認してください。</p>\n  </div>\n</div>\n`;\n\nreturn [{\n  json: {\n    subject,\n    htmlBody,\n    adminEmail: $env.ADMIN_EMAIL || ''\n  }\n}];"
+      },
+      "id": "error-handler",
+      "name": "🚨 エラー整形",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2200, 300]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.adminEmail }}",
+        "subject": "={{ $json.subject }}",
+        "emailType": "html",
+        "html": "={{ $json.htmlBody }}",
+        "options": {}
+      },
+      "id": "send-error-email",
+      "name": "📧 エラー通知送信",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [2420, 300],
+      "credentials": {
+        "smtp": {
+          "id": "SMTP_CREDENTIAL_ID",
+          "name": "SMTP設定"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "⏰ 毎朝6時に実行": {
+      "main": [
+        [{ "node": "⚙️ 検索条件・設定", "type": "main", "index": 0 }]
+      ]
+    },
+    "⚙️ 検索条件・設定": {
+      "main": [
+        [{ "node": "🔍 検索URL構築", "type": "main", "index": 0 }]
+      ]
+    },
+    "🔍 検索URL構築": {
+      "main": [
+        [{ "node": "📡 PubMed検索（esearch）", "type": "main", "index": 0 }]
+      ]
+    },
+    "📡 PubMed検索（esearch）": {
+      "main": [
+        [{ "node": "📋 PMID取得・efetchURL構築", "type": "main", "index": 0 }]
+      ]
+    },
+    "📋 PMID取得・efetchURL構築": {
+      "main": [
+        [{ "node": "❓ 論文あり？", "type": "main", "index": 0 }]
+      ]
+    },
+    "❓ 論文あり？": {
+      "main": [
+        [{ "node": "📄 論文詳細取得（efetch）", "type": "main", "index": 0 }],
+        [{ "node": "📭 結果なし（ログ出力）", "type": "main", "index": 0 }]
+      ]
+    },
+    "📄 論文詳細取得（efetch）": {
+      "main": [
+        [{ "node": "📝 論文データ整形・重複除外", "type": "main", "index": 0 }]
+      ]
+    },
+    "📝 論文データ整形・重複除外": {
+      "main": [
+        [{ "node": "🤖 Gemini要約・分析", "type": "main", "index": 0 }]
+      ]
+    },
+    "🤖 Gemini要約・分析": {
+      "main": [
+        [{ "node": "📊 要約結果パース", "type": "main", "index": 0 }]
+      ]
+    },
+    "📊 要約結果パース": {
+      "main": [
+        [{ "node": "💾 Google Sheetsに保存", "type": "main", "index": 0 }]
+      ]
+    },
+    "💾 Google Sheetsに保存": {
+      "main": [
+        [{ "node": "⭐ 重要論文？", "type": "main", "index": 0 }]
+      ]
+    },
+    "⭐ 重要論文？": {
+      "main": [
+        [{ "node": "✉️ メール本文HTML構築", "type": "main", "index": 0 }],
+        [{ "node": "⏭️ 通知スキップ", "type": "main", "index": 0 }]
+      ]
+    },
+    "✉️ メール本文HTML構築": {
+      "main": [
+        [{ "node": "📧 メール送信", "type": "main", "index": 0 }]
+      ]
+    },
+    "🚨 エラー整形": {
+      "main": [
+        [{ "node": "📧 エラー通知送信", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "errorWorkflow": "current"
+  },
+  "staticData": null,
+  "tags": [
+    { "name": "R&D" },
+    { "name": "PubMed" },
+    { "name": "サジー" },
+    { "name": "自動化" }
+  ],
+  "pinData": {}
+}
