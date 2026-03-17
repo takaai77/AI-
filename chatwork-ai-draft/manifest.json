@@ -24,6 +24,7 @@
         "https://kcw.kddi.ne.jp/*"
       ],
       "js": [
+        "lib/config.js",
         "lib/dom-selectors.js",
         "lib/extract-context.js",
         "lib/mask-sensitive.js",

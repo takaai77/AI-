@@ -29,9 +29,24 @@
           class="options-input"
           placeholder="https://your-n8n-instance.example.com/webhook/xxxxx"
         >
-        <p class="options-hint">
+        <p class="options-hint" id="webhookHint">
           https:// で始まるURLを入力してください。<br>
           APIキーはここには入力しないでください（サーバー側で管理します）。
+        </p>
+      </div>
+
+      <div class="options-field">
+        <label for="authToken" class="options-label">認証トークン（任意）</label>
+        <input
+          type="password"
+          id="authToken"
+          class="options-input"
+          placeholder="n8n側で設定したBearer Token"
+          autocomplete="off"
+        >
+        <p class="options-hint">
+          n8n の Header Auth で設定したトークンを入力してください。<br>
+          Authorization: Bearer ヘッダーとして送信されます。空欄の場合は認証なしで通信します。
         </p>
       </div>
     </section>
@@ -150,6 +165,7 @@
     </section>
   </div>
 
+  <script src="../lib/config.js"></script>
   <script src="options.js"></script>
 </body>
 </html>

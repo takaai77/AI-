@@ -15,6 +15,8 @@
 
   // ── DOM参照 ──
   const webhookInput = document.getElementById('webhookUrl');
+  const authTokenInput = document.getElementById('authToken');
+  const webhookHint = document.getElementById('webhookHint');
   const limitInput = document.getElementById('messageLimit');
   const customPromptInput = document.getElementById('customPrompt');
   const saveBtn = document.getElementById('saveBtn');
@@ -41,7 +43,19 @@
       const settings = result.cwAiSettings || {};
 
       if (settings.webhookUrl) webhookInput.value = settings.webhookUrl;
+      if (settings.authToken) authTokenInput.value = settings.authToken;
       if (settings.messageLimit) limitInput.value = settings.messageLimit;
+
+      // デフォルトURL が config.js で設定されている場合のヒント表示
+      if (typeof CW_CONFIG !== 'undefined' && CW_CONFIG.DEFAULT_WEBHOOK_URL) {
+        webhookInput.placeholder = CW_CONFIG.DEFAULT_WEBHOOK_URL;
+        webhookHint.innerHTML =
+          'デフォルトURLが設定済みです。空欄のままでも動作します。<br>' +
+          '上書きしたい場合のみ入力してください。';
+      }
+      if (typeof CW_CONFIG !== 'undefined' && CW_CONFIG.DEFAULT_AUTH_TOKEN && !settings.authToken) {
+        authTokenInput.placeholder = '（デフォルトトークン設定済み）';
+      }
 
       // カスタムプロンプト
       if (result[STORAGE_KEY_PROMPT]) {
@@ -54,6 +68,7 @@
 
   async function saveSettings() {
     const webhookUrl = webhookInput.value.trim();
+    const authToken = authTokenInput.value.trim();
     const messageLimit = parseInt(limitInput.value, 10) || 5;
     const customPrompt = customPromptInput.value.trim();
 
@@ -69,7 +84,7 @@
 
     try {
       await chrome.storage.local.set({
-        cwAiSettings: { webhookUrl, messageLimit },
+        cwAiSettings: { webhookUrl, authToken, messageLimit },
         [STORAGE_KEY_PROMPT]: customPrompt,
       });
       showStatus('保存しました ✓', false);

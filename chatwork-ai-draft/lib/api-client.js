@@ -22,12 +22,34 @@ var CW_API = (() => {
   const DEBUG_LOG = false;
 
   /**
-   * webhook URL を取得する
+   * webhook URL を取得する（ユーザー設定 → デフォルト の優先順位）
    * @returns {Promise<string>} webhook URL
    */
   async function getWebhookUrl() {
     const settings = await CW_STORAGE.loadSettings();
-    return settings.webhookUrl || '';
+    const userUrl = settings.webhookUrl || '';
+    if (userUrl) return userUrl;
+
+    // config.js のデフォルトにフォールバック
+    if (typeof CW_CONFIG !== 'undefined' && CW_CONFIG.DEFAULT_WEBHOOK_URL) {
+      return CW_CONFIG.DEFAULT_WEBHOOK_URL;
+    }
+    return '';
+  }
+
+  /**
+   * 認証トークンを取得する（ユーザー設定 → デフォルト の優先順位）
+   * @returns {Promise<string>} Bearer token（空文字なら認証なし）
+   */
+  async function getAuthToken() {
+    const settings = await CW_STORAGE.loadSettings();
+    const userToken = settings.authToken || '';
+    if (userToken) return userToken;
+
+    if (typeof CW_CONFIG !== 'undefined' && CW_CONFIG.DEFAULT_AUTH_TOKEN) {
+      return CW_CONFIG.DEFAULT_AUTH_TOKEN;
+    }
+    return '';
   }
 
   /**
@@ -61,11 +83,19 @@ var CW_API = (() => {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT);
 
+      const headers = {
+        'Content-Type': 'application/json',
+      };
+
+      // 認証トークンがあれば Authorization ヘッダーを追加
+      const authToken = await getAuthToken();
+      if (authToken) {
+        headers['Authorization'] = 'Bearer ' + authToken;
+      }
+
       const response = await fetch(webhookUrl, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify(payload),
         signal: controller.signal,
       });
@@ -155,6 +185,7 @@ var CW_API = (() => {
   return {
     DEFAULT_TIMEOUT,
     getWebhookUrl,
+    getAuthToken,
     requestDraft,
     isValidUrl,
   };
