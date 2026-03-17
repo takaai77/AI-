@@ -1,0 +1,294 @@
+/**
+ * options.css
+ * 設定画面のスタイル（テンプレート管理・カスタムプロンプト対応）
+ */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Noto Sans JP", sans-serif;
+  background: #f6f8fa;
+  color: #24292f;
+  line-height: 1.6;
+  padding: 24px;
+}
+
+.options-container {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.options-header {
+  margin-bottom: 28px;
+}
+
+.options-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #24292f;
+}
+
+.options-subtitle {
+  font-size: 14px;
+  color: #8b949e;
+  margin-top: 4px;
+}
+
+/* ── セクション ── */
+.options-section {
+  background: #ffffff;
+  border: 1px solid #e1e4e8;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.options-section--info {
+  background: #f6f8fa;
+}
+
+.options-section-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.options-description {
+  font-size: 13px;
+  color: #57606a;
+  margin-bottom: 16px;
+  line-height: 1.7;
+}
+
+/* ── フィールド ── */
+.options-field {
+  margin-bottom: 14px;
+}
+
+.options-field-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.options-field-row .options-field {
+  flex: 1;
+  min-width: 120px;
+  margin-bottom: 0;
+}
+
+.options-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 5px;
+}
+
+.options-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d0d7de;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  color: #24292f;
+}
+
+.options-input:focus {
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.12);
+}
+
+.options-input--small {
+  width: 80px;
+}
+
+.options-textarea {
+  resize: vertical;
+  min-height: 60px;
+  line-height: 1.6;
+}
+
+.options-hint {
+  font-size: 12px;
+  color: #8b949e;
+  margin-top: 5px;
+  line-height: 1.5;
+}
+
+/* ── ボタン ── */
+.options-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.options-btn {
+  padding: 8px 20px;
+  border: 1px solid #d0d7de;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.options-btn--primary {
+  background: #4a90e2;
+  color: #fff;
+  border-color: #4a90e2;
+  font-weight: 600;
+}
+
+.options-btn--primary:hover {
+  background: #3a7dd1;
+}
+
+.options-btn--secondary {
+  background: #f6f8fa;
+  color: #24292f;
+  border-color: #d0d7de;
+}
+
+.options-btn--secondary:hover {
+  background: #e8f0fe;
+  border-color: #4a90e2;
+  color: #4a90e2;
+}
+
+.options-btn--danger {
+  background: #fff5f5;
+  color: #d73a49;
+  border-color: #f8d7da;
+  font-size: 12px;
+}
+
+.options-btn--danger:hover {
+  background: #ffeef0;
+  border-color: #d73a49;
+}
+
+.options-btn--small {
+  padding: 4px 10px;
+  font-size: 12px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.options-save-status {
+  font-size: 13px;
+  color: #2da44e;
+  font-weight: 500;
+}
+
+/* ── 情報リスト ── */
+.options-info-list {
+  padding-left: 20px;
+  font-size: 13px;
+  color: #57606a;
+  line-height: 1.7;
+}
+
+.options-info-list li {
+  margin-bottom: 4px;
+}
+
+/* ==============================================
+   テンプレート管理
+   ============================================== */
+.options-tpl-list {
+  margin-bottom: 20px;
+}
+
+.options-tpl-group-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #8b949e;
+  margin: 16px 0 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.options-tpl-group-title:first-child {
+  margin-top: 0;
+}
+
+.options-tpl-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid #e8eaed;
+  border-radius: 8px;
+  margin-bottom: 6px;
+  background: #fff;
+  transition: background 0.15s;
+}
+
+.options-tpl-row:hover {
+  background: #f7f8fa;
+}
+
+.options-tpl-row--preset {
+  opacity: 0.8;
+}
+
+.options-tpl-icon {
+  font-size: 20px;
+  line-height: 1;
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+
+.options-tpl-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.options-tpl-name {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #24292f;
+}
+
+.options-tpl-intent {
+  display: block;
+  font-size: 12px;
+  color: #57606a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+
+.options-tpl-meta {
+  display: block;
+  font-size: 11px;
+  color: #9ca3af;
+  margin-top: 2px;
+}
+
+/* テンプレート追加フォーム */
+.options-tpl-add {
+  margin-top: 16px;
+  padding: 16px;
+  background: #f7f8fa;
+  border: 1px dashed #d0d7de;
+  border-radius: 10px;
+}
+
+.options-tpl-add-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #24292f;
+}

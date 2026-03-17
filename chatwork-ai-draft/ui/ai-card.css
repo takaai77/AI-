@@ -1,0 +1,576 @@
+/**
+ * ai-card.css
+ * ─────────────────────────────────────────────
+ * LINEのAI返信に近い「軽い・怖くない・すぐ使える」デザイン。
+ * Chatwork画面に溶け込む落ち着いた配色。
+ */
+
+/* ==============================================
+   変数（カラーパレット）
+   ============================================== */
+:root {
+  --cw-ai-primary: #4a90e2;
+  --cw-ai-primary-hover: #3a7dd1;
+  --cw-ai-primary-light: #e8f0fe;
+  --cw-ai-green: #34c759;
+  --cw-ai-green-hover: #2db84e;
+  --cw-ai-bg: #ffffff;
+  --cw-ai-bg-soft: #f7f8fa;
+  --cw-ai-border: #e8eaed;
+  --cw-ai-border-light: #f0f1f3;
+  --cw-ai-text: #1a1a1a;
+  --cw-ai-text-sub: #6b7280;
+  --cw-ai-text-muted: #9ca3af;
+  --cw-ai-warning-bg: #fffbeb;
+  --cw-ai-warning-border: #fde68a;
+  --cw-ai-warning-text: #92400e;
+  --cw-ai-error-bg: #fff5f5;
+  --cw-ai-error-text: #c53030;
+  --cw-ai-radius: 14px;
+  --cw-ai-radius-sm: 10px;
+  --cw-ai-font: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+}
+
+/* ==============================================
+   AI返信ボタン（入力欄の近くに自然に配置）
+   ============================================== */
+.cw-ai-trigger-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  margin: 4px 6px;
+  border: none;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #e8f0fe 0%, #f0e6ff 100%);
+  color: var(--cw-ai-primary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 10000;
+  font-family: var(--cw-ai-font);
+  line-height: 1.4;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(74, 144, 226, 0.12);
+}
+
+.cw-ai-trigger-btn:hover {
+  background: linear-gradient(135deg, #d4e4fd 0%, #e4d4ff 100%);
+  box-shadow: 0 2px 8px rgba(74, 144, 226, 0.2);
+  transform: translateY(-1px);
+}
+
+.cw-ai-trigger-btn:active {
+  transform: translateY(0);
+}
+
+.cw-ai-trigger-btn__icon {
+  font-size: 13px;
+  line-height: 1;
+}
+
+/* ==============================================
+   AIカード本体
+   ============================================== */
+.cw-ai-card {
+  position: fixed;
+  bottom: 100px;
+  right: 20px;
+  width: 380px;
+  max-height: 560px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: var(--cw-ai-bg);
+  border: 1px solid var(--cw-ai-border);
+  border-radius: var(--cw-ai-radius);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+  z-index: 100000;
+  font-family: var(--cw-ai-font);
+  font-size: 13px;
+  color: var(--cw-ai-text);
+  line-height: 1.6;
+  display: none;
+}
+
+.cw-ai-card--visible {
+  display: block;
+  animation: cw-ai-slideUp 0.25s ease-out;
+}
+
+@keyframes cw-ai-slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* スクロールバーを細く */
+.cw-ai-card::-webkit-scrollbar {
+  width: 4px;
+}
+.cw-ai-card::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+
+/* ==============================================
+   ヘッダー
+   ============================================== */
+.cw-ai-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid var(--cw-ai-border-light);
+}
+
+.cw-ai-card__title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--cw-ai-text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cw-ai-card__title-icon {
+  font-size: 16px;
+}
+
+.cw-ai-card__close-btn {
+  background: none;
+  border: none;
+  color: var(--cw-ai-text-muted);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+  line-height: 1;
+  transition: background 0.15s;
+}
+
+.cw-ai-card__close-btn:hover {
+  background: var(--cw-ai-bg-soft);
+  color: var(--cw-ai-text);
+}
+
+/* ==============================================
+   安心バッジ（送信されません）
+   ============================================== */
+.cw-ai-card__safe-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+  font-size: 11.5px;
+  color: #166534;
+  border-bottom: 1px solid var(--cw-ai-border-light);
+}
+
+.cw-ai-card__safe-icon {
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+/* ==============================================
+   テンプレートパネル
+   ============================================== */
+.cw-ai-tpl {
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--cw-ai-border-light);
+}
+
+.cw-ai-tpl__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid var(--cw-ai-border);
+  border-radius: var(--cw-ai-radius-sm);
+  background: var(--cw-ai-bg-soft);
+  color: var(--cw-ai-text-sub);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+  font-family: var(--cw-ai-font);
+}
+
+.cw-ai-tpl__toggle:hover {
+  background: var(--cw-ai-primary-light);
+  color: var(--cw-ai-primary);
+}
+
+.cw-ai-tpl__arrow {
+  font-size: 10px;
+  transition: transform 0.2s;
+}
+
+.cw-ai-tpl__list {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.25s ease, padding 0.25s ease;
+  padding: 0;
+}
+
+.cw-ai-tpl__list--open {
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 8px 0 4px;
+}
+
+.cw-ai-tpl__category {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--cw-ai-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 6px 4px 4px;
+  margin-top: 4px;
+}
+
+.cw-ai-tpl__category:first-child {
+  margin-top: 0;
+}
+
+.cw-ai-tpl__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  margin: 2px 4px 2px 0;
+  border: 1px solid var(--cw-ai-border);
+  border-radius: 18px;
+  background: var(--cw-ai-bg);
+  color: var(--cw-ai-text);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: var(--cw-ai-font);
+  line-height: 1.3;
+}
+
+.cw-ai-tpl__chip:hover {
+  background: var(--cw-ai-primary-light);
+  border-color: var(--cw-ai-primary);
+  color: var(--cw-ai-primary);
+}
+
+.cw-ai-tpl__chip--user {
+  border-style: dashed;
+}
+
+.cw-ai-tpl__chip-icon {
+  font-size: 13px;
+  line-height: 1;
+}
+
+/* ==============================================
+   入力エリア
+   ============================================== */
+.cw-ai-card__input-area {
+  padding: 12px 16px 8px;
+}
+
+.cw-ai-card__textarea {
+  width: 100%;
+  min-height: 52px;
+  max-height: 100px;
+  padding: 10px 12px;
+  border: 1.5px solid var(--cw-ai-border);
+  border-radius: var(--cw-ai-radius-sm);
+  font-size: 13px;
+  font-family: var(--cw-ai-font);
+  color: var(--cw-ai-text);
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+  line-height: 1.6;
+  background: var(--cw-ai-bg);
+}
+
+.cw-ai-card__textarea:focus {
+  border-color: var(--cw-ai-primary);
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.cw-ai-card__textarea::placeholder {
+  color: var(--cw-ai-text-muted);
+  font-size: 12.5px;
+}
+
+/* ==============================================
+   ボタン共通
+   ============================================== */
+.cw-ai-card__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 7px 14px;
+  border: 1px solid var(--cw-ai-border);
+  border-radius: 20px;
+  background: var(--cw-ai-bg);
+  color: var(--cw-ai-text);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: var(--cw-ai-font);
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+.cw-ai-card__btn:hover {
+  background: var(--cw-ai-primary-light);
+  border-color: var(--cw-ai-primary);
+  color: var(--cw-ai-primary);
+}
+
+.cw-ai-card__btn:active {
+  transform: scale(0.97);
+}
+
+.cw-ai-card__btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* 提案ボタン（メインCTA） */
+.cw-ai-card__btn--primary {
+  background: var(--cw-ai-primary);
+  color: #ffffff;
+  border-color: var(--cw-ai-primary);
+  font-weight: 600;
+  font-size: 13px;
+  padding: 9px 20px;
+}
+
+.cw-ai-card__btn--primary:hover {
+  background: var(--cw-ai-primary-hover);
+  color: #ffffff;
+  border-color: var(--cw-ai-primary-hover);
+}
+
+/* 提案ボタンを幅いっぱいにする */
+.cw-ai-card__btn--suggest {
+  width: 100%;
+  justify-content: center;
+  border-radius: var(--cw-ai-radius-sm);
+}
+
+/* 挿入ボタン */
+.cw-ai-card__btn--insert {
+  background: var(--cw-ai-green);
+  color: #ffffff;
+  border-color: var(--cw-ai-green);
+  font-weight: 600;
+}
+
+.cw-ai-card__btn--insert:hover {
+  background: var(--cw-ai-green-hover);
+  color: #ffffff;
+  border-color: var(--cw-ai-green-hover);
+}
+
+/* セカンダリボタン */
+.cw-ai-card__btn--secondary {
+  background: var(--cw-ai-bg-soft);
+  border-color: var(--cw-ai-border);
+  color: var(--cw-ai-text-sub);
+  font-size: 11.5px;
+  padding: 5px 10px;
+}
+
+.cw-ai-card__btn--secondary:hover {
+  background: var(--cw-ai-primary-light);
+  color: var(--cw-ai-primary);
+}
+
+/* トーンボタン */
+.cw-ai-card__btn--tone {
+  font-size: 11.5px;
+  padding: 5px 10px;
+}
+
+/* ==============================================
+   アクション行
+   ============================================== */
+.cw-ai-card__actions {
+  padding: 4px 16px 10px;
+}
+
+/* ==============================================
+   トーンボタン群
+   ============================================== */
+.cw-ai-card__tone-group {
+  padding: 0 16px 10px;
+}
+
+.cw-ai-card__section-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--cw-ai-text-muted);
+  margin-bottom: 6px;
+}
+
+.cw-ai-card__tone-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* ==============================================
+   プレビューエリア
+   ============================================== */
+.cw-ai-card__preview {
+  margin: 4px 16px 10px;
+  padding: 12px 14px;
+  background: var(--cw-ai-bg-soft);
+  border: 1px solid var(--cw-ai-border);
+  border-radius: var(--cw-ai-radius-sm);
+  font-size: 13px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  word-break: break-word;
+  display: none;
+  position: relative;
+}
+
+.cw-ai-card__preview--visible {
+  display: block;
+  animation: cw-ai-fadeIn 0.3s ease;
+}
+
+@keyframes cw-ai-fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ==============================================
+   トーン情報
+   ============================================== */
+.cw-ai-card__tone-info {
+  margin: 0 16px 4px;
+  font-size: 11px;
+  color: var(--cw-ai-primary);
+  font-weight: 500;
+  display: none;
+}
+
+.cw-ai-card__tone-info--visible {
+  display: block;
+}
+
+/* ==============================================
+   注意メモ
+   ============================================== */
+.cw-ai-card__notes {
+  margin: 4px 16px 8px;
+  padding: 8px 12px;
+  background: var(--cw-ai-warning-bg);
+  border: 1px solid var(--cw-ai-warning-border);
+  border-radius: var(--cw-ai-radius-sm);
+  font-size: 11.5px;
+  color: var(--cw-ai-warning-text);
+  display: none;
+  line-height: 1.5;
+}
+
+.cw-ai-card__notes--visible {
+  display: block;
+}
+
+/* ==============================================
+   ステータス（ローディング・エラー）
+   ============================================== */
+.cw-ai-card__status {
+  margin: 4px 16px 10px;
+  padding: 10px 14px;
+  border-radius: var(--cw-ai-radius-sm);
+  font-size: 12.5px;
+  display: none;
+  align-items: center;
+  gap: 10px;
+  line-height: 1.4;
+}
+
+.cw-ai-card__status--visible {
+  display: flex;
+}
+
+.cw-ai-card__status--loading {
+  background: var(--cw-ai-primary-light);
+  color: var(--cw-ai-primary);
+}
+
+.cw-ai-card__status--error {
+  background: var(--cw-ai-error-bg);
+  color: var(--cw-ai-error-text);
+  font-size: 12px;
+}
+
+/* ==============================================
+   ローディング: パルスドットアニメーション
+   ============================================== */
+.cw-ai-dots {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.cw-ai-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--cw-ai-primary);
+  border-radius: 50%;
+  animation: cw-ai-pulse 1.2s ease-in-out infinite;
+}
+
+.cw-ai-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.cw-ai-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes cw-ai-pulse {
+  0%, 80%, 100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ==============================================
+   フッター（操作ボタン）
+   ============================================== */
+.cw-ai-card__footer {
+  padding: 10px 16px 14px;
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-top: 1px solid var(--cw-ai-border-light);
+}
+
+.cw-ai-card__footer--visible {
+  display: flex;
+  animation: cw-ai-fadeIn 0.2s ease;
+}
+
+.cw-ai-card__footer-left {
+  display: flex;
+  gap: 6px;
+}
