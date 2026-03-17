@@ -3,15 +3,13 @@
  * ─────────────────────────────────────────────
  * AIカードUIの構築と操作を担当する。
  *
- * UI構成:
+ * UI構成（Gmail「文書作成サポート」風のシンプルデザイン）:
  *   - トリガーボタン（入力欄付近に表示）
  *   - AIカード（ミニカードUI）
- *     - テンプレート選択パネル（折りたたみ式）
  *     - 意図入力テキストエリア
- *     - 返信提案ボタン
- *     - トーン変更ボタン群
+ *     - 作成ボタン
  *     - プレビュー表示
- *     - 操作ボタン（再生成、元に戻す、入力欄に挿入）
+ *     - 操作ボタン（再生成、入力欄に挿入）
  *
  * 重要:
  *   - innerHTML を乱用しない（XSS防止）
@@ -33,19 +31,15 @@ var CW_CARD = (() => {
     toneLabel: '',
     notes: '',
     error: '',
-    templatePanelOpen: false,
-    selectedTemplate: null,  // 選択中のテンプレートオブジェクト
   };
 
   // ── DOM参照 ──
   let _els = {};
 
-  // ── トーン定義 ──
+  // ── トーン定義（最低限の2つだけ） ──
   const TONES = [
     { key: 'polite', label: '丁寧に', icon: '🎩' },
-    { key: 'soft', label: 'やわらかく', icon: '🌸' },
     { key: 'short', label: '短く', icon: '✂️' },
-    { key: 'summary', label: '要点だけ', icon: '📌' },
   ];
 
   // ─────────────────────────────────────────────
@@ -91,97 +85,7 @@ var CW_CARD = (() => {
   }
 
   // ─────────────────────────────────────────────
-  // テンプレートパネルの生成
-  // ─────────────────────────────────────────────
-
-  function createTemplatePanel() {
-    // トグルボタン
-    const toggleBtn = el('button', {
-      className: 'cw-ai-tpl__toggle',
-      onClick: toggleTemplatePanel,
-    }, [
-      el('span', { textContent: '📋 テンプレートから選ぶ' }),
-      el('span', { className: 'cw-ai-tpl__arrow', textContent: '▼' }),
-    ]);
-
-    // テンプレート一覧コンテナ（初期非表示）
-    const listContainer = el('div', { className: 'cw-ai-tpl__list' });
-
-    const panel = el('div', { className: 'cw-ai-tpl' }, [
-      toggleBtn,
-      listContainer,
-    ]);
-
-    return { panel, listContainer, toggleBtn };
-  }
-
-  /**
-   * テンプレート一覧を非同期で構築する
-   */
-  async function renderTemplateList() {
-    if (!_els.tplList) return;
-    // 子要素をクリア
-    while (_els.tplList.firstChild) {
-      _els.tplList.removeChild(_els.tplList.firstChild);
-    }
-
-    const grouped = await CW_TEMPLATES.getTemplatesByCategory();
-
-    for (const [category, templates] of grouped) {
-      // カテゴリラベル
-      _els.tplList.appendChild(
-        el('div', { className: 'cw-ai-tpl__category', textContent: category })
-      );
-
-      for (const tpl of templates) {
-        const chip = el('button', {
-          className: 'cw-ai-tpl__chip' + (tpl.isPreset ? '' : ' cw-ai-tpl__chip--user'),
-          title: tpl.intent,
-          onClick: () => selectTemplate(tpl),
-        }, [
-          el('span', { className: 'cw-ai-tpl__chip-icon', textContent: tpl.icon || '📌' }),
-          el('span', { textContent: tpl.name }),
-        ]);
-        _els.tplList.appendChild(chip);
-      }
-    }
-  }
-
-  /**
-   * テンプレートを選択したとき
-   */
-  function selectTemplate(tpl) {
-    _state.selectedTemplate = tpl;
-    // テキストエリアにintentを反映
-    if (_els.textarea) {
-      _els.textarea.value = tpl.intent;
-    }
-    // トーンも反映
-    if (tpl.tone) {
-      _state.currentTone = tpl.tone;
-    }
-    // パネルを閉じる
-    _state.templatePanelOpen = false;
-    updateTemplatePanelUI();
-  }
-
-  function toggleTemplatePanel() {
-    _state.templatePanelOpen = !_state.templatePanelOpen;
-    updateTemplatePanelUI();
-    if (_state.templatePanelOpen) {
-      renderTemplateList();
-    }
-  }
-
-  function updateTemplatePanelUI() {
-    if (!_els.tplList || !_els.tplToggleBtn) return;
-    _els.tplList.classList.toggle('cw-ai-tpl__list--open', _state.templatePanelOpen);
-    const arrow = _els.tplToggleBtn.querySelector('.cw-ai-tpl__arrow');
-    if (arrow) arrow.textContent = _state.templatePanelOpen ? '▲' : '▼';
-  }
-
-  // ─────────────────────────────────────────────
-  // AIカード本体の生成
+  // AIカード本体の生成（Gmail風シンプルUI）
   // ─────────────────────────────────────────────
 
   function createCard() {
@@ -201,25 +105,24 @@ var CW_CARD = (() => {
       closeBtn,
     ]);
 
-    // ── 安心バッジ ──
-    const safeBadge = el('div', { className: 'cw-ai-card__safe-badge' }, [
-      el('span', { className: 'cw-ai-card__safe-icon', textContent: '🔒' }),
-      el('span', { textContent: '下書きのみ作成します。送信はされません。' }),
-    ]);
-
-    // ── テンプレートパネル ──
-    const { panel: tplPanel, listContainer: tplList, toggleBtn: tplToggleBtn } = createTemplatePanel();
-
     // ── テキスト入力エリア ──
     const textarea = el('textarea', {
       className: 'cw-ai-card__textarea',
-      placeholder: 'どう返信したいですか？\n例: 丁寧にお断りしたい、日程を提案したい…',
+      placeholder: 'どう返信したいですか？\n例: ミスをお詫び、日程を提案、丁寧にお断り…',
     });
     textarea.rows = 2;
 
+    // Enter で送信（Shift+Enter で改行）
+    textarea.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey && !_state.isLoading) {
+        e.preventDefault();
+        handleSuggest();
+      }
+    });
+
     const inputArea = el('div', { className: 'cw-ai-card__input-area' }, [textarea]);
 
-    // ── 提案ボタン ──
+    // ── 作成ボタン ──
     const suggestBtn = el('button', {
       className: 'cw-ai-card__btn cw-ai-card__btn--primary cw-ai-card__btn--suggest',
       onClick: handleSuggest,
@@ -228,27 +131,6 @@ var CW_CARD = (() => {
     ]);
 
     const actions = el('div', { className: 'cw-ai-card__actions' }, [suggestBtn]);
-
-    // ── トーン変更ボタン群 ──
-    const toneLabel = el('div', {
-      className: 'cw-ai-card__section-label',
-      textContent: 'トーンを変更',
-    });
-
-    const toneButtons = TONES.map(tone =>
-      el('button', {
-        className: 'cw-ai-card__btn cw-ai-card__btn--tone',
-        'data-tone': tone.key,
-        onClick: () => handleToneChange(tone.key),
-      }, [
-        el('span', { textContent: tone.icon + ' ' + tone.label }),
-      ])
-    );
-
-    const toneGroup = el('div', { className: 'cw-ai-card__tone-group' }, [
-      toneLabel,
-      el('div', { className: 'cw-ai-card__tone-buttons' }, toneButtons),
-    ]);
 
     // ── ステータス表示（ローディング・エラー） ──
     const statusEl = el('div', { className: 'cw-ai-card__status' });
@@ -263,15 +145,20 @@ var CW_CARD = (() => {
     const notesEl = el('div', { className: 'cw-ai-card__notes' });
 
     // ── フッター（操作ボタン） ──
+    const toneButtons = TONES.map(tone =>
+      el('button', {
+        className: 'cw-ai-card__btn cw-ai-card__btn--tone',
+        'data-tone': tone.key,
+        onClick: () => handleToneChange(tone.key),
+      }, [
+        el('span', { textContent: tone.icon + ' ' + tone.label }),
+      ])
+    );
+
     const retryBtn = el('button', {
       className: 'cw-ai-card__btn cw-ai-card__btn--secondary',
       onClick: handleRetry,
     }, [el('span', { textContent: '🔄 再生成' })]);
-
-    const undoBtn = el('button', {
-      className: 'cw-ai-card__btn cw-ai-card__btn--secondary',
-      onClick: handleUndo,
-    }, [el('span', { textContent: '↩️ 元に戻す' })]);
 
     const insertBtn = el('button', {
       className: 'cw-ai-card__btn cw-ai-card__btn--insert',
@@ -279,18 +166,15 @@ var CW_CARD = (() => {
     }, [el('span', { textContent: '📥 入力欄に挿入' })]);
 
     const footer = el('div', { className: 'cw-ai-card__footer' }, [
-      el('div', { className: 'cw-ai-card__footer-left' }, [retryBtn, undoBtn]),
+      el('div', { className: 'cw-ai-card__footer-left' }, [retryBtn, ...toneButtons]),
       insertBtn,
     ]);
 
     // ── カード本体 ──
     const card = el('div', { className: 'cw-ai-card' }, [
       header,
-      safeBadge,
-      tplPanel,
       inputArea,
       actions,
-      toneGroup,
       statusEl,
       toneInfo,
       preview,
@@ -310,10 +194,7 @@ var CW_CARD = (() => {
       notesEl,
       footer,
       retryBtn,
-      undoBtn,
       insertBtn,
-      tplList,
-      tplToggleBtn,
     };
 
     return card;
@@ -341,8 +222,9 @@ var CW_CARD = (() => {
       setButtonsDisabled(false);
     }
 
-    // プレビュー表示
+    // プレビュー表示（改行を正しく処理）
     if (_state.currentDraft) {
+      // textContent + white-space: pre-wrap で改行を反映
       _els.preview.textContent = _state.currentDraft;
       _els.preview.classList.add('cw-ai-card__preview--visible');
       _els.footer.classList.add('cw-ai-card__footer--visible');
@@ -362,15 +244,10 @@ var CW_CARD = (() => {
 
     // 注意メモ
     if (_state.notes) {
-      _els.notesEl.textContent = '💡 ' + _state.notes;
+      _els.notesEl.textContent = _state.notes;
       _els.notesEl.classList.add('cw-ai-card__notes--visible');
     } else {
       _els.notesEl.classList.remove('cw-ai-card__notes--visible');
-    }
-
-    // 元に戻すボタンは前の下書きがある場合のみ有効
-    if (_els.undoBtn) {
-      _els.undoBtn.disabled = !_state.previousDraft;
     }
   }
 
@@ -382,7 +259,6 @@ var CW_CARD = (() => {
     }
 
     if (type === 'loading') {
-      // パルスドット風ローディング
       const dots = el('div', { className: 'cw-ai-dots' }, [
         el('span', { className: 'cw-ai-dot' }),
         el('span', { className: 'cw-ai-dot' }),
@@ -415,9 +291,9 @@ var CW_CARD = (() => {
     _state.isOpen = !_state.isOpen;
     _state.error = '';
     updateUI();
-    // カードを開いた時にテンプレート一覧をプリロード
-    if (_state.isOpen && _state.templatePanelOpen) {
-      renderTemplateList();
+    // 開いた時にテキストエリアにフォーカス
+    if (_state.isOpen && _els.textarea) {
+      setTimeout(() => _els.textarea.focus(), 100);
     }
   }
 
@@ -441,15 +317,6 @@ var CW_CARD = (() => {
     await requestDraft(intent, _state.currentTone, true);
   }
 
-  function handleUndo() {
-    if (_state.previousDraft) {
-      const temp = _state.currentDraft;
-      _state.currentDraft = _state.previousDraft;
-      _state.previousDraft = temp;
-      updateUI();
-    }
-  }
-
   function handleInsert() {
     if (!_state.currentDraft) return;
 
@@ -466,7 +333,6 @@ var CW_CARD = (() => {
 
   /**
    * 下書きリクエストの共通処理
-   * カスタムプロンプトとテンプレート情報を含めて送信する
    */
   async function requestDraft(intent, tone, retryMode) {
     _state.isLoading = true;
@@ -475,24 +341,25 @@ var CW_CARD = (() => {
     updateUI();
 
     try {
-      // カスタムプロンプトを読み込む
       const customPrompt = await CW_TEMPLATES.loadCustomPrompt();
-      const templateName = _state.selectedTemplate ? _state.selectedTemplate.name : '';
 
-      // ペイロード組み立て
       const payload = CW_EXTRACT.buildPayload({
         intent,
         tone,
         retryMode,
         customPrompt,
-        templateName,
+        templateName: '',
       });
 
       const result = await CW_API.requestDraft(payload);
 
       if (result.ok) {
         _state.previousDraft = _state.currentDraft;
-        _state.currentDraft = result.draft;
+        // 改行を正規化（\r\n → \n、エスケープされた \\n → \n）
+        let draft = result.draft || '';
+        draft = draft.replace(/\\n/g, '\n');
+        draft = draft.replace(/\r\n/g, '\n');
+        _state.currentDraft = draft;
         _state.toneLabel = result.toneLabel || '';
         _state.notes = result.notes || '';
         _state.error = '';
@@ -546,8 +413,6 @@ var CW_CARD = (() => {
       toneLabel: '',
       notes: '',
       error: '',
-      templatePanelOpen: false,
-      selectedTemplate: null,
     };
   }
 

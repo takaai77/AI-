@@ -1,8 +1,8 @@
 /**
  * ai-card.css
  * ─────────────────────────────────────────────
- * LINEのAI返信に近い「軽い・怖くない・すぐ使える」デザイン。
- * Chatwork画面に溶け込む落ち着いた配色。
+ * Gmail「文書作成サポート」風のシンプルデザイン。
+ * 入力エリア中心、最小限のボタン構成。
  */
 
 /* ==============================================
@@ -21,13 +21,10 @@
   --cw-ai-text: #1a1a1a;
   --cw-ai-text-sub: #6b7280;
   --cw-ai-text-muted: #9ca3af;
-  --cw-ai-warning-bg: #fffbeb;
-  --cw-ai-warning-border: #fde68a;
-  --cw-ai-warning-text: #92400e;
   --cw-ai-error-bg: #fff5f5;
   --cw-ai-error-text: #c53030;
-  --cw-ai-radius: 14px;
-  --cw-ai-radius-sm: 10px;
+  --cw-ai-radius: 12px;
+  --cw-ai-radius-sm: 8px;
   --cw-ai-font: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
 }
 
@@ -71,20 +68,20 @@
 }
 
 /* ==============================================
-   AIカード本体
+   AIカード本体（コンパクト）
    ============================================== */
 .cw-ai-card {
   position: fixed;
   bottom: 100px;
   right: 20px;
-  width: 380px;
-  max-height: 560px;
+  width: 360px;
+  max-height: 480px;
   overflow-y: auto;
   overflow-x: hidden;
   background: var(--cw-ai-bg);
   border: 1px solid var(--cw-ai-border);
   border-radius: var(--cw-ai-radius);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.04);
   z-index: 100000;
   font-family: var(--cw-ai-font);
   font-size: 13px;
@@ -95,13 +92,13 @@
 
 .cw-ai-card--visible {
   display: block;
-  animation: cw-ai-slideUp 0.25s ease-out;
+  animation: cw-ai-slideUp 0.2s ease-out;
 }
 
 @keyframes cw-ai-slideUp {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -109,7 +106,6 @@
   }
 }
 
-/* スクロールバーを細く */
 .cw-ai-card::-webkit-scrollbar {
   width: 4px;
 }
@@ -119,37 +115,37 @@
 }
 
 /* ==============================================
-   ヘッダー
+   ヘッダー（コンパクト）
    ============================================== */
 .cw-ai-card__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 16px 10px;
+  padding: 10px 14px 8px;
   border-bottom: 1px solid var(--cw-ai-border-light);
 }
 
 .cw-ai-card__title {
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--cw-ai-text);
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
 }
 
 .cw-ai-card__title-icon {
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .cw-ai-card__close-btn {
   background: none;
   border: none;
   color: var(--cw-ai-text-muted);
-  font-size: 20px;
+  font-size: 18px;
   cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 8px;
+  padding: 2px 6px;
+  border-radius: 6px;
   line-height: 1;
   transition: background 0.15s;
 }
@@ -160,135 +156,23 @@
 }
 
 /* ==============================================
-   安心バッジ（送信されません）
-   ============================================== */
-.cw-ai-card__safe-badge {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
-  font-size: 11.5px;
-  color: #166534;
-  border-bottom: 1px solid var(--cw-ai-border-light);
-}
-
-.cw-ai-card__safe-icon {
-  font-size: 12px;
-  flex-shrink: 0;
-}
-
-/* ==============================================
-   テンプレートパネル
-   ============================================== */
-.cw-ai-tpl {
-  padding: 8px 16px;
-  border-bottom: 1px solid var(--cw-ai-border-light);
-}
-
-.cw-ai-tpl__toggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 6px 10px;
-  border: 1px solid var(--cw-ai-border);
-  border-radius: var(--cw-ai-radius-sm);
-  background: var(--cw-ai-bg-soft);
-  color: var(--cw-ai-text-sub);
-  font-size: 12px;
-  cursor: pointer;
-  transition: background 0.15s;
-  font-family: var(--cw-ai-font);
-}
-
-.cw-ai-tpl__toggle:hover {
-  background: var(--cw-ai-primary-light);
-  color: var(--cw-ai-primary);
-}
-
-.cw-ai-tpl__arrow {
-  font-size: 10px;
-  transition: transform 0.2s;
-}
-
-.cw-ai-tpl__list {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.25s ease, padding 0.25s ease;
-  padding: 0;
-}
-
-.cw-ai-tpl__list--open {
-  max-height: 240px;
-  overflow-y: auto;
-  padding: 8px 0 4px;
-}
-
-.cw-ai-tpl__category {
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--cw-ai-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 6px 4px 4px;
-  margin-top: 4px;
-}
-
-.cw-ai-tpl__category:first-child {
-  margin-top: 0;
-}
-
-.cw-ai-tpl__chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 5px 10px;
-  margin: 2px 4px 2px 0;
-  border: 1px solid var(--cw-ai-border);
-  border-radius: 18px;
-  background: var(--cw-ai-bg);
-  color: var(--cw-ai-text);
-  font-size: 12px;
-  cursor: pointer;
-  transition: all 0.15s;
-  font-family: var(--cw-ai-font);
-  line-height: 1.3;
-}
-
-.cw-ai-tpl__chip:hover {
-  background: var(--cw-ai-primary-light);
-  border-color: var(--cw-ai-primary);
-  color: var(--cw-ai-primary);
-}
-
-.cw-ai-tpl__chip--user {
-  border-style: dashed;
-}
-
-.cw-ai-tpl__chip-icon {
-  font-size: 13px;
-  line-height: 1;
-}
-
-/* ==============================================
-   入力エリア
+   入力エリア（メインUI）
    ============================================== */
 .cw-ai-card__input-area {
-  padding: 12px 16px 8px;
+  padding: 10px 14px 6px;
 }
 
 .cw-ai-card__textarea {
   width: 100%;
-  min-height: 52px;
-  max-height: 100px;
+  min-height: 48px;
+  max-height: 80px;
   padding: 10px 12px;
   border: 1.5px solid var(--cw-ai-border);
   border-radius: var(--cw-ai-radius-sm);
   font-size: 13px;
   font-family: var(--cw-ai-font);
   color: var(--cw-ai-text);
-  resize: vertical;
+  resize: none;
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
   box-sizing: border-box;
@@ -303,7 +187,7 @@
 
 .cw-ai-card__textarea::placeholder {
   color: var(--cw-ai-text-muted);
-  font-size: 12.5px;
+  font-size: 12px;
 }
 
 /* ==============================================
@@ -313,9 +197,9 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 7px 14px;
+  padding: 6px 12px;
   border: 1px solid var(--cw-ai-border);
-  border-radius: 20px;
+  border-radius: 18px;
   background: var(--cw-ai-bg);
   color: var(--cw-ai-text);
   font-size: 12px;
@@ -349,7 +233,7 @@
   border-color: var(--cw-ai-primary);
   font-weight: 600;
   font-size: 13px;
-  padding: 9px 20px;
+  padding: 8px 16px;
 }
 
 .cw-ai-card__btn--primary:hover {
@@ -358,7 +242,6 @@
   border-color: var(--cw-ai-primary-hover);
 }
 
-/* 提案ボタンを幅いっぱいにする */
 .cw-ai-card__btn--suggest {
   width: 100%;
   justify-content: center;
@@ -384,8 +267,8 @@
   background: var(--cw-ai-bg-soft);
   border-color: var(--cw-ai-border);
   color: var(--cw-ai-text-sub);
-  font-size: 11.5px;
-  padding: 5px 10px;
+  font-size: 11px;
+  padding: 4px 10px;
 }
 
 .cw-ai-card__btn--secondary:hover {
@@ -395,57 +278,38 @@
 
 /* トーンボタン */
 .cw-ai-card__btn--tone {
-  font-size: 11.5px;
-  padding: 5px 10px;
+  font-size: 11px;
+  padding: 4px 10px;
 }
 
 /* ==============================================
    アクション行
    ============================================== */
 .cw-ai-card__actions {
-  padding: 4px 16px 10px;
+  padding: 4px 14px 10px;
 }
 
 /* ==============================================
-   トーンボタン群
-   ============================================== */
-.cw-ai-card__tone-group {
-  padding: 0 16px 10px;
-}
-
-.cw-ai-card__section-label {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--cw-ai-text-muted);
-  margin-bottom: 6px;
-}
-
-.cw-ai-card__tone-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-/* ==============================================
-   プレビューエリア
+   プレビューエリア（改行対応）
    ============================================== */
 .cw-ai-card__preview {
-  margin: 4px 16px 10px;
+  margin: 4px 14px 8px;
   padding: 12px 14px;
   background: var(--cw-ai-bg-soft);
   border: 1px solid var(--cw-ai-border);
   border-radius: var(--cw-ai-radius-sm);
   font-size: 13px;
-  line-height: 1.7;
+  line-height: 1.8;
   white-space: pre-wrap;
   word-break: break-word;
   display: none;
-  position: relative;
+  max-height: 200px;
+  overflow-y: auto;
 }
 
 .cw-ai-card__preview--visible {
   display: block;
-  animation: cw-ai-fadeIn 0.3s ease;
+  animation: cw-ai-fadeIn 0.2s ease;
 }
 
 @keyframes cw-ai-fadeIn {
@@ -457,7 +321,7 @@
    トーン情報
    ============================================== */
 .cw-ai-card__tone-info {
-  margin: 0 16px 4px;
+  margin: 0 14px 4px;
   font-size: 11px;
   color: var(--cw-ai-primary);
   font-weight: 500;
@@ -472,13 +336,13 @@
    注意メモ
    ============================================== */
 .cw-ai-card__notes {
-  margin: 4px 16px 8px;
-  padding: 8px 12px;
-  background: var(--cw-ai-warning-bg);
-  border: 1px solid var(--cw-ai-warning-border);
+  margin: 4px 14px 8px;
+  padding: 6px 10px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
   border-radius: var(--cw-ai-radius-sm);
-  font-size: 11.5px;
-  color: var(--cw-ai-warning-text);
+  font-size: 11px;
+  color: #92400e;
   display: none;
   line-height: 1.5;
 }
@@ -491,13 +355,13 @@
    ステータス（ローディング・エラー）
    ============================================== */
 .cw-ai-card__status {
-  margin: 4px 16px 10px;
-  padding: 10px 14px;
+  margin: 4px 14px 8px;
+  padding: 8px 12px;
   border-radius: var(--cw-ai-radius-sm);
-  font-size: 12.5px;
+  font-size: 12px;
   display: none;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   line-height: 1.4;
 }
 
@@ -513,7 +377,6 @@
 .cw-ai-card__status--error {
   background: var(--cw-ai-error-bg);
   color: var(--cw-ai-error-text);
-  font-size: 12px;
 }
 
 /* ==============================================
@@ -527,19 +390,19 @@
 }
 
 .cw-ai-dot {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   background: var(--cw-ai-primary);
   border-radius: 50%;
-  animation: cw-ai-pulse 1.2s ease-in-out infinite;
+  animation: cw-ai-pulse 1s ease-in-out infinite;
 }
 
 .cw-ai-dot:nth-child(2) {
-  animation-delay: 0.2s;
+  animation-delay: 0.15s;
 }
 
 .cw-ai-dot:nth-child(3) {
-  animation-delay: 0.4s;
+  animation-delay: 0.3s;
 }
 
 @keyframes cw-ai-pulse {
@@ -557,11 +420,11 @@
    フッター（操作ボタン）
    ============================================== */
 .cw-ai-card__footer {
-  padding: 10px 16px 14px;
+  padding: 8px 14px 10px;
   display: none;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 6px;
   border-top: 1px solid var(--cw-ai-border-light);
 }
 
@@ -572,5 +435,5 @@
 
 .cw-ai-card__footer-left {
   display: flex;
-  gap: 6px;
+  gap: 4px;
 }
