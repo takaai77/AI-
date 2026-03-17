@@ -9,8 +9,8 @@
 var CW_EXTRACT = (() => {
   'use strict';
 
-  // デフォルトで取得する最大メッセージ件数（データ最小化のため少なめ）
-  const DEFAULT_LIMIT = 5;
+  // デフォルトで取得する最大メッセージ件数（速度重視で3件に削減）
+  const DEFAULT_LIMIT = 3;
 
   /**
    * 1つのメッセージ要素からテキストと話者名を抽出する
@@ -36,8 +36,8 @@ var CW_EXTRACT = (() => {
     let text = textEl.textContent.trim();
     if (!text) return null;
 
-    // 長すぎるメッセージは切り詰める（データ最小化）
-    const MAX_TEXT_LENGTH = 500;
+    // 長すぎるメッセージは切り詰める（速度重視で300文字に）
+    const MAX_TEXT_LENGTH = 300;
     if (text.length > MAX_TEXT_LENGTH) {
       text = text.substring(0, MAX_TEXT_LENGTH) + '…（省略）';
     }

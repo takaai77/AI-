@@ -39,7 +39,7 @@ var CW_CONFIG = (() => {
   /**
    * デフォルトの取得メッセージ件数
    */
-  const DEFAULT_MESSAGE_LIMIT = 5;
+  const DEFAULT_MESSAGE_LIMIT = 3;
 
   return {
     DEFAULT_WEBHOOK_URL,

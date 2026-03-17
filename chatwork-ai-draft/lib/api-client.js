@@ -15,8 +15,8 @@
 var CW_API = (() => {
   'use strict';
 
-  // デフォルトタイムアウト（ミリ秒）
-  const DEFAULT_TIMEOUT = 30000;
+  // デフォルトタイムアウト（ミリ秒）- 速度重視で20秒に短縮
+  const DEFAULT_TIMEOUT = 20000;
 
   // 開発用ログフラグ（本番では false にする）
   const DEBUG_LOG = false;
