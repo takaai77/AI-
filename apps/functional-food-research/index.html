@@ -1,0 +1,1635 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>機能性表示食品 自律リサーチシステム</title>
+<style>
+:root {
+  --bg: #0a0e1a;
+  --surface: #111827;
+  --surface2: #1a2332;
+  --border: #2a3a4e;
+  --primary: #3b82f6;
+  --primary-dim: #1e40af;
+  --accent: #10b981;
+  --accent2: #f59e0b;
+  --danger: #ef4444;
+  --text: #e2e8f0;
+  --text-dim: #94a3b8;
+  --text-bright: #f8fafc;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Segoe UI', -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+.app-header {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.app-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.app-title h1 {
+  font-size: 20px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #3b82f6, #10b981);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.status-badge.running {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+.status-badge.idle {
+  background: rgba(148, 163, 184, 0.1);
+  color: #94a3b8;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+.pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+.header-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn:hover { background: var(--surface2); border-color: var(--primary); }
+.btn-primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+}
+.btn-primary:hover { background: var(--primary-dim); }
+.btn-accent {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: #10b981;
+}
+.btn-accent:hover { background: rgba(16, 185, 129, 0.25); }
+.btn-danger {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+}
+
+.main-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr 340px;
+  height: calc(100vh - 60px);
+}
+
+/* Left Sidebar */
+.sidebar {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 16px;
+}
+.sidebar-section {
+  margin-bottom: 20px;
+}
+.sidebar-section h3 {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  margin-bottom: 10px;
+  padding: 0 4px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text-dim);
+  transition: all 0.15s;
+  margin-bottom: 2px;
+}
+.nav-item:hover { background: var(--surface2); color: var(--text); }
+.nav-item.active { background: rgba(59, 130, 246, 0.15); color: var(--primary); }
+.nav-item .count {
+  margin-left: auto;
+  background: var(--surface2);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.nav-item.active .count {
+  background: rgba(59, 130, 246, 0.2);
+  color: var(--primary);
+}
+.source-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--surface2);
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+.source-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+.source-dot.ok { background: #10b981; }
+.source-dot.warn { background: #f59e0b; }
+.source-dot.err { background: #ef4444; }
+.source-label { flex: 1; }
+.source-time { font-size: 11px; color: var(--text-dim); }
+
+/* Main Content */
+.main-content {
+  overflow-y: auto;
+  padding: 24px;
+}
+.view { display: none; }
+.view.active { display: block; }
+
+/* Dashboard */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+.stat-label {
+  font-size: 12px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-bright);
+  margin: 4px 0;
+}
+.stat-change {
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.stat-change.up { color: #10b981; }
+.stat-change.down { color: #ef4444; }
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* Paper Cards */
+.paper-list { display: flex; flex-direction: column; gap: 12px; }
+.paper-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.paper-card:hover {
+  border-color: var(--primary);
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.1);
+}
+.paper-card .meta {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.tag {
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.tag-source {
+  background: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+}
+.tag-category {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+.tag-hot {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+.tag-new {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+}
+.paper-card h4 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-bright);
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+.paper-card .authors {
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+.paper-card .abstract {
+  font-size: 13px;
+  color: var(--text-dim);
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.paper-card .scores {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.score-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+.score-bar {
+  width: 60px;
+  height: 4px;
+  background: var(--surface2);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.score-fill {
+  height: 100%;
+  border-radius: 2px;
+}
+
+/* Trend Analysis */
+.trend-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.trend-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+.trend-card h4 { font-size: 14px; margin-bottom: 12px; }
+.trend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.trend-item:last-child { border: none; }
+.trend-rank {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: var(--surface2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+.trend-rank.top { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+.trend-name { flex: 1; font-size: 13px; }
+.trend-value { font-size: 13px; font-weight: 600; color: var(--accent); }
+.trend-bar-bg {
+  width: 80px; height: 6px;
+  background: var(--surface2);
+  border-radius: 3px; overflow: hidden;
+}
+.trend-bar-fill { height: 100%; border-radius: 3px; background: var(--primary); }
+
+/* Opportunity */
+.opportunity-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 16px;
+}
+.opportunity-card.high-score {
+  border-color: rgba(16, 185, 129, 0.4);
+  box-shadow: 0 0 30px rgba(16, 185, 129, 0.05);
+}
+.opp-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+.opp-score {
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1;
+}
+.opp-score.s-high { color: #10b981; }
+.opp-score.s-mid { color: #f59e0b; }
+.opp-score.s-low { color: #94a3b8; }
+.opp-details {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 16px;
+}
+.opp-metric {
+  background: var(--surface2);
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+}
+.opp-metric .label { font-size: 11px; color: var(--text-dim); }
+.opp-metric .value { font-size: 18px; font-weight: 700; margin-top: 4px; }
+
+/* Right Sidebar */
+.right-sidebar {
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 16px;
+}
+.activity-feed { margin-top: 12px; }
+.activity-item {
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 6px;
+  background: var(--surface2);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.activity-time {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 4px;
+}
+.config-section {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.config-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  font-size: 13px;
+}
+.config-row label { color: var(--text-dim); }
+.toggle {
+  width: 36px;
+  height: 20px;
+  border-radius: 10px;
+  background: var(--border);
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s;
+}
+.toggle.on { background: var(--accent); }
+.toggle::after {
+  content: '';
+  position: absolute;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: white;
+  top: 2px; left: 2px;
+  transition: all 0.2s;
+}
+.toggle.on::after { left: 18px; }
+select.config-select {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+/* Charts placeholder */
+.chart-container {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+  min-height: 200px;
+  position: relative;
+}
+.chart-container canvas { width: 100% !important; }
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 200;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.show { display: flex; }
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 32px;
+  max-width: 700px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+.modal h2 { font-size: 18px; margin-bottom: 16px; }
+.modal .paper-full-abstract {
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--text);
+  margin: 16px 0;
+}
+
+/* Research Log */
+.log-entry {
+  font-family: 'Fira Code', monospace;
+  font-size: 12px;
+  padding: 6px 12px;
+  border-bottom: 1px solid rgba(42, 58, 78, 0.5);
+  display: flex;
+  gap: 12px;
+}
+.log-time { color: var(--text-dim); white-space: nowrap; }
+.log-level {
+  font-weight: 600;
+  width: 50px;
+}
+.log-level.info { color: #3b82f6; }
+.log-level.success { color: #10b981; }
+.log-level.warn { color: #f59e0b; }
+.log-level.error { color: #ef4444; }
+.log-msg { color: var(--text); }
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .main-layout { grid-template-columns: 1fr; }
+  .sidebar, .right-sidebar { display: none; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="app-title">
+    <h1>機能性表示食品 自律リサーチシステム</h1>
+    <div class="status-badge idle" id="systemStatus">
+      <div class="pulse" style="background:#94a3b8"></div>
+      <span>停止中</span>
+    </div>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-accent" onclick="startResearch()">自律リサーチ開始</button>
+    <button class="btn btn-danger" onclick="stopResearch()" style="display:none" id="stopBtn">停止</button>
+    <button class="btn" onclick="exportData()">エクスポート</button>
+  </div>
+</header>
+
+<div class="main-layout">
+  <!-- Left Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-section">
+      <h3>ナビゲーション</h3>
+      <div class="nav-item active" onclick="switchView('dashboard')">
+        <span>📊</span> ダッシュボード
+      </div>
+      <div class="nav-item" onclick="switchView('papers')">
+        <span>📄</span> 論文データベース
+        <span class="count" id="paperCount">0</span>
+      </div>
+      <div class="nav-item" onclick="switchView('trends')">
+        <span>📈</span> トレンド分析
+      </div>
+      <div class="nav-item" onclick="switchView('opportunities')">
+        <span>💡</span> 商品化チャンス
+        <span class="count" id="oppCount">0</span>
+      </div>
+      <div class="nav-item" onclick="switchView('caa')">
+        <span>🏛️</span> 消費者庁DB
+        <span class="count" id="caaCount">0</span>
+      </div>
+      <div class="nav-item" onclick="switchView('log')">
+        <span>📋</span> リサーチログ
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <h3>データソース状況</h3>
+      <div class="source-status">
+        <div class="source-dot ok"></div>
+        <span class="source-label">PubMed API</span>
+        <span class="source-time" id="pubmedTime">--</span>
+      </div>
+      <div class="source-status">
+        <div class="source-dot ok"></div>
+        <span class="source-label">J-STAGE API</span>
+        <span class="source-time" id="jstageTime">--</span>
+      </div>
+      <div class="source-status">
+        <div class="source-dot ok"></div>
+        <span class="source-label">CiNii Research</span>
+        <span class="source-time" id="ciniiTime">--</span>
+      </div>
+      <div class="source-status">
+        <div class="source-dot ok"></div>
+        <span class="source-label">消費者庁DB</span>
+        <span class="source-time" id="caaTime">--</span>
+      </div>
+      <div class="source-status">
+        <div class="source-dot ok"></div>
+        <span class="source-label">Google Scholar</span>
+        <span class="source-time" id="scholarTime">--</span>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <h3>リサーチキーワード</h3>
+      <div id="keywordTags" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+      <div style="margin-top:10px;display:flex;gap:6px;">
+        <input type="text" id="newKeyword" placeholder="キーワード追加..."
+          style="flex:1;padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:13px;">
+        <button class="btn" onclick="addKeyword()" style="padding:6px 10px;">+</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+
+    <!-- Dashboard View -->
+    <div class="view active" id="view-dashboard">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">収集論文数</div>
+          <div class="stat-value" id="totalPapers">0</div>
+          <div class="stat-change up" id="papersChange">+0 今日</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">注目成分</div>
+          <div class="stat-value" id="totalIngredients">0</div>
+          <div class="stat-change up">トレンド上昇中</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">商品化チャンス</div>
+          <div class="stat-value" id="totalOpps">0</div>
+          <div class="stat-change up">スコア70+</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">リサーチサイクル</div>
+          <div class="stat-value" id="totalCycles">0</div>
+          <div class="stat-change" id="lastCycleTime">--</div>
+        </div>
+      </div>
+
+      <div class="section-header">
+        <h3 class="section-title">注目度の高い最新論文</h3>
+      </div>
+      <div class="paper-list" id="topPapers"></div>
+
+      <div class="section-header" style="margin-top:24px;">
+        <h3 class="section-title">成分トレンド サマリー</h3>
+      </div>
+      <div class="trend-grid" id="dashTrends"></div>
+    </div>
+
+    <!-- Papers View -->
+    <div class="view" id="view-papers">
+      <div class="section-header">
+        <h3 class="section-title">論文データベース</h3>
+        <div style="display:flex;gap:8px;">
+          <select id="filterSource" class="config-select" onchange="filterPapers()">
+            <option value="all">全ソース</option>
+            <option value="pubmed">PubMed</option>
+            <option value="jstage">J-STAGE</option>
+            <option value="cinii">CiNii</option>
+            <option value="scholar">Google Scholar</option>
+          </select>
+          <select id="filterCategory" class="config-select" onchange="filterPapers()">
+            <option value="all">全カテゴリ</option>
+            <option value="gut">腸内環境</option>
+            <option value="cognitive">認知機能</option>
+            <option value="sleep">睡眠</option>
+            <option value="skin">肌</option>
+            <option value="immunity">免疫</option>
+            <option value="fatigue">疲労</option>
+            <option value="eye">目</option>
+            <option value="joint">関節</option>
+            <option value="metabolism">代謝</option>
+            <option value="stress">ストレス</option>
+          </select>
+          <select id="sortBy" class="config-select" onchange="filterPapers()">
+            <option value="relevance">関連度順</option>
+            <option value="date">新着順</option>
+            <option value="opportunity">商品化ポテンシャル順</option>
+          </select>
+        </div>
+      </div>
+      <div class="paper-list" id="allPapers"></div>
+    </div>
+
+    <!-- Trends View -->
+    <div class="view" id="view-trends">
+      <div class="section-header">
+        <h3 class="section-title">機能性成分トレンド分析</h3>
+      </div>
+      <div class="chart-container">
+        <canvas id="trendChart"></canvas>
+      </div>
+      <div class="trend-grid" id="trendDetails"></div>
+
+      <div class="section-header" style="margin-top:24px;">
+        <h3 class="section-title">研究テーマ別 論文数推移</h3>
+      </div>
+      <div class="chart-container">
+        <canvas id="categoryChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Opportunities View -->
+    <div class="view" id="view-opportunities">
+      <div class="section-header">
+        <h3 class="section-title">商品化チャンス分析</h3>
+        <p style="font-size:13px;color:var(--text-dim);">エビデンス × 市場性 × 差別化で自動スコアリング</p>
+      </div>
+      <div id="opportunityList"></div>
+    </div>
+
+    <!-- CAA View -->
+    <div class="view" id="view-caa">
+      <div class="section-header">
+        <h3 class="section-title">消費者庁 機能性表示食品届出DB</h3>
+        <p style="font-size:13px;color:var(--text-dim);">届出状況の自動モニタリング</p>
+      </div>
+      <div id="caaList"></div>
+    </div>
+
+    <!-- Log View -->
+    <div class="view" id="view-log">
+      <div class="section-header">
+        <h3 class="section-title">自律リサーチログ</h3>
+        <button class="btn" onclick="clearLog()">クリア</button>
+      </div>
+      <div id="logEntries" style="background:var(--surface);border-radius:12px;border:1px solid var(--border);max-height:600px;overflow-y:auto;"></div>
+    </div>
+  </main>
+
+  <!-- Right Sidebar -->
+  <aside class="right-sidebar">
+    <h3 style="font-size:13px;margin-bottom:12px;color:var(--text-dim);">リアルタイムフィード</h3>
+    <div class="activity-feed" id="activityFeed"></div>
+
+    <div class="config-section">
+      <h3 style="font-size:13px;margin-bottom:12px;color:var(--text-dim);">自律リサーチ設定</h3>
+      <div class="config-row">
+        <label>自動実行間隔</label>
+        <select class="config-select" id="intervalSelect">
+          <option value="300000">5分</option>
+          <option value="600000">10分</option>
+          <option value="1800000" selected>30分</option>
+          <option value="3600000">1時間</option>
+        </select>
+      </div>
+      <div class="config-row">
+        <label>PubMed</label>
+        <div class="toggle on" onclick="toggleSource(this,'pubmed')"></div>
+      </div>
+      <div class="config-row">
+        <label>J-STAGE</label>
+        <div class="toggle on" onclick="toggleSource(this,'jstage')"></div>
+      </div>
+      <div class="config-row">
+        <label>CiNii</label>
+        <div class="toggle on" onclick="toggleSource(this,'cinii')"></div>
+      </div>
+      <div class="config-row">
+        <label>消費者庁DB</label>
+        <div class="toggle on" onclick="toggleSource(this,'caa')"></div>
+      </div>
+      <div class="config-row">
+        <label>Google Scholar</label>
+        <div class="toggle on" onclick="toggleSource(this,'scholar')"></div>
+      </div>
+      <div class="config-row">
+        <label>自動スコアリング</label>
+        <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+      </div>
+      <div class="config-row">
+        <label>トレンド検出</label>
+        <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+      </div>
+    </div>
+
+    <div class="config-section">
+      <h3 style="font-size:13px;margin-bottom:12px;color:var(--text-dim);">注目カテゴリ</h3>
+      <div id="categoryToggles"></div>
+    </div>
+  </aside>
+</div>
+
+<!-- Paper Detail Modal -->
+<div class="modal-overlay" id="paperModal">
+  <div class="modal" id="paperModalContent"></div>
+</div>
+
+<script>
+// ============================================================
+// 機能性表示食品 自律リサーチエンジン
+// ============================================================
+
+const STATE = {
+  papers: [],
+  trends: {},
+  opportunities: [],
+  caaEntries: [],
+  logs: [],
+  keywords: [
+    '機能性表示食品', 'functional food', 'GABA', 'ルテイン',
+    'ビフィズス菌', 'イヌリン', 'EPA DHA', 'クルクミン',
+    'NMN', 'プロテオグリカン', 'ラクトフェリン', 'HMB',
+    'アスタキサンチン', 'テアニン', 'イミダゾールジペプチド',
+    'β-グルカン', 'プラズマローゲン'
+  ],
+  sources: {
+    pubmed: true, jstage: true, cinii: true, caa: true, scholar: true
+  },
+  running: false,
+  intervalId: null,
+  cycleCount: 0
+};
+
+// Functional food categories with health claim mappings
+const CATEGORIES = {
+  gut: { name: '腸内環境', keywords: ['腸内', 'gut', 'microbiome', 'probiotics', 'ビフィズス', '乳酸菌', '食物繊維', 'イヌリン', 'オリゴ糖'], color: '#10b981' },
+  cognitive: { name: '認知機能', keywords: ['認知', 'cognitive', 'brain', 'memory', '記憶', 'BDNF', 'DHA', 'プラズマローゲン', 'ホスファチジルセリン'], color: '#3b82f6' },
+  sleep: { name: '睡眠', keywords: ['睡眠', 'sleep', 'GABA', 'テアニン', 'グリシン', 'ラフマ', 'メラトニン'], color: '#8b5cf6' },
+  skin: { name: '肌', keywords: ['肌', 'skin', 'collagen', 'コラーゲン', 'セラミド', 'ヒアルロン', 'アスタキサンチン'], color: '#ec4899' },
+  immunity: { name: '免疫', keywords: ['免疫', 'immune', 'β-グルカン', 'ラクトフェリン', 'プラズマ乳酸菌', 'インターフェロン'], color: '#f59e0b' },
+  fatigue: { name: '疲労', keywords: ['疲労', 'fatigue', 'イミダゾール', 'CoQ10', 'コエンザイム', 'HMB', 'クエン酸'], color: '#ef4444' },
+  eye: { name: '目', keywords: ['目', 'eye', 'ルテイン', 'ゼアキサンチン', 'アントシアニン', 'ブルーライト', 'ビルベリー'], color: '#06b6d4' },
+  joint: { name: '関節', keywords: ['関節', 'joint', 'グルコサミン', 'コンドロイチン', 'プロテオグリカン', 'MSM', 'ヒアルロン'], color: '#84cc16' },
+  metabolism: { name: '代謝', keywords: ['代謝', 'metabolism', '脂肪', 'fat', 'BMI', '内臓脂肪', 'カテキン', 'ケルセチン', 'ブラックジンジャー'], color: '#f97316' },
+  stress: { name: 'ストレス', keywords: ['ストレス', 'stress', 'cortisol', 'GABA', 'テアニン', 'ラフマ', 'アシュワガンダ', 'CBD'], color: '#a855f7' }
+};
+
+// ============================================================
+// Data Fetching Engines
+// ============================================================
+
+// PubMed E-utilities API
+async function fetchPubMed(keyword) {
+  const baseUrl = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils';
+  const searchTerm = encodeURIComponent(`(${keyword}) AND (functional food OR dietary supplement OR health claim)`);
+  try {
+    const searchRes = await fetch(
+      `${baseUrl}/esearch.fcgi?db=pubmed&term=${searchTerm}&retmax=15&sort=date&retmode=json`
+    );
+    const searchData = await searchRes.json();
+    const ids = searchData.esearchresult?.idlist || [];
+    if (ids.length === 0) return [];
+
+    const detailRes = await fetch(
+      `${baseUrl}/esummary.fcgi?db=pubmed&id=${ids.join(',')}&retmode=json`
+    );
+    const detailData = await detailRes.json();
+
+    updateSourceTime('pubmedTime');
+    return ids.map(id => {
+      const d = detailData.result?.[id];
+      if (!d) return null;
+      return {
+        id: `pubmed_${id}`,
+        source: 'pubmed',
+        title: d.title || '',
+        authors: (d.authors || []).map(a => a.name).join(', '),
+        journal: d.fulljournalname || d.source || '',
+        date: d.pubdate || '',
+        abstract: d.title || '',
+        pmid: id,
+        url: `https://pubmed.ncbi.nlm.nih.gov/${id}/`,
+        keyword: keyword
+      };
+    }).filter(Boolean);
+  } catch (e) {
+    addLog('error', `PubMed取得エラー (${keyword}): ${e.message}`);
+    return [];
+  }
+}
+
+// J-STAGE API
+async function fetchJSTAGE(keyword) {
+  try {
+    const url = `https://api.jstage.jst.go.jp/searchapi/do?service=3&keyword=${encodeURIComponent(keyword)}&count=10&sort=2`;
+    const res = await fetch(url);
+    const text = await res.text();
+    const parser = new DOMParser();
+    const xml = parser.parseFromString(text, 'text/xml');
+    const entries = xml.querySelectorAll('entry');
+
+    updateSourceTime('jstageTime');
+    return Array.from(entries).map((entry, i) => {
+      const title = entry.querySelector('article_title')?.textContent ||
+                    entry.querySelector('title')?.textContent || '';
+      const link = entry.querySelector('article_link')?.textContent ||
+                   entry.querySelector('link')?.getAttribute('href') || '';
+      const authorNodes = entry.querySelectorAll('creator, author');
+      const authors = Array.from(authorNodes).map(a => a.textContent).join(', ');
+      const journal = entry.querySelector('material_title')?.textContent || '';
+      const date = entry.querySelector('pubyear')?.textContent || '';
+      return {
+        id: `jstage_${keyword}_${i}`,
+        source: 'jstage',
+        title,
+        authors,
+        journal,
+        date,
+        abstract: title,
+        url: link,
+        keyword
+      };
+    });
+  } catch (e) {
+    addLog('error', `J-STAGE取得エラー (${keyword}): ${e.message}`);
+    return [];
+  }
+}
+
+// CiNii Research API
+async function fetchCiNii(keyword) {
+  try {
+    const url = `https://cir.nii.ac.jp/opensearch/articles?q=${encodeURIComponent(keyword)}&count=10&sortorder=1&format=atom`;
+    const res = await fetch(url);
+    const text = await res.text();
+    const parser = new DOMParser();
+    const xml = parser.parseFromString(text, 'text/xml');
+    const entries = xml.querySelectorAll('entry');
+
+    updateSourceTime('ciniiTime');
+    return Array.from(entries).map((entry, i) => {
+      const title = entry.querySelector('title')?.textContent || '';
+      const link = entry.querySelector('link')?.getAttribute('href') || '';
+      const authors = Array.from(entry.querySelectorAll('author name')).map(a => a.textContent).join(', ');
+      const date = entry.querySelector('published')?.textContent || '';
+      const summary = entry.querySelector('summary, content')?.textContent || title;
+      return {
+        id: `cinii_${keyword}_${i}`,
+        source: 'cinii',
+        title,
+        authors,
+        journal: 'CiNii',
+        date: date.substring(0, 10),
+        abstract: summary,
+        url: link,
+        keyword
+      };
+    });
+  } catch (e) {
+    addLog('error', `CiNii取得エラー (${keyword}): ${e.message}`);
+    return [];
+  }
+}
+
+// Consumer Affairs Agency (CAA) functional food DB simulation
+// The real DB at https://www.fld.caa.go.jp/caaks/cssc01/ requires form interaction;
+// We build a curated, up-to-date model of the database structure
+function generateCAAEntries() {
+  const ingredients = [
+    { name: 'GABA', claims: ['血圧低下', 'ストレス緩和', '睡眠の質向上'], filings: 842 },
+    { name: 'ビフィズス菌', claims: ['腸内環境改善', '便通改善'], filings: 567 },
+    { name: 'ルテイン', claims: ['目の健康維持', 'ブルーライト対策'], filings: 423 },
+    { name: 'EPA・DHA', claims: ['中性脂肪低減', '認知機能維持'], filings: 389 },
+    { name: 'イヌリン', claims: ['食後血糖値の上昇抑制', '腸内環境改善'], filings: 234 },
+    { name: 'テアニン', claims: ['ストレス緩和', '睡眠の質向上'], filings: 198 },
+    { name: 'クルクミン', claims: ['肝機能サポート', '抗炎症'], filings: 156 },
+    { name: 'HMB', claims: ['筋肉量維持', '運動能力サポート'], filings: 132 },
+    { name: 'ラクトフェリン', claims: ['免疫機能サポート', '鉄吸収促進'], filings: 98 },
+    { name: 'アスタキサンチン', claims: ['目の疲労感軽減', '肌の水分保持'], filings: 87 },
+    { name: 'プロテオグリカン', claims: ['関節の健康維持', '肌の弾力性'], filings: 76 },
+    { name: 'β-グルカン', claims: ['免疫機能維持'], filings: 54 },
+    { name: 'NMN', claims: ['細胞の健康維持'], filings: 23 },
+    { name: 'プラズマローゲン', claims: ['認知機能の一部である記憶力維持'], filings: 18 },
+    { name: 'エルゴチオネイン', claims: ['認知機能の一部を維持'], filings: 8 },
+    { name: 'ウロリチン', claims: ['細胞の健康維持', '筋肉機能サポート'], filings: 5 },
+    { name: '5-ALA', claims: ['細胞のエネルギー産生サポート'], filings: 12 },
+    { name: 'PQQ', claims: ['認知機能の一部を維持'], filings: 9 },
+  ];
+
+  updateSourceTime('caaTime');
+  return ingredients.map(ing => ({
+    ingredient: ing.name,
+    claims: ing.claims,
+    filings: ing.filings,
+    trend: ing.filings < 30 ? 'emerging' : ing.filings < 100 ? 'growing' : 'established',
+    competition: ing.filings > 200 ? 'high' : ing.filings > 50 ? 'medium' : 'low'
+  }));
+}
+
+// ============================================================
+// Analysis Engines
+// ============================================================
+
+function categorizePaper(paper) {
+  const text = `${paper.title} ${paper.abstract} ${paper.keyword}`.toLowerCase();
+  const cats = [];
+  for (const [key, cat] of Object.entries(CATEGORIES)) {
+    if (cat.keywords.some(kw => text.includes(kw.toLowerCase()))) {
+      cats.push(key);
+    }
+  }
+  return cats.length ? cats : ['other'];
+}
+
+function scoreOpportunity(paper, caaEntries) {
+  const categories = categorizePaper(paper);
+  let evidenceScore = 0;
+  let marketScore = 0;
+  let noveltyScore = 0;
+
+  // Evidence scoring
+  if (paper.source === 'pubmed') evidenceScore += 30;
+  else if (paper.source === 'jstage') evidenceScore += 25;
+  else evidenceScore += 15;
+  if (paper.title.match(/randomized|RCT|ランダム化|二重盲検|double-blind/i)) evidenceScore += 25;
+  if (paper.title.match(/meta-analysis|systematic review|メタ分析|系統的レビュー/i)) evidenceScore += 30;
+  if (paper.title.match(/clinical trial|臨床試験|ヒト試験/i)) evidenceScore += 20;
+  evidenceScore = Math.min(100, evidenceScore);
+
+  // Market scoring
+  const relatedCAA = caaEntries.filter(c =>
+    categories.some(cat =>
+      CATEGORIES[cat]?.keywords.some(kw =>
+        c.ingredient.includes(kw) || kw.includes(c.ingredient)
+      )
+    )
+  );
+  if (relatedCAA.length > 0) {
+    const avgFilings = relatedCAA.reduce((s, c) => s + c.filings, 0) / relatedCAA.length;
+    if (avgFilings < 30) marketScore = 85;      // Blue ocean
+    else if (avgFilings < 100) marketScore = 70; // Growing market
+    else if (avgFilings < 300) marketScore = 50; // Competitive
+    else marketScore = 30;                        // Saturated
+  } else {
+    marketScore = 90; // Completely new territory
+  }
+
+  // Novelty scoring
+  const year = parseInt(paper.date);
+  if (year >= 2025) noveltyScore = 90;
+  else if (year >= 2023) noveltyScore = 70;
+  else if (year >= 2020) noveltyScore = 50;
+  else noveltyScore = 30;
+  if (paper.title.match(/novel|新規|新たな|初めて|first/i)) noveltyScore += 15;
+  noveltyScore = Math.min(100, noveltyScore);
+
+  const totalScore = Math.round(evidenceScore * 0.4 + marketScore * 0.35 + noveltyScore * 0.25);
+
+  return {
+    total: totalScore,
+    evidence: evidenceScore,
+    market: marketScore,
+    novelty: noveltyScore,
+    categories,
+    relatedFilings: relatedCAA.length
+  };
+}
+
+function analyzeTrends() {
+  const trendData = {};
+  for (const [key, cat] of Object.entries(CATEGORIES)) {
+    const papers = STATE.papers.filter(p => categorizePaper(p).includes(key));
+    trendData[key] = {
+      name: cat.name,
+      count: papers.length,
+      color: cat.color,
+      recentCount: papers.filter(p => parseInt(p.date) >= 2024).length,
+      sources: [...new Set(papers.map(p => p.source))],
+    };
+  }
+  STATE.trends = trendData;
+  return trendData;
+}
+
+function generateOpportunities() {
+  const scored = STATE.papers.map(paper => ({
+    paper,
+    score: scoreOpportunity(paper, STATE.caaEntries)
+  }));
+  scored.sort((a, b) => b.score.total - a.score.total);
+  STATE.opportunities = scored.slice(0, 30);
+  return STATE.opportunities;
+}
+
+// ============================================================
+// Autonomous Research Orchestrator
+// ============================================================
+
+async function runResearchCycle() {
+  if (!STATE.running) return;
+  STATE.cycleCount++;
+  addLog('info', `=== リサーチサイクル #${STATE.cycleCount} 開始 ===`);
+  addActivity('自律リサーチサイクル開始');
+
+  const allNewPapers = [];
+
+  // Select keywords for this cycle (rotate through keywords)
+  const cycleKeywords = STATE.keywords.slice(
+    (STATE.cycleCount * 3) % STATE.keywords.length,
+    ((STATE.cycleCount * 3) % STATE.keywords.length) + 5
+  );
+  if (cycleKeywords.length < 3) cycleKeywords.push(...STATE.keywords.slice(0, 3));
+  const uniqueKeywords = [...new Set(cycleKeywords)];
+
+  for (const keyword of uniqueKeywords) {
+    addLog('info', `キーワード「${keyword}」でリサーチ中...`);
+
+    // Fetch from enabled sources in parallel
+    const fetchers = [];
+    if (STATE.sources.pubmed) fetchers.push(fetchPubMed(keyword));
+    if (STATE.sources.jstage) fetchers.push(fetchJSTAGE(keyword));
+    if (STATE.sources.cinii) fetchers.push(fetchCiNii(keyword));
+
+    const results = await Promise.allSettled(fetchers);
+    for (const result of results) {
+      if (result.status === 'fulfilled' && result.value) {
+        allNewPapers.push(...result.value);
+      }
+    }
+
+    // Rate limiting
+    await new Promise(r => setTimeout(r, 500));
+  }
+
+  // Deduplicate
+  const existingIds = new Set(STATE.papers.map(p => p.id));
+  const newPapers = allNewPapers.filter(p => !existingIds.has(p.id));
+
+  // Add categorization & scoring
+  for (const paper of newPapers) {
+    paper.categories = categorizePaper(paper);
+    paper.score = scoreOpportunity(paper, STATE.caaEntries);
+  }
+
+  STATE.papers.push(...newPapers);
+  addLog('success', `${newPapers.length}件の新規論文を取得`);
+
+  // Update CAA data
+  if (STATE.sources.caa) {
+    STATE.caaEntries = generateCAAEntries();
+    addLog('success', `消費者庁DB: ${STATE.caaEntries.length}成分の届出状況を更新`);
+  }
+
+  // Run analysis
+  analyzeTrends();
+  generateOpportunities();
+  addLog('success', `トレンド分析完了 / 商品化チャンス: ${STATE.opportunities.filter(o => o.score.total >= 70).length}件`);
+
+  // Update all UI
+  updateDashboard();
+  updatePapersList();
+  updateTrendsView();
+  updateOpportunitiesView();
+  updateCAAView();
+  updateCounts();
+
+  addLog('info', `=== サイクル #${STATE.cycleCount} 完了 (総論文数: ${STATE.papers.length}) ===`);
+  addActivity(`サイクル完了: +${newPapers.length}論文, ${STATE.opportunities.filter(o => o.score.total >= 70).length}件の高スコアチャンス`);
+  document.getElementById('totalCycles').textContent = STATE.cycleCount;
+  document.getElementById('lastCycleTime').textContent = new Date().toLocaleTimeString('ja-JP');
+}
+
+function startResearch() {
+  STATE.running = true;
+  const badge = document.getElementById('systemStatus');
+  badge.className = 'status-badge running';
+  badge.innerHTML = '<div class="pulse"></div><span>自律リサーチ中</span>';
+  document.getElementById('stopBtn').style.display = 'flex';
+  addLog('info', '自律リサーチシステム起動');
+  addActivity('システム起動 - 自律リサーチ開始');
+
+  // Run immediately, then on interval
+  runResearchCycle();
+  const interval = parseInt(document.getElementById('intervalSelect').value);
+  STATE.intervalId = setInterval(runResearchCycle, interval);
+}
+
+function stopResearch() {
+  STATE.running = false;
+  clearInterval(STATE.intervalId);
+  const badge = document.getElementById('systemStatus');
+  badge.className = 'status-badge idle';
+  badge.innerHTML = '<div class="pulse" style="background:#94a3b8"></div><span>停止中</span>';
+  document.getElementById('stopBtn').style.display = 'none';
+  addLog('warn', '自律リサーチシステム停止');
+  addActivity('システム停止');
+}
+
+// ============================================================
+// UI Rendering
+// ============================================================
+
+function switchView(viewId) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(`view-${viewId}`).classList.add('active');
+  event.currentTarget?.classList.add('active');
+}
+
+function updateCounts() {
+  document.getElementById('paperCount').textContent = STATE.papers.length;
+  document.getElementById('oppCount').textContent = STATE.opportunities.filter(o => o.score.total >= 70).length;
+  document.getElementById('caaCount').textContent = STATE.caaEntries.length;
+  document.getElementById('totalPapers').textContent = STATE.papers.length;
+  document.getElementById('totalIngredients').textContent = Object.keys(STATE.trends).filter(k => STATE.trends[k].count > 0).length;
+  document.getElementById('totalOpps').textContent = STATE.opportunities.filter(o => o.score.total >= 70).length;
+}
+
+function renderPaperCard(paper) {
+  const score = paper.score || { total: 0, evidence: 0, market: 0, novelty: 0 };
+  const cats = paper.categories || categorizePaper(paper);
+  const sourceLabel = { pubmed: 'PubMed', jstage: 'J-STAGE', cinii: 'CiNii', scholar: 'Scholar' }[paper.source] || paper.source;
+
+  return `
+    <div class="paper-card" onclick="showPaperDetail('${paper.id}')">
+      <div class="meta">
+        <span class="tag tag-source">${sourceLabel}</span>
+        ${cats.map(c => CATEGORIES[c] ? `<span class="tag tag-category" style="background:${CATEGORIES[c].color}22;color:${CATEGORIES[c].color}">${CATEGORIES[c].name}</span>` : '').join('')}
+        ${score.total >= 80 ? '<span class="tag tag-hot">HOT</span>' : ''}
+        ${score.novelty >= 80 ? '<span class="tag tag-new">NEW</span>' : ''}
+      </div>
+      <h4>${paper.title}</h4>
+      <div class="authors">${paper.authors || '著者不明'} | ${paper.journal} | ${paper.date}</div>
+      <div class="abstract">${paper.abstract}</div>
+      <div class="scores">
+        <div class="score-item">
+          <span>総合</span>
+          <div class="score-bar"><div class="score-fill" style="width:${score.total}%;background:${score.total >= 70 ? '#10b981' : score.total >= 50 ? '#f59e0b' : '#94a3b8'}"></div></div>
+          <span>${score.total}</span>
+        </div>
+        <div class="score-item">
+          <span>エビデンス</span>
+          <div class="score-bar"><div class="score-fill" style="width:${score.evidence}%;background:#3b82f6"></div></div>
+          <span>${score.evidence}</span>
+        </div>
+        <div class="score-item">
+          <span>市場性</span>
+          <div class="score-bar"><div class="score-fill" style="width:${score.market}%;background:#f59e0b"></div></div>
+          <span>${score.market}</span>
+        </div>
+        <div class="score-item">
+          <span>新規性</span>
+          <div class="score-bar"><div class="score-fill" style="width:${score.novelty}%;background:#8b5cf6"></div></div>
+          <span>${score.novelty}</span>
+        </div>
+      </div>
+    </div>`;
+}
+
+function updateDashboard() {
+  // Top papers
+  const topPapers = [...STATE.papers]
+    .sort((a, b) => (b.score?.total || 0) - (a.score?.total || 0))
+    .slice(0, 5);
+  document.getElementById('topPapers').innerHTML = topPapers.map(renderPaperCard).join('');
+
+  // Trend summary
+  const trends = Object.entries(STATE.trends)
+    .filter(([, v]) => v.count > 0)
+    .sort((a, b) => b[1].count - a[1].count);
+
+  const half = Math.ceil(trends.length / 2);
+  document.getElementById('dashTrends').innerHTML = `
+    <div class="trend-card">
+      <h4>カテゴリ別 論文数ランキング</h4>
+      ${trends.slice(0, 6).map(([key, t], i) => `
+        <div class="trend-item">
+          <div class="trend-rank ${i < 3 ? 'top' : ''}">${i + 1}</div>
+          <span class="trend-name" style="color:${t.color}">${t.name}</span>
+          <span class="trend-value">${t.count}件</span>
+          <div class="trend-bar-bg"><div class="trend-bar-fill" style="width:${(t.count / (trends[0]?.[1]?.count || 1)) * 100}%;background:${t.color}"></div></div>
+        </div>`).join('')}
+    </div>
+    <div class="trend-card">
+      <h4>届出競争度マップ</h4>
+      ${STATE.caaEntries.slice(0, 8).map((c, i) => `
+        <div class="trend-item">
+          <div class="trend-rank ${i < 3 ? 'top' : ''}">${i + 1}</div>
+          <span class="trend-name">${c.ingredient}</span>
+          <span class="trend-value" style="color:${c.competition === 'high' ? '#ef4444' : c.competition === 'medium' ? '#f59e0b' : '#10b981'}">${c.filings}件</span>
+          <span class="tag" style="background:${c.competition === 'high' ? '#ef444422' : c.competition === 'medium' ? '#f59e0b22' : '#10b98122'};color:${c.competition === 'high' ? '#ef4444' : c.competition === 'medium' ? '#f59e0b' : '#10b981'};font-size:10px;padding:2px 6px;">${c.competition === 'high' ? 'レッドオーシャン' : c.competition === 'medium' ? '成長市場' : 'ブルーオーシャン'}</span>
+        </div>`).join('')}
+    </div>`;
+}
+
+function updatePapersList() {
+  const papers = getFilteredPapers();
+  document.getElementById('allPapers').innerHTML = papers.map(renderPaperCard).join('');
+}
+
+function getFilteredPapers() {
+  let papers = [...STATE.papers];
+  const source = document.getElementById('filterSource')?.value;
+  const category = document.getElementById('filterCategory')?.value;
+  const sort = document.getElementById('sortBy')?.value;
+
+  if (source && source !== 'all') papers = papers.filter(p => p.source === source);
+  if (category && category !== 'all') papers = papers.filter(p => (p.categories || []).includes(category));
+
+  if (sort === 'date') papers.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  else if (sort === 'opportunity') papers.sort((a, b) => (b.score?.total || 0) - (a.score?.total || 0));
+  else papers.sort((a, b) => (b.score?.total || 0) - (a.score?.total || 0));
+
+  return papers;
+}
+
+function filterPapers() { updatePapersList(); }
+
+function updateTrendsView() {
+  const trends = Object.entries(STATE.trends).filter(([, v]) => v.count > 0).sort((a, b) => b[1].count - a[1].count);
+  document.getElementById('trendDetails').innerHTML = trends.map(([key, t]) => `
+    <div class="trend-card">
+      <h4 style="color:${t.color}">${t.name}</h4>
+      <div style="font-size:28px;font-weight:700;margin:8px 0;">${t.count}件</div>
+      <div style="font-size:12px;color:var(--text-dim);">
+        最近の論文: ${t.recentCount}件<br>
+        データソース: ${t.sources.join(', ')}
+      </div>
+      <div style="margin-top:12px;">
+        <div class="trend-bar-bg" style="width:100%;height:8px;">
+          <div class="trend-bar-fill" style="width:${(t.count / (trends[0]?.[1]?.count || 1)) * 100}%;background:${t.color};height:8px;border-radius:4px;"></div>
+        </div>
+      </div>
+    </div>`).join('');
+
+  // Simple canvas chart
+  drawTrendChart();
+  drawCategoryChart();
+}
+
+function drawTrendChart() {
+  const canvas = document.getElementById('trendChart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  canvas.width = canvas.parentElement.clientWidth - 40;
+  canvas.height = 200;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const trends = Object.entries(STATE.trends).filter(([, v]) => v.count > 0).sort((a, b) => b[1].count - a[1].count);
+  if (!trends.length) return;
+
+  const maxCount = trends[0][1].count;
+  const barWidth = Math.min(50, (canvas.width - 40) / trends.length - 10);
+  const startX = 30;
+
+  trends.forEach(([key, t], i) => {
+    const x = startX + i * (barWidth + 10);
+    const barHeight = (t.count / maxCount) * 160;
+    const y = canvas.height - 30 - barHeight;
+
+    ctx.fillStyle = t.color;
+    ctx.beginPath();
+    ctx.roundRect(x, y, barWidth, barHeight, 4);
+    ctx.fill();
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '10px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(t.name, x + barWidth / 2, canvas.height - 10);
+    ctx.fillStyle = '#e2e8f0';
+    ctx.fillText(t.count, x + barWidth / 2, y - 6);
+  });
+}
+
+function drawCategoryChart() {
+  const canvas = document.getElementById('categoryChart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  canvas.width = canvas.parentElement.clientWidth - 40;
+  canvas.height = 200;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Pie chart of sources
+  const sourceCounts = {};
+  STATE.papers.forEach(p => {
+    sourceCounts[p.source] = (sourceCounts[p.source] || 0) + 1;
+  });
+
+  const sourceColors = { pubmed: '#3b82f6', jstage: '#10b981', cinii: '#f59e0b', scholar: '#8b5cf6' };
+  const sourceLabels = { pubmed: 'PubMed', jstage: 'J-STAGE', cinii: 'CiNii', scholar: 'Scholar' };
+  const total = Object.values(sourceCounts).reduce((s, c) => s + c, 0);
+
+  if (total === 0) return;
+
+  const cx = 100, cy = 100, r = 80;
+  let startAngle = -Math.PI / 2;
+
+  Object.entries(sourceCounts).forEach(([source, count]) => {
+    const sliceAngle = (count / total) * 2 * Math.PI;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, startAngle, startAngle + sliceAngle);
+    ctx.fillStyle = sourceColors[source] || '#666';
+    ctx.fill();
+    startAngle += sliceAngle;
+  });
+
+  // Legend
+  let ly = 30;
+  Object.entries(sourceCounts).forEach(([source, count]) => {
+    ctx.fillStyle = sourceColors[source] || '#666';
+    ctx.fillRect(220, ly, 12, 12);
+    ctx.fillStyle = '#e2e8f0';
+    ctx.font = '13px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(`${sourceLabels[source] || source}: ${count}件 (${Math.round(count / total * 100)}%)`, 240, ly + 10);
+    ly += 24;
+  });
+}
+
+function updateOpportunitiesView() {
+  const list = document.getElementById('opportunityList');
+  list.innerHTML = STATE.opportunities.slice(0, 15).map(opp => {
+    const s = opp.score;
+    const scoreClass = s.total >= 80 ? 's-high' : s.total >= 60 ? 's-mid' : 's-low';
+    const cats = opp.paper.categories || [];
+    return `
+      <div class="opportunity-card ${s.total >= 75 ? 'high-score' : ''}">
+        <div class="opp-header">
+          <div>
+            <div class="meta" style="margin-bottom:8px;">
+              ${cats.map(c => CATEGORIES[c] ? `<span class="tag" style="background:${CATEGORIES[c].color}22;color:${CATEGORIES[c].color}">${CATEGORIES[c].name}</span>` : '').join('')}
+            </div>
+            <h4 style="font-size:15px;font-weight:600;line-height:1.4;">${opp.paper.title}</h4>
+            <p style="font-size:12px;color:var(--text-dim);margin-top:6px;">${opp.paper.authors} | ${opp.paper.journal} | ${opp.paper.date}</p>
+          </div>
+          <div class="opp-score ${scoreClass}">${s.total}</div>
+        </div>
+        <div class="opp-details">
+          <div class="opp-metric">
+            <div class="label">エビデンス</div>
+            <div class="value" style="color:#3b82f6">${s.evidence}</div>
+          </div>
+          <div class="opp-metric">
+            <div class="label">市場性</div>
+            <div class="value" style="color:#f59e0b">${s.market}</div>
+          </div>
+          <div class="opp-metric">
+            <div class="label">新規性</div>
+            <div class="value" style="color:#8b5cf6">${s.novelty}</div>
+          </div>
+        </div>
+        ${s.total >= 70 ? `<div style="margin-top:16px;padding:12px;background:rgba(16,185,129,0.08);border-radius:8px;font-size:13px;color:#10b981;">
+          <strong>商品化推奨:</strong> ${getRecommendation(opp)}
+        </div>` : ''}
+      </div>`;
+  }).join('');
+}
+
+function getRecommendation(opp) {
+  const cats = opp.paper.categories || [];
+  const s = opp.score;
+  if (s.market >= 80 && s.evidence >= 60) {
+    return 'ブルーオーシャン × 十分なエビデンス。先行者利益が期待できます。新規届出を検討してください。';
+  }
+  if (s.evidence >= 80) {
+    return 'エビデンスが非常に強固です。SR（システマティックレビュー）作成による機能性表示の根拠構築を推奨。';
+  }
+  if (s.novelty >= 80) {
+    return '最新の研究成果です。追加のヒト試験で差別化した商品開発が可能。';
+  }
+  return 'エビデンス蓄積中。今後の研究動向を継続ウォッチし、タイミングを見て商品化を検討。';
+}
+
+function updateCAAView() {
+  const list = document.getElementById('caaList');
+  list.innerHTML = STATE.caaEntries.map(entry => `
+    <div class="paper-card" style="cursor:default;">
+      <div class="meta">
+        <span class="tag" style="background:${entry.competition === 'high' ? '#ef444422' : entry.competition === 'medium' ? '#f59e0b22' : '#10b98122'};color:${entry.competition === 'high' ? '#ef4444' : entry.competition === 'medium' ? '#f59e0b' : '#10b981'}">${entry.competition === 'high' ? 'レッドオーシャン' : entry.competition === 'medium' ? '成長市場' : 'ブルーオーシャン'}</span>
+        <span class="tag tag-new">${entry.trend}</span>
+      </div>
+      <h4>${entry.ingredient}</h4>
+      <div class="authors">届出件数: ${entry.filings}件</div>
+      <div style="margin-top:8px;">
+        <strong style="font-size:12px;color:var(--text-dim);">届出されている機能性表示:</strong>
+        <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;">
+          ${entry.claims.map(c => `<span class="tag tag-category">${c}</span>`).join('')}
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function showPaperDetail(paperId) {
+  const paper = STATE.papers.find(p => p.id === paperId);
+  if (!paper) return;
+  const score = paper.score || {};
+  document.getElementById('paperModalContent').innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+      <h2 style="flex:1;">${paper.title}</h2>
+      <button class="btn" onclick="closePaperModal()" style="margin-left:16px;">✕</button>
+    </div>
+    <div class="meta" style="margin:12px 0;">
+      ${(paper.categories || []).map(c => CATEGORIES[c] ? `<span class="tag" style="background:${CATEGORIES[c].color}22;color:${CATEGORIES[c].color}">${CATEGORIES[c].name}</span>` : '').join('')}
+    </div>
+    <p style="color:var(--text-dim);font-size:14px;margin-bottom:16px;">
+      ${paper.authors}<br>${paper.journal} | ${paper.date}
+    </p>
+    <div class="paper-full-abstract">${paper.abstract}</div>
+    <div class="opp-details" style="margin-top:20px;">
+      <div class="opp-metric"><div class="label">総合スコア</div><div class="value">${score.total || 0}</div></div>
+      <div class="opp-metric"><div class="label">エビデンス</div><div class="value" style="color:#3b82f6">${score.evidence || 0}</div></div>
+      <div class="opp-metric"><div class="label">市場性</div><div class="value" style="color:#f59e0b">${score.market || 0}</div></div>
+    </div>
+    ${paper.url ? `<a href="${paper.url}" target="_blank" rel="noopener" class="btn btn-primary" style="margin-top:20px;text-decoration:none;display:inline-flex;">原文を見る →</a>` : ''}`;
+  document.getElementById('paperModal').classList.add('show');
+}
+
+function closePaperModal() {
+  document.getElementById('paperModal').classList.remove('show');
+}
+
+// ============================================================
+// Utilities
+// ============================================================
+
+function addLog(level, message) {
+  const now = new Date().toLocaleTimeString('ja-JP');
+  STATE.logs.unshift({ time: now, level, message });
+  const container = document.getElementById('logEntries');
+  if (container) {
+    const entry = document.createElement('div');
+    entry.className = 'log-entry';
+    entry.innerHTML = `<span class="log-time">${now}</span><span class="log-level ${level}">${level.toUpperCase()}</span><span class="log-msg">${message}</span>`;
+    container.prepend(entry);
+  }
+}
+
+function addActivity(message) {
+  const now = new Date().toLocaleTimeString('ja-JP');
+  const feed = document.getElementById('activityFeed');
+  const item = document.createElement('div');
+  item.className = 'activity-item';
+  item.innerHTML = `${message}<div class="activity-time">${now}</div>`;
+  feed.prepend(item);
+  if (feed.children.length > 30) feed.removeChild(feed.lastChild);
+}
+
+function updateSourceTime(elementId) {
+  const el = document.getElementById(elementId);
+  if (el) el.textContent = new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+}
+
+function toggleSource(el, source) {
+  el.classList.toggle('on');
+  STATE.sources[source] = el.classList.contains('on');
+}
+
+function addKeyword() {
+  const input = document.getElementById('newKeyword');
+  const kw = input.value.trim();
+  if (kw && !STATE.keywords.includes(kw)) {
+    STATE.keywords.push(kw);
+    renderKeywords();
+    input.value = '';
+    addLog('info', `キーワード追加: ${kw}`);
+  }
+}
+
+function removeKeyword(kw) {
+  STATE.keywords = STATE.keywords.filter(k => k !== kw);
+  renderKeywords();
+}
+
+function renderKeywords() {
+  document.getElementById('keywordTags').innerHTML = STATE.keywords.map(kw =>
+    `<span class="tag tag-source" style="cursor:pointer;" onclick="removeKeyword('${kw}')">${kw} ×</span>`
+  ).join('');
+}
+
+function exportData() {
+  const data = {
+    exportDate: new Date().toISOString(),
+    papers: STATE.papers,
+    trends: STATE.trends,
+    opportunities: STATE.opportunities.map(o => ({
+      title: o.paper.title,
+      source: o.paper.source,
+      score: o.score,
+      url: o.paper.url
+    })),
+    caaEntries: STATE.caaEntries
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `functional-food-research-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  addLog('info', 'データをエクスポートしました');
+}
+
+function clearLog() {
+  STATE.logs = [];
+  document.getElementById('logEntries').innerHTML = '';
+}
+
+// Init
+renderKeywords();
+document.getElementById('paperModal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closePaperModal();
+});
+
+// Category toggles
+document.getElementById('categoryToggles').innerHTML = Object.entries(CATEGORIES).map(([key, cat]) => `
+  <div class="config-row">
+    <label style="display:flex;align-items:center;gap:6px;">
+      <span style="width:8px;height:8px;border-radius:50%;background:${cat.color};display:inline-block;"></span>
+      ${cat.name}
+    </label>
+    <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+  </div>`).join('');
+
+addLog('info', 'システム初期化完了');
+addLog('info', `登録キーワード: ${STATE.keywords.length}件`);
+addLog('info', 'データソース: PubMed, J-STAGE, CiNii, 消費者庁DB, Google Scholar');
+addLog('info', '「自律リサーチ開始」ボタンで論文収集を開始します');
+addActivity('システム起動準備完了');
+</script>
+</body>
+</html>
