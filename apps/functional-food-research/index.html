@@ -537,6 +537,98 @@ select.config-select {
 .log-level.error { color: #ef4444; }
 .log-msg { color: var(--text); }
 
+/* Google Sheets Integration Styles */
+.gs-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
+}
+.gs-badge.connected { background: #10b98122; color: #10b981; border: 1px solid #10b98144; }
+.gs-badge.disconnected { background: #ef444422; color: #ef4444; border: 1px solid #ef444444; }
+.gs-badge:hover { transform: scale(1.05); }
+.gs-dot { width: 8px; height: 8px; border-radius: 50%; }
+.gs-badge.connected .gs-dot { background: #10b981; }
+.gs-badge.disconnected .gs-dot { background: #ef4444; }
+
+.gs-sync-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 14px; border-radius: 8px; border: 1px solid #34d39944;
+  background: linear-gradient(135deg, #10b98122, #059b7b22); color: #34d399;
+  font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+}
+.gs-sync-btn:hover { background: linear-gradient(135deg, #10b98133, #059b7b33); }
+.gs-sync-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.gs-sync-btn .spin { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Settings / Setup Modal */
+.settings-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.7); z-index: 200; display: none;
+  justify-content: center; align-items: center;
+}
+.settings-overlay.show { display: flex; }
+.settings-modal {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+  max-width: 720px; width: 90%; max-height: 85vh; overflow-y: auto; padding: 32px;
+}
+.settings-modal h2 { font-size: 20px; margin-bottom: 20px; }
+.settings-modal h3 { font-size: 15px; margin: 20px 0 10px; color: var(--accent); }
+.settings-field { margin-bottom: 16px; }
+.settings-field label {
+  display: block; font-size: 13px; color: var(--text-dim); margin-bottom: 6px;
+}
+.settings-field input, .settings-field select {
+  width: 100%; padding: 10px 14px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--surface2);
+  color: var(--text); font-size: 14px;
+}
+.settings-field input:focus { outline: none; border-color: var(--primary); }
+.settings-actions { display: flex; gap: 10px; margin-top: 24px; }
+
+.step-card {
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 12px;
+  padding: 16px; margin-bottom: 12px;
+}
+.step-card .step-num {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: 50%; background: var(--primary);
+  color: #fff; font-size: 14px; font-weight: 700; margin-right: 10px;
+}
+.step-card h4 { display: inline; font-size: 14px; }
+.step-card p { font-size: 13px; color: var(--text-dim); margin-top: 8px; line-height: 1.6; }
+.code-block {
+  background: #0d1117; border: 1px solid var(--border); border-radius: 8px;
+  padding: 12px; margin-top: 8px; font-family: monospace; font-size: 12px;
+  color: #7ee787; overflow-x: auto; position: relative;
+}
+.copy-btn {
+  position: absolute; top: 6px; right: 6px; padding: 4px 10px;
+  border-radius: 6px; border: 1px solid var(--border); background: var(--surface);
+  color: var(--text-dim); font-size: 11px; cursor: pointer;
+}
+.copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+.sync-status-bar {
+  display: flex; align-items: center; gap: 8px; padding: 8px 16px;
+  background: var(--surface2); border-bottom: 1px solid var(--border);
+  font-size: 12px; color: var(--text-dim);
+}
+.sync-status-bar .sync-indicator {
+  width: 6px; height: 6px; border-radius: 50%; background: #94a3b8;
+}
+.sync-status-bar .sync-indicator.syncing { background: #f59e0b; animation: pulse-dot 1s infinite; }
+.sync-status-bar .sync-indicator.synced { background: #10b981; }
+.sync-status-bar .sync-indicator.error { background: #ef4444; }
+@keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+.gs-nav-item {
+  display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+  border-radius: 8px; cursor: pointer; font-size: 13px; transition: background 0.15s;
+  color: #34d399; border: 1px dashed #34d39944; margin-top: 8px;
+}
+.gs-nav-item:hover { background: #10b98111; }
+
 /* Responsive */
 @media (max-width: 1200px) {
   .main-layout { grid-template-columns: 1fr; }
@@ -556,11 +648,24 @@ select.config-select {
     </div>
   </div>
   <div class="header-actions">
+    <div class="gs-badge disconnected" id="gsBadge" onclick="openSettings()" title="Google Sheets連携設定">
+      <div class="gs-dot"></div>
+      <span id="gsBadgeText">Sheets未接続</span>
+    </div>
+    <button class="gs-sync-btn" id="gsSyncBtn" onclick="syncToSheets()" disabled title="Google Sheetsに同期">
+      <span id="gsSyncIcon">&#x21bb;</span> Sheets同期
+    </button>
     <button class="btn btn-accent" onclick="startResearch()">自律リサーチ開始</button>
     <button class="btn btn-danger" onclick="stopResearch()" style="display:none" id="stopBtn">停止</button>
     <button class="btn" onclick="exportData()">エクスポート</button>
   </div>
 </header>
+
+<div class="sync-status-bar" id="syncStatusBar" style="display:none;">
+  <div class="sync-indicator" id="syncIndicator"></div>
+  <span id="syncStatusText">同期待機中</span>
+  <span style="margin-left:auto;" id="lastSyncTime"></span>
+</div>
 
 <div class="main-layout">
   <!-- Left Sidebar -->
@@ -587,6 +692,9 @@ select.config-select {
       </div>
       <div class="nav-item" onclick="switchView('log')">
         <span>📋</span> リサーチログ
+      </div>
+      <div class="gs-nav-item" onclick="openSetupGuide()">
+        <span>📗</span> Google Sheets 連携ガイド
       </div>
     </div>
 
@@ -806,6 +914,161 @@ select.config-select {
 <!-- Paper Detail Modal -->
 <div class="modal-overlay" id="paperModal">
   <div class="modal" id="paperModalContent"></div>
+</div>
+
+<!-- Google Sheets Settings Modal -->
+<div class="settings-overlay" id="settingsModal">
+  <div class="settings-modal">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <h2>Google Sheets 連携設定</h2>
+      <button class="btn" onclick="closeSettings()">✕</button>
+    </div>
+
+    <div class="settings-field">
+      <label>Google Apps Script ウェブアプリURL</label>
+      <input type="url" id="gsUrl" placeholder="https://script.google.com/macros/s/xxxxx/exec"
+        oninput="saveGSSettings()">
+      <p style="font-size:11px;color:var(--text-dim);margin-top:4px;">
+        Apps Scriptをデプロイした際に発行されるURLを貼り付けてください
+      </p>
+    </div>
+
+    <div class="settings-field">
+      <label>自動同期</label>
+      <select id="gsAutoSync" onchange="saveGSSettings()">
+        <option value="after_cycle">リサーチサイクル完了後に自動同期（推奨）</option>
+        <option value="manual">手動のみ</option>
+      </select>
+    </div>
+
+    <div class="settings-field">
+      <label>キーワードの読み込み元</label>
+      <select id="gsKeywordSource" onchange="saveGSSettings()">
+        <option value="local">このアプリ（ローカル）</option>
+        <option value="sheets">Google Sheetsから読み込み</option>
+        <option value="merge">両方を統合</option>
+      </select>
+      <p style="font-size:11px;color:var(--text-dim);margin-top:4px;">
+        「Google Sheetsから読み込み」を選ぶと、スプレッドシートの「キーワード管理」シートで非エンジニアがキーワードを管理できます
+      </p>
+    </div>
+
+    <div style="margin-top:16px;padding:12px;background:var(--surface2);border-radius:8px;" id="gsConnectionTest">
+      <div style="font-size:13px;color:var(--text-dim);">接続テスト: URLを入力すると自動的にテストします</div>
+    </div>
+
+    <div class="settings-actions">
+      <button class="btn btn-accent" onclick="testGSConnection()">接続テスト</button>
+      <button class="btn" onclick="openSetupGuide()">セットアップガイドを見る</button>
+      <button class="btn" onclick="closeSettings()">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<!-- Setup Guide Modal -->
+<div class="settings-overlay" id="setupGuideModal">
+  <div class="settings-modal" style="max-width:800px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <h2>Google Sheets 連携 セットアップガイド</h2>
+      <button class="btn" onclick="closeSetupGuide()">✕</button>
+    </div>
+    <p style="color:var(--text-dim);margin-bottom:20px;">
+      5分で完了! スプレッドシートでリサーチデータを管理・共有できるようになります。<br>
+      プログラミング不要 — コピー＆ペーストだけでOKです。
+    </p>
+
+    <div class="step-card">
+      <span class="step-num">1</span>
+      <h4>Google スプレッドシートを新規作成</h4>
+      <p>
+        <a href="https://sheets.new" target="_blank" rel="noopener"
+           style="color:var(--primary);">sheets.new</a> を開いて新しいスプレッドシートを作成します。<br>
+        名前は「機能性食品リサーチDB」などお好みで。
+      </p>
+    </div>
+
+    <div class="step-card">
+      <span class="step-num">2</span>
+      <h4>Apps Script エディタを開く</h4>
+      <p>
+        スプレッドシートのメニューから<br>
+        <strong>「拡張機能」→「Apps Script」</strong><br>
+        を選択してスクリプトエディタを開きます。
+      </p>
+    </div>
+
+    <div class="step-card">
+      <span class="step-num">3</span>
+      <h4>コードをコピー＆ペースト</h4>
+      <p>
+        エディタに最初から入っている <code>function myFunction()</code> をすべて削除して、<br>
+        下のボタンでコピーしたコードを貼り付けてください。
+      </p>
+      <button class="btn btn-accent" onclick="copyGASCode()" style="margin-top:8px;">
+        GASコードをコピー
+      </button>
+      <span id="copyConfirm" style="color:#10b981;font-size:12px;margin-left:8px;display:none;">コピーしました!</span>
+    </div>
+
+    <div class="step-card">
+      <span class="step-num">4</span>
+      <h4>初回セットアップを実行</h4>
+      <p>
+        スクリプトエディタで、上の関数選択ドロップダウンから <strong>「setupSheets」</strong> を選び、<br>
+        <strong>「実行」ボタン</strong>をクリックします。<br>
+        初回は権限の承認が求められるので、「許可」を選んでください。<br>
+        → スプレッドシートにシートが自動作成されます。
+      </p>
+    </div>
+
+    <div class="step-card">
+      <span class="step-num">5</span>
+      <h4>ウェブアプリとしてデプロイ</h4>
+      <p>
+        スクリプトエディタの右上 <strong>「デプロイ」→「新しいデプロイ」</strong> を選択。<br>
+        <strong>種類:</strong> ウェブアプリ<br>
+        <strong>実行ユーザー:</strong> 自分<br>
+        <strong>アクセスできるユーザー:</strong> 全員<br>
+        → <strong>「デプロイ」</strong> ボタンを押すとURLが表示されます。
+      </p>
+    </div>
+
+    <div class="step-card">
+      <span class="step-num">6</span>
+      <h4>URLをこのアプリに設定</h4>
+      <p>
+        発行されたURLをコピーし、このアプリの設定画面に貼り付けます。<br>
+        接続テストが成功すれば完了です!
+      </p>
+      <button class="btn btn-primary" onclick="closeSetupGuide();openSettings();" style="margin-top:8px;">
+        設定画面を開く
+      </button>
+    </div>
+
+    <h3 style="margin-top:24px;">できるようになること</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;">
+      <div class="step-card">
+        <h4>📊 スプレッドシートで閲覧</h4>
+        <p>論文・商品化チャンス・トレンドがシートに自動反映。フィルタ・並べ替え・グラフ作成が自由に。</p>
+      </div>
+      <div class="step-card">
+        <h4>🔑 キーワード管理</h4>
+        <p>スプレッドシートの「キーワード管理」シートにキーワードを書くだけ。有効/無効もセル操作で切替。</p>
+      </div>
+      <div class="step-card">
+        <h4>📧 メール通知</h4>
+        <p>高スコア論文が見つかったら自動でメール通知。「設定」シートで通知先を変更可能。</p>
+      </div>
+      <div class="step-card">
+        <h4>👥 チーム共有</h4>
+        <p>スプレッドシートを共有するだけでチーム全員がリサーチ結果を閲覧・管理できます。</p>
+      </div>
+    </div>
+
+    <div class="settings-actions">
+      <button class="btn" onclick="closeSetupGuide()">閉じる</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -1171,6 +1434,12 @@ async function runResearchCycle() {
   addActivity(`サイクル完了: +${newPapers.length}論文, ${STATE.opportunities.filter(o => o.score.total >= 70).length}件の高スコアチャンス`);
   document.getElementById('totalCycles').textContent = STATE.cycleCount;
   document.getElementById('lastCycleTime').textContent = new Date().toLocaleTimeString('ja-JP');
+
+  // Auto-sync to Google Sheets after cycle
+  if (gsState.connected && gsState.autoSync === 'after_cycle') {
+    addLog('info', 'Google Sheetsへ自動同期を開始...');
+    syncToSheets();
+  }
 }
 
 function startResearch() {
@@ -1630,6 +1899,385 @@ addLog('info', `登録キーワード: ${STATE.keywords.length}件`);
 addLog('info', 'データソース: PubMed, J-STAGE, CiNii, 消費者庁DB, Google Scholar');
 addLog('info', '「自律リサーチ開始」ボタンで論文収集を開始します');
 addActivity('システム起動準備完了');
+
+// ============================================================
+// Google Sheets Integration
+// ============================================================
+
+const GS_STORAGE_KEY = 'functional-food-gs-settings';
+
+const gsState = {
+  url: '',
+  autoSync: 'after_cycle',
+  keywordSource: 'local',
+  connected: false,
+  syncing: false,
+  lastSync: null
+};
+
+// Load saved settings
+function loadGSSettings() {
+  try {
+    const saved = localStorage.getItem(GS_STORAGE_KEY);
+    if (saved) {
+      const data = JSON.parse(saved);
+      Object.assign(gsState, data);
+      document.getElementById('gsUrl').value = gsState.url || '';
+      document.getElementById('gsAutoSync').value = gsState.autoSync || 'after_cycle';
+      document.getElementById('gsKeywordSource').value = gsState.keywordSource || 'local';
+      if (gsState.url) {
+        testGSConnection(true); // silent test on load
+      }
+    }
+  } catch (e) { /* ignore */ }
+  updateGSBadge();
+}
+
+function saveGSSettings() {
+  gsState.url = document.getElementById('gsUrl').value.trim();
+  gsState.autoSync = document.getElementById('gsAutoSync').value;
+  gsState.keywordSource = document.getElementById('gsKeywordSource').value;
+  localStorage.setItem(GS_STORAGE_KEY, JSON.stringify(gsState));
+  updateGSBadge();
+}
+
+function updateGSBadge() {
+  const badge = document.getElementById('gsBadge');
+  const text = document.getElementById('gsBadgeText');
+  const syncBtn = document.getElementById('gsSyncBtn');
+  const statusBar = document.getElementById('syncStatusBar');
+
+  if (gsState.connected) {
+    badge.className = 'gs-badge connected';
+    text.textContent = 'Sheets接続中';
+    syncBtn.disabled = false;
+    statusBar.style.display = 'flex';
+  } else {
+    badge.className = 'gs-badge disconnected';
+    text.textContent = gsState.url ? '接続エラー' : 'Sheets未接続';
+    syncBtn.disabled = true;
+    statusBar.style.display = gsState.url ? 'flex' : 'none';
+  }
+}
+
+async function testGSConnection(silent) {
+  if (!gsState.url) {
+    if (!silent) {
+      document.getElementById('gsConnectionTest').innerHTML =
+        '<div style="color:#ef4444;font-size:13px;">URLが入力されていません</div>';
+    }
+    return;
+  }
+
+  const testEl = document.getElementById('gsConnectionTest');
+  if (!silent) testEl.innerHTML = '<div style="color:#f59e0b;font-size:13px;">接続テスト中...</div>';
+
+  try {
+    const res = await fetch(`${gsState.url}?action=ping`);
+    const data = await res.json();
+    if (data.status === 'ok') {
+      gsState.connected = true;
+      saveGSSettings();
+      if (!silent) {
+        testEl.innerHTML = `<div style="color:#10b981;font-size:13px;">
+          接続成功! ${data.message || ''}<br>
+          <small style="color:var(--text-dim);">${data.timestamp || ''}</small>
+        </div>`;
+      }
+      addLog('success', 'Google Sheets接続成功');
+      addActivity('Google Sheets 接続完了');
+      // Load keywords from Sheets if configured
+      if (gsState.keywordSource !== 'local') {
+        loadKeywordsFromSheets();
+      }
+    } else {
+      throw new Error(data.message || '接続失敗');
+    }
+  } catch (e) {
+    gsState.connected = false;
+    if (!silent) {
+      testEl.innerHTML = `<div style="color:#ef4444;font-size:13px;">
+        接続失敗: ${e.message}<br>
+        <small>URLが正しいか、デプロイ設定を確認してください</small>
+      </div>`;
+    }
+  }
+  updateGSBadge();
+}
+
+async function syncToSheets() {
+  if (!gsState.connected || gsState.syncing) return;
+  gsState.syncing = true;
+
+  const syncIcon = document.getElementById('gsSyncIcon');
+  const indicator = document.getElementById('syncIndicator');
+  const statusText = document.getElementById('syncStatusText');
+
+  syncIcon.classList.add('spin');
+  indicator.className = 'sync-indicator syncing';
+  statusText.textContent = 'Google Sheetsに同期中...';
+
+  try {
+    const payload = {
+      action: 'syncAll',
+      papers: STATE.papers,
+      opportunities: STATE.opportunities.map(o => ({
+        paper: { title: o.paper.title, source: o.paper.source, url: o.paper.url, categories: o.paper.categories },
+        score: o.score
+      })),
+      trends: STATE.trends,
+      caaEntries: STATE.caaEntries
+    };
+
+    const res = await fetch(gsState.url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      mode: 'no-cors'
+    });
+
+    // no-cors returns opaque response, so we assume success if no error thrown
+    gsState.lastSync = new Date().toISOString();
+    saveGSSettings();
+
+    indicator.className = 'sync-indicator synced';
+    const now = new Date().toLocaleTimeString('ja-JP');
+    statusText.textContent = `同期完了 (${STATE.papers.length}論文, ${STATE.opportunities.length}チャンス)`;
+    document.getElementById('lastSyncTime').textContent = `最終同期: ${now}`;
+
+    addLog('success', `Google Sheets同期完了: 論文${STATE.papers.length}件, チャンス${STATE.opportunities.length}件`);
+    addActivity(`Sheets同期完了 ${now}`);
+
+  } catch (e) {
+    indicator.className = 'sync-indicator error';
+    statusText.textContent = `同期エラー: ${e.message}`;
+    addLog('error', `Google Sheets同期エラー: ${e.message}`);
+  } finally {
+    gsState.syncing = false;
+    syncIcon.classList.remove('spin');
+  }
+}
+
+async function loadKeywordsFromSheets() {
+  if (!gsState.connected) return;
+  try {
+    const res = await fetch(`${gsState.url}?action=getKeywords`);
+    const data = await res.json();
+    if (data.status === 'ok' && data.keywords?.length > 0) {
+      if (gsState.keywordSource === 'sheets') {
+        STATE.keywords = data.keywords;
+      } else if (gsState.keywordSource === 'merge') {
+        const merged = new Set([...STATE.keywords, ...data.keywords]);
+        STATE.keywords = [...merged];
+      }
+      renderKeywords();
+      addLog('info', `Sheetsからキーワード${data.keywords.length}件を読み込み`);
+    }
+  } catch (e) {
+    addLog('error', `Sheetsキーワード読み込みエラー: ${e.message}`);
+  }
+}
+
+// Settings modal
+function openSettings() {
+  document.getElementById('settingsModal').classList.add('show');
+}
+function closeSettings() {
+  document.getElementById('settingsModal').classList.remove('show');
+}
+function openSetupGuide() {
+  document.getElementById('setupGuideModal').classList.add('show');
+}
+function closeSetupGuide() {
+  document.getElementById('setupGuideModal').classList.remove('show');
+}
+
+// Copy GAS code
+async function copyGASCode() {
+  const gasCode = `// ============================================================
+// 機能性表示食品リサーチシステム — Google Apps Script
+// ============================================================
+// このコードをApps Scriptに貼り付けてください
+
+const SHEET_NAMES = {
+  PAPERS: '論文データ', OPPORTUNITIES: '商品化チャンス',
+  TRENDS: 'トレンド分析', CAA: '消費者庁DB',
+  KEYWORDS: 'キーワード管理', CONFIG: '設定', LOG: '同期ログ'
+};
+
+function setupSheets() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  getOrCreateSheet(ss, SHEET_NAMES.PAPERS, ['ID','ソース','タイトル','著者','ジャーナル','発表日','アブストラクト','URL','キーワード','カテゴリ','総合スコア','エビデンス','市場性','新規性','取得日時','メモ']);
+  getOrCreateSheet(ss, SHEET_NAMES.OPPORTUNITIES, ['順位','タイトル','ソース','カテゴリ','総合スコア','エビデンス','市場性','新規性','関連届出数','URL','推奨アクション','担当者メモ','ステータス']);
+  getOrCreateSheet(ss, SHEET_NAMES.TRENDS, ['カテゴリ','論文数','直近論文数(2024年〜)','データソース','更新日時']);
+  getOrCreateSheet(ss, SHEET_NAMES.CAA, ['成分名','届出件数','機能性表示','競争度','トレンド','更新日時']);
+  const kwSheet = getOrCreateSheet(ss, SHEET_NAMES.KEYWORDS, ['キーワード','有効','追加日','メモ']);
+  if (kwSheet.getLastRow() <= 1) {
+    const kws = ['機能性表示食品','functional food','GABA','ルテイン','ビフィズス菌','イヌリン','EPA DHA','クルクミン','NMN','プロテオグリカン','ラクトフェリン','HMB','アスタキサンチン','テアニン','イミダゾールジペプチド','β-グルカン','プラズマローゲン'];
+    kwSheet.getRange(2,1,kws.length,4).setValues(kws.map(k=>[k,'TRUE',new Date().toISOString(),'']));
+  }
+  const cfgSheet = getOrCreateSheet(ss, SHEET_NAMES.CONFIG, ['設定名','値','説明']);
+  if (cfgSheet.getLastRow() <= 1) {
+    cfgSheet.getRange(2,1,4,3).setValues([['auto_sync','TRUE','リサーチ後に自動同期'],['notify_high_score','TRUE','スコア80以上で通知'],['notify_email','','通知先メール（空=自分）'],['score_threshold','70','商品化チャンス最低スコア']]);
+  }
+  getOrCreateSheet(ss, SHEET_NAMES.LOG, ['日時','種別','メッセージ','件数']);
+  formatSheets(ss);
+  SpreadsheetApp.getUi().alert('セットアップ完了','すべてのシートが作成されました。',SpreadsheetApp.getUi().ButtonSet.OK);
+}
+
+function getOrCreateSheet(ss, name, headers) {
+  let sheet = ss.getSheetByName(name);
+  if (!sheet) {
+    sheet = ss.insertSheet(name);
+    sheet.getRange(1,1,1,headers.length).setValues([headers]);
+    sheet.getRange(1,1,1,headers.length).setBackground('#1a1a2e').setFontColor('#e2e8f0').setFontWeight('bold');
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
+}
+
+function formatSheets(ss) {
+  const p = ss.getSheetByName(SHEET_NAMES.PAPERS);
+  if(p){p.setColumnWidth(1,120);p.setColumnWidth(2,80);p.setColumnWidth(3,400);p.setColumnWidth(4,200);p.setColumnWidth(5,150);}
+  const o = ss.getSheetByName(SHEET_NAMES.OPPORTUNITIES);
+  if(o){o.setColumnWidth(2,400);o.setColumnWidth(11,300);}
+}
+
+function doGet(e) {
+  const action = e.parameter.action || 'ping';
+  let result;
+  try {
+    switch(action) {
+      case 'ping': result={status:'ok',message:'Google Sheets連携が有効です',timestamp:new Date().toISOString()}; break;
+      case 'getKeywords': result=getKeywords(); break;
+      case 'getConfig': result=getConfig(); break;
+      default: result={status:'error',message:'不明なアクション: '+action};
+    }
+  } catch(err) { result={status:'error',message:err.message}; }
+  return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+}
+
+function doPost(e) {
+  const lock = LockService.getScriptLock();
+  try { lock.waitLock(10000); } catch(err) {
+    return ContentService.createTextOutput(JSON.stringify({status:'error',message:'同時アクセスが多すぎます'})).setMimeType(ContentService.MimeType.JSON);
+  }
+  let result;
+  try {
+    const payload = JSON.parse(e.postData.contents);
+    switch(payload.action) {
+      case 'syncPapers': result=syncPapers(payload.papers||[]); break;
+      case 'syncOpportunities': result=syncOpportunities(payload.opportunities||[]); break;
+      case 'syncTrends': result=syncTrends(payload.trends||{}); break;
+      case 'syncCAA': result=syncCAA(payload.caaEntries||[]); break;
+      case 'syncAll': result=syncAll(payload); break;
+      default: result={status:'error',message:'不明なアクション'};
+    }
+  } catch(err) { result={status:'error',message:err.message}; }
+  finally { lock.releaseLock(); }
+  return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+}
+
+function syncPapers(papers) {
+  const ss=SpreadsheetApp.getActiveSpreadsheet(), sheet=ss.getSheetByName(SHEET_NAMES.PAPERS);
+  if(!sheet) return {status:'error',message:'シートなし。setupSheets()を実行してください。'};
+  const existingIds=new Set();
+  const lastRow=sheet.getLastRow();
+  if(lastRow>1) sheet.getRange(2,1,lastRow-1,1).getValues().flat().forEach(id=>existingIds.add(id));
+  const newPapers=papers.filter(p=>!existingIds.has(p.id));
+  if(!newPapers.length) return {status:'ok',message:'新規論文なし',added:0};
+  const now=new Date().toISOString();
+  const rows=newPapers.map(p=>[p.id,p.source||'',p.title||'',p.authors||'',p.journal||'',p.date||'',p.abstract||'',p.url||'',p.keyword||'',(p.categories||[]).join(', '),p.score?.total||0,p.score?.evidence||0,p.score?.market||0,p.score?.novelty||0,now,'']);
+  sheet.getRange(lastRow+1,1,rows.length,16).setValues(rows);
+  addSyncLog('論文同期',newPapers.length+'件追加',newPapers.length);
+  const config=getConfig();
+  if(config.notify_high_score==='TRUE'){
+    const high=newPapers.filter(p=>(p.score?.total||0)>=80);
+    if(high.length>0) sendHighScoreNotification(high,config.notify_email);
+  }
+  return {status:'ok',added:newPapers.length};
+}
+
+function syncOpportunities(opps) {
+  const ss=SpreadsheetApp.getActiveSpreadsheet(), sheet=ss.getSheetByName(SHEET_NAMES.OPPORTUNITIES);
+  if(!sheet) return {status:'error',message:'シートなし'};
+  const lastRow=sheet.getLastRow();
+  const memos={};
+  if(lastRow>1){sheet.getRange(2,2,lastRow-1,12).getValues().forEach(r=>{if(r[0])memos[r[0]]={memo:r[10],status:r[11]};});sheet.getRange(2,1,lastRow-1,13).clearContent();}
+  const rows=opps.map((o,i)=>{const t=o.paper?.title||o.title||'';const prev=memos[t]||{};return[i+1,t,o.paper?.source||o.source||'',(o.paper?.categories||o.categories||[]).join(', '),o.score?.total||0,o.score?.evidence||0,o.score?.market||0,o.score?.novelty||0,o.score?.relatedFilings||0,o.paper?.url||o.url||'',getRec(o.score),prev.memo||'',prev.status||'未着手'];});
+  if(rows.length>0) sheet.getRange(2,1,rows.length,13).setValues(rows);
+  addSyncLog('商品化チャンス同期',rows.length+'件更新',rows.length);
+  return {status:'ok',updated:rows.length};
+}
+
+function syncTrends(trends) {
+  const ss=SpreadsheetApp.getActiveSpreadsheet(), sheet=ss.getSheetByName(SHEET_NAMES.TRENDS);
+  if(!sheet) return {status:'error'};
+  const lr=sheet.getLastRow(); if(lr>1)sheet.getRange(2,1,lr-1,5).clearContent();
+  const now=new Date().toISOString();
+  const rows=Object.entries(trends).filter(([,v])=>v.count>0).sort((a,b)=>b[1].count-a[1].count).map(([k,t])=>[t.name||k,t.count||0,t.recentCount||0,(t.sources||[]).join(', '),now]);
+  if(rows.length>0) sheet.getRange(2,1,rows.length,5).setValues(rows);
+  return {status:'ok',updated:rows.length};
+}
+
+function syncCAA(entries) {
+  const ss=SpreadsheetApp.getActiveSpreadsheet(), sheet=ss.getSheetByName(SHEET_NAMES.CAA);
+  if(!sheet) return {status:'error'};
+  const lr=sheet.getLastRow(); if(lr>1)sheet.getRange(2,1,lr-1,6).clearContent();
+  const now=new Date().toISOString();
+  const rows=entries.map(e=>[e.ingredient||'',e.filings||0,(e.claims||[]).join(', '),e.competition==='high'?'レッドオーシャン':e.competition==='medium'?'成長市場':'ブルーオーシャン',e.trend==='emerging'?'新興':e.trend==='growing'?'成長中':'確立',now]);
+  if(rows.length>0) sheet.getRange(2,1,rows.length,6).setValues(rows);
+  return {status:'ok',updated:rows.length};
+}
+
+function syncAll(p){const r={};if(p.papers)r.papers=syncPapers(p.papers);if(p.opportunities)r.opportunities=syncOpportunities(p.opportunities);if(p.trends)r.trends=syncTrends(p.trends);if(p.caaEntries)r.caa=syncCAA(p.caaEntries);return{status:'ok',results:r};}
+
+function getKeywords(){const ss=SpreadsheetApp.getActiveSpreadsheet(),sheet=ss.getSheetByName(SHEET_NAMES.KEYWORDS);if(!sheet)return{status:'error',keywords:[]};const lr=sheet.getLastRow();if(lr<=1)return{status:'ok',keywords:[]};return{status:'ok',keywords:sheet.getRange(2,1,lr-1,2).getValues().filter(r=>r[0]&&r[1]!=='FALSE'&&r[1]!==false).map(r=>r[0].toString().trim())};}
+
+function getConfig(){const ss=SpreadsheetApp.getActiveSpreadsheet(),sheet=ss.getSheetByName(SHEET_NAMES.CONFIG);if(!sheet)return{};const lr=sheet.getLastRow();if(lr<=1)return{};const cfg={};sheet.getRange(2,1,lr-1,2).getValues().forEach(r=>{if(r[0])cfg[r[0].toString().trim()]=r[1]?.toString()||'';});return cfg;}
+
+function getRec(s){if(!s)return'';if(s.market>=80&&s.evidence>=60)return'ブルーオーシャン×十分なエビデンス。新規届出を検討。';if(s.evidence>=80)return'エビデンス強固。SR作成推奨。';if(s.novelty>=80)return'最新研究。追加ヒト試験で差別化可能。';return'エビデンス蓄積中。動向を継続ウォッチ。';}
+
+function sendHighScoreNotification(papers,email){const to=email||Session.getActiveUser().getEmail();if(!to)return;const list=papers.map(p=>'- [スコア'+p.score?.total+'] '+p.title+'\\n  '+(p.url||'')).join('\\n\\n');try{MailApp.sendEmail(to,'【リサーチ通知】高スコア論文'+papers.length+'件を発見','高スコアの論文を発見しました。\\n\\n'+list);}catch(e){}}
+
+function addSyncLog(type,msg,count){const ss=SpreadsheetApp.getActiveSpreadsheet(),sheet=ss.getSheetByName(SHEET_NAMES.LOG);if(!sheet)return;sheet.insertRowAfter(1);sheet.getRange(2,1,1,4).setValues([[new Date().toLocaleString('ja-JP'),type,msg,count]]);}
+
+function onOpen(){SpreadsheetApp.getUi().createMenu('リサーチツール').addItem('初回セットアップ','setupSheets').addItem('キーワード一覧確認','showKeywords').addSeparator().addItem('高スコア論文レポート','generateReport').addToUi();}
+
+function showKeywords(){const r=getKeywords();SpreadsheetApp.getUi().alert('アクティブなキーワード',r.keywords.join('\\n'),SpreadsheetApp.getUi().ButtonSet.OK);}
+
+function generateReport(){const ss=SpreadsheetApp.getActiveSpreadsheet(),sheet=ss.getSheetByName(SHEET_NAMES.OPPORTUNITIES);if(!sheet||sheet.getLastRow()<=1){SpreadsheetApp.getUi().alert('まだデータがありません。');return;}const data=sheet.getRange(2,1,sheet.getLastRow()-1,11).getValues();const high=data.filter(r=>r[4]>=70);let rpt='高スコア論文: '+high.length+'件\\n\\n';high.forEach(r=>{rpt+='['+r[4]+'点] '+r[1]+'\\n';});SpreadsheetApp.getUi().alert('レポート',rpt,SpreadsheetApp.getUi().ButtonSet.OK);}`;
+
+  try {
+    await navigator.clipboard.writeText(gasCode);
+    const confirm = document.getElementById('copyConfirm');
+    confirm.style.display = 'inline';
+    setTimeout(() => confirm.style.display = 'none', 3000);
+  } catch (e) {
+    // Fallback
+    const ta = document.createElement('textarea');
+    ta.value = gasCode;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    const confirm = document.getElementById('copyConfirm');
+    confirm.style.display = 'inline';
+    setTimeout(() => confirm.style.display = 'none', 3000);
+  }
+}
+
+// Modal close on backdrop click
+document.getElementById('settingsModal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeSettings();
+});
+document.getElementById('setupGuideModal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeSetupGuide();
+});
+
+// Init Google Sheets settings
+loadGSSettings();
+addLog('info', 'Google Sheets連携モジュール初期化完了');
 </script>
 </body>
 </html>
