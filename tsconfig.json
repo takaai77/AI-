@@ -1,0 +1,36 @@
+{
+  "compilerOptions": {
+    // 出力先ディレクトリ
+    "outDir": "./dist",
+    // ソースディレクトリ
+    "rootDir": "./src",
+    // ES2022をターゲットにする（Node.js 18+対応）
+    "target": "ES2022",
+    // ESModules形式で出力
+    "module": "commonjs",
+    // 厳密な型チェックを有効化
+    "strict": true,
+    // ESModuleとCommonJSの相互運用を有効化
+    "esModuleInterop": true,
+    // JSON ファイルのインポートを許可
+    "resolveJsonModule": true,
+    // 未使用のローカル変数を許可（開発中は便利）
+    "noUnusedLocals": false,
+    // 未使用のパラメータを許可
+    "noUnusedParameters": false,
+    // 型定義ファイルを出力
+    "declaration": true,
+    // ソースマップを出力（デバッグ用）
+    "sourceMap": true,
+    // node_modulesから型定義を読み込み
+    "moduleResolution": "node",
+    // すべてのファイルを個別にトランスパイル可能にする
+    "isolatedModules": true,
+    // 未定義チェックを厳密に
+    "strictNullChecks": true
+  },
+  // コンパイル対象
+  "include": ["src/**/*"],
+  // 除外ディレクトリ
+  "exclude": ["node_modules", "dist"]
+}

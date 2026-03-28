@@ -1,0 +1,48 @@
+# 依存パッケージ
+node_modules/
+
+# ビルド出力
+dist/
+
+# 環境変数（機密情報を含む）
+.env
+.env.local
+.env.*.local
+
+# 認証情報
+credentials/
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+
+# Playwrightのストレージ状態（セッション情報）
+storageState.json
+
+# スクリーンショット（サイズが大きい）
+artifacts/
+*.png
+*.jpg
+*.jpeg
+
+# ログファイル
+*.log
+npm-debug.log*
+
+# OS生成ファイル
+.DS_Store
+Thumbs.db
+
+# IDE設定
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# テスト関連
+coverage/
+.nyc_output/
+
+# 一時ファイル
+tmp/
+temp/
