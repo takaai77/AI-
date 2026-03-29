@@ -1,0 +1,51 @@
+{
+  "customers": [
+    {
+      "id": "cust_001",
+      "fullName": "山田 花子",
+      "phoneNumber": "+819012345678",
+      "birthDate": "1988-04-16",
+      "postalCode": "1500001",
+      "subscriptions": [
+        {
+          "id": "sub_1001",
+          "productName": "青汁プレミアム定期便",
+          "cadenceDays": 30,
+          "quantity": 2,
+          "nextShipDate": "2026-04-12",
+          "shippingAddress": "東京都渋谷区神宮前1-2-3",
+          "status": "active"
+        }
+      ]
+    },
+    {
+      "id": "cust_002",
+      "fullName": "佐藤 健一",
+      "phoneNumber": "+818012341234",
+      "birthDate": "1979-12-02",
+      "postalCode": "5300001",
+      "subscriptions": [
+        {
+          "id": "sub_2001",
+          "productName": "サプリメント定期便",
+          "cadenceDays": 28,
+          "quantity": 1,
+          "nextShipDate": "2026-04-08",
+          "shippingAddress": "大阪府大阪市北区梅田1-1-1",
+          "status": "active"
+        },
+        {
+          "id": "sub_2002",
+          "productName": "スキンケア定期便",
+          "cadenceDays": 45,
+          "quantity": 1,
+          "nextShipDate": "2026-04-20",
+          "shippingAddress": "大阪府大阪市北区梅田1-1-1",
+          "status": "paused",
+          "pausedUntil": "2026-04-20"
+        }
+      ]
+    }
+  ],
+  "auditLogs": []
+}

@@ -1,0 +1,29 @@
+{
+  "name": "phone-ai-agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc -p tsconfig.json",
+    "check": "tsc --noEmit -p tsconfig.json",
+    "start": "node dist/src/server.js",
+    "test": "node --import tsx --test \"tests/**/*.test.ts\""
+  },
+  "dependencies": {
+    "@fastify/formbody": "latest",
+    "@fastify/websocket": "latest",
+    "@google/genai": "^1.47.0",
+    "@modelcontextprotocol/sdk": "^1.26.0",
+    "@openai/agents": "latest",
+    "@openai/agents-extensions": "latest",
+    "dotenv": "latest",
+    "fastify": "latest",
+    "zod": "latest"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "tsx": "latest",
+    "typescript": "latest"
+  }
+}
