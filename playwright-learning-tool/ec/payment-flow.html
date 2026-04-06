@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EC決済フローのE2Eテスト | Playwright マスター道場</title>
+    <style>
+        :root { --primary: #6366f1; --secondary: #10b981; --accent: #f59e0b; --bg: #0f172a; --bg-light: #1e293b; --text: #e2e8f0; --danger: #ef4444; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg); color: var(--text); line-height: 1.8; }
+        .nav { background: var(--bg-light); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .nav a { color: var(--text); text-decoration: none; }
+        .lesson-header { background: linear-gradient(135deg, #ef4444, #f97316); padding: 3rem 2rem; text-align: center; }
+        .lesson-badge { background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 2rem; font-size: 0.9rem; display: inline-block; margin-bottom: 1rem; }
+        .lesson-header h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+        .content { max-width: 900px; margin: 0 auto; padding: 2rem; }
+        .section { background: var(--bg-light); border-radius: 1rem; padding: 2rem; margin-bottom: 2rem; }
+        .section h2 { color: var(--primary); margin-bottom: 1rem; font-size: 1.5rem; }
+        .section h3 { color: var(--accent); margin: 1.5rem 0 1rem; }
+        .section p, .section li { margin-bottom: 0.5rem; }
+        .code-block { background: #0d1117; border-radius: 0.5rem; padding: 1.5rem; margin: 1rem 0; overflow-x: auto; font-family: 'Fira Code', 'Consolas', monospace; font-size: 0.85rem; border: 1px solid #30363d; position: relative; }
+        .code-comment { color: #8b949e; }
+        .code-keyword { color: #ff7b72; }
+        .code-string { color: #a5d6ff; }
+        .code-function { color: #d2a8ff; }
+        .code-variable { color: #ffa657; }
+        .copy-btn { position: absolute; top: 0.5rem; right: 0.5rem; background: var(--primary); color: white; border: none; padding: 0.3rem 0.8rem; border-radius: 0.3rem; cursor: pointer; font-size: 0.8rem; }
+        .warning-box { background: rgba(239, 68, 68, 0.2); border-left: 4px solid var(--danger); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 0.5rem 0.5rem 0; }
+        .warning-box h4 { color: var(--danger); margin-bottom: 0.5rem; }
+        .success-box { background: rgba(16, 185, 129, 0.2); border-left: 4px solid var(--secondary); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 0.5rem 0.5rem 0; }
+        .success-box h4 { color: var(--secondary); margin-bottom: 0.5rem; }
+        .hint-box { background: rgba(245, 158, 11, 0.2); border-left: 4px solid var(--accent); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 0.5rem 0.5rem 0; }
+        .hint-box h4 { color: var(--accent); margin-bottom: 0.5rem; }
+        .flow-diagram { display: flex; align-items: center; justify-content: center; gap: 0.5rem; flex-wrap: wrap; padding: 1.5rem; background: var(--bg); border-radius: 0.5rem; margin: 1rem 0; }
+        .flow-step { background: var(--primary); color: white; padding: 0.75rem 1.25rem; border-radius: 0.5rem; font-weight: 600; font-size: 0.9rem; }
+        .flow-arrow { color: var(--accent); font-size: 1.5rem; }
+        .scenario-card { background: var(--bg); border: 1px solid #374151; border-radius: 0.5rem; padding: 1.5rem; margin: 1rem 0; }
+        .scenario-card h4 { color: var(--secondary); margin-bottom: 0.75rem; }
+        .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-size: 1rem; font-weight: 600; cursor: pointer; border: none; text-decoration: none; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-secondary { background: var(--secondary); color: white; }
+        .navigation-buttons { display: flex; justify-content: space-between; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--bg-light); }
+        ul { margin-left: 1.5rem; }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="../index.html">← ホームに戻る</a>
+        <span>EC特化 / 決済フロー</span>
+    </nav>
+
+    <header class="lesson-header">
+        <span class="lesson-badge">EC特化コース - Lv.7</span>
+        <h1>💳 EC決済フローのE2Eテスト</h1>
+        <p>100億円規模ECの決済を守る堅牢なテスト設計</p>
+    </header>
+
+    <main class="content">
+        <section class="section">
+            <h2>🎯 このレッスンで学ぶこと</h2>
+            <ul>
+                <li>決済フロー全体のE2Eテスト設計</li>
+                <li>クレジットカード・各種決済のテスト手法</li>
+                <li>外部決済APIのモック戦略</li>
+                <li>決済エラーハンドリングのテスト</li>
+                <li>本番環境に影響しないテスト設計</li>
+            </ul>
+        </section>
+
+        <section class="section">
+            <h2>🔄 EC決済フロー全体像</h2>
+            <div class="flow-diagram">
+                <span class="flow-step">カート</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-step">配送先入力</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-step">支払い方法選択</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-step">確認画面</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-step">決済処理</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-step">完了画面</span>
+            </div>
+
+            <div class="warning-box">
+                <h4>⚠️ 100億ECでの決済テスト鉄則</h4>
+                <ul>
+                    <li>本番の決済APIには絶対に接続しない</li>
+                    <li>テスト用のサンドボックス環境を使用</li>
+                    <li>テストデータは必ずクリーンアップ</li>
+                    <li>決済金額・在庫の整合性を必ず検証</li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🏗️ 決済テスト用Page Object</h2>
+
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code><span class="code-comment">// pages/CheckoutPage.js</span>
+<span class="code-keyword">class</span> <span class="code-function">CheckoutPage</span> {
+    <span class="code-function">constructor</span>(page) {
+        <span class="code-keyword">this</span>.page = page;
+
+        <span class="code-comment">// 配送先フォーム</span>
+        <span class="code-keyword">this</span>.shippingForm = {
+            name: <span class="code-string">'[data-testid="shipping-name"]'</span>,
+            postal: <span class="code-string">'[data-testid="shipping-postal"]'</span>,
+            address: <span class="code-string">'[data-testid="shipping-address"]'</span>,
+            phone: <span class="code-string">'[data-testid="shipping-phone"]'</span>
+        };
+
+        <span class="code-comment">// 支払い方法</span>
+        <span class="code-keyword">this</span>.paymentMethods = {
+            credit: <span class="code-string">'[data-testid="payment-credit"]'</span>,
+            convenience: <span class="code-string">'[data-testid="payment-convenience"]'</span>,
+            cod: <span class="code-string">'[data-testid="payment-cod"]'</span>,
+            amazon: <span class="code-string">'[data-testid="payment-amazon-pay"]'</span>,
+            paypay: <span class="code-string">'[data-testid="payment-paypay"]'</span>
+        };
+
+        <span class="code-comment">// クレジットカードフォーム</span>
+        <span class="code-keyword">this</span>.creditForm = {
+            number: <span class="code-string">'[data-testid="card-number"]'</span>,
+            expiry: <span class="code-string">'[data-testid="card-expiry"]'</span>,
+            cvv: <span class="code-string">'[data-testid="card-cvv"]'</span>,
+            name: <span class="code-string">'[data-testid="card-name"]'</span>
+        };
+
+        <span class="code-comment">// ボタン・確認</span>
+        <span class="code-keyword">this</span>.submitBtn = <span class="code-string">'[data-testid="submit-order"]'</span>;
+        <span class="code-keyword">this</span>.confirmBtn = <span class="code-string">'[data-testid="confirm-order"]'</span>;
+        <span class="code-keyword">this</span>.orderTotal = <span class="code-string">'[data-testid="order-total"]'</span>;
+        <span class="code-keyword">this</span>.orderNumber = <span class="code-string">'[data-testid="order-number"]'</span>;
+    }
+
+    <span class="code-comment">// 配送先情報を入力</span>
+    <span class="code-keyword">async</span> <span class="code-function">fillShippingInfo</span>(info) {
+        <span class="code-keyword">await</span> <span class="code-keyword">this</span>.page.locator(<span class="code-keyword">this</span>.shippingForm.name).fill(info.name);
+        <span class="code-keyword">await</span> <span class="code-keyword">this</span>.page.locator(<span class="code-keyword">this</span>.shippingForm.postal).fill(info.postal);
+        <span class="code-keyword">await</span> <span class="code-keyword">this</span>.page.locator(<span class="code-keyword">this</span>.shippingForm.address).fill(info.address);
+        <span class="code-keyword">await</span> <span class="code-keyword">this</span>.page.locator(<span class="code-keyword">this</span>.shippingForm.phone).fill(info.phone);
+    }
+
+    <span class="code-comment">// 支払い方法を選択</span>
+    <span class="code-keyword">async</span> <span class="code-function">selectPaymentMethod</span>(method) {
+        <span class="code-keyword">await</span> <span class="code-keyword">this</span>.page.locator(<span class="code-keyword">this</span>.paymentMethods[method]).click();
+    }
+
+    <span class="code-comment">// クレジットカード情報を入力</span>
+    <span class="code-keyword">async</span> <span class="code-function">fillCreditCard</span>(card) {
+        <span class="code-keyword">await</span> <span class="code-keyword">this</span>.page.locator(<span class="code-keyword">this</span>.creditForm.number).fill(card.number);
+        <span class="code-keyword">await</span> <span class="code-keyword">this</span>.page.locator(<span class="code-keyword">this</span>.creditForm.expiry).fill(card.expiry);
+        <span class="code-keyword">await</span> <span class="code-keyword">this</span>.page.locator(<span class="code-keyword">this</span>.creditForm.cvv).fill(card.cvv);
+        <span class="code-keyword">await</span> <span class="code-keyword">this</span>.page.locator(<span class="code-keyword">this</span>.creditForm.name).fill(card.name);
+    }
+
+    <span class="code-comment">// 注文を確定</span>
+    <span class="code-keyword">async</span> <span class="code-function">submitOrder</span>() {
+        <span class="code-keyword">await</span> <span class="code-keyword">this</span>.page.locator(<span class="code-keyword">this</span>.submitBtn).click();
+        <span class="code-keyword">await</span> <span class="code-keyword">this</span>.page.locator(<span class="code-keyword">this</span>.confirmBtn).click();
+    }
+
+    <span class="code-comment">// 注文完了を確認</span>
+    <span class="code-keyword">async</span> <span class="code-function">getOrderNumber</span>() {
+        <span class="code-keyword">await</span> <span class="code-keyword">this</span>.page.locator(<span class="code-keyword">this</span>.orderNumber).waitFor();
+        <span class="code-keyword">return</span> <span class="code-keyword">await</span> <span class="code-keyword">this</span>.page.locator(<span class="code-keyword">this</span>.orderNumber).textContent();
+    }
+
+    <span class="code-comment">// 合計金額を取得</span>
+    <span class="code-keyword">async</span> <span class="code-function">getOrderTotal</span>() {
+        <span class="code-keyword">const</span> text = <span class="code-keyword">await</span> <span class="code-keyword">this</span>.page.locator(<span class="code-keyword">this</span>.orderTotal).textContent();
+        <span class="code-keyword">return</span> parseInt(text.replace(/[^0-9]/g, <span class="code-string">''</span>));
+    }
+}</code>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🧪 テストシナリオ集</h2>
+
+            <div class="scenario-card">
+                <h4>シナリオ1: クレジットカード決済の正常系</h4>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                    <code><span class="code-keyword">import</span> { test, expect } <span class="code-keyword">from</span> <span class="code-string">'@playwright/test'</span>;
+<span class="code-keyword">import</span> { CheckoutPage } <span class="code-keyword">from</span> <span class="code-string">'./pages/CheckoutPage'</span>;
+<span class="code-keyword">import</span> { CartPage } <span class="code-keyword">from</span> <span class="code-string">'./pages/CartPage'</span>;
+
+<span class="code-comment">// テスト用クレジットカード（決済代行のサンドボックス用）</span>
+<span class="code-keyword">const</span> TEST_CARDS = {
+    visa: {
+        number: <span class="code-string">'4111111111111111'</span>,
+        expiry: <span class="code-string">'12/28'</span>,
+        cvv: <span class="code-string">'123'</span>,
+        name: <span class="code-string">'TEST USER'</span>
+    },
+    mastercard: {
+        number: <span class="code-string">'5500000000000004'</span>,
+        expiry: <span class="code-string">'12/28'</span>,
+        cvv: <span class="code-string">'123'</span>,
+        name: <span class="code-string">'TEST USER'</span>
+    },
+    <span class="code-comment">// 決済失敗用テストカード</span>
+    declined: {
+        number: <span class="code-string">'4000000000000002'</span>,
+        expiry: <span class="code-string">'12/28'</span>,
+        cvv: <span class="code-string">'123'</span>,
+        name: <span class="code-string">'TEST USER'</span>
+    }
+};
+
+test.describe(<span class="code-string">'クレジットカード決済'</span>, () => {
+    test(<span class="code-string">'VISAカードで正常に決済できる'</span>, <span class="code-keyword">async</span> ({ page }) => {
+        <span class="code-keyword">const</span> cart = <span class="code-keyword">new</span> CartPage(page);
+        <span class="code-keyword">const</span> checkout = <span class="code-keyword">new</span> CheckoutPage(page);
+
+        <span class="code-comment">// 商品をカートに追加</span>
+        <span class="code-keyword">await</span> page.goto(<span class="code-string">'/products/test-item'</span>);
+        <span class="code-keyword">await</span> page.getByRole(<span class="code-string">'button'</span>, { name: <span class="code-string">'カートに入れる'</span> }).click();
+        <span class="code-keyword">await</span> page.goto(<span class="code-string">'/cart'</span>);
+
+        <span class="code-comment">// 購入手続きへ</span>
+        <span class="code-keyword">await</span> page.getByRole(<span class="code-string">'button'</span>, { name: <span class="code-string">'購入手続きへ'</span> }).click();
+
+        <span class="code-comment">// 配送先入力</span>
+        <span class="code-keyword">await</span> checkout.fillShippingInfo({
+            name: <span class="code-string">'テスト 太郎'</span>,
+            postal: <span class="code-string">'100-0001'</span>,
+            address: <span class="code-string">'東京都千代田区1-1-1'</span>,
+            phone: <span class="code-string">'090-0000-0000'</span>
+        });
+
+        <span class="code-comment">// クレジットカード決済を選択</span>
+        <span class="code-keyword">await</span> checkout.selectPaymentMethod(<span class="code-string">'credit'</span>);
+        <span class="code-keyword">await</span> checkout.fillCreditCard(TEST_CARDS.visa);
+
+        <span class="code-comment">// 注文前の合計金額を記録</span>
+        <span class="code-keyword">const</span> expectedTotal = <span class="code-keyword">await</span> checkout.getOrderTotal();
+
+        <span class="code-comment">// 注文確定</span>
+        <span class="code-keyword">await</span> checkout.submitOrder();
+
+        <span class="code-comment">// 注文完了を確認</span>
+        <span class="code-keyword">const</span> orderNumber = <span class="code-keyword">await</span> checkout.getOrderNumber();
+        expect(orderNumber).toMatch(/^ORD-\d{10}$/);
+
+        <span class="code-comment">// 完了画面のURLを確認</span>
+        <span class="code-keyword">await</span> expect(page).toHaveURL(/.*\/order\/complete/);
+
+        <span class="code-comment">// 注文履歴に反映されていることを確認</span>
+        <span class="code-keyword">await</span> page.goto(<span class="code-string">'/mypage/orders'</span>);
+        <span class="code-keyword">await</span> expect(page.getByText(orderNumber)).toBeVisible();
+    });
+});</code>
+                </div>
+            </div>
+
+            <div class="scenario-card">
+                <h4>シナリオ2: 決済失敗時のエラーハンドリング</h4>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                    <code>test(<span class="code-string">'カード決済が拒否された場合、エラーメッセージが表示される'</span>, <span class="code-keyword">async</span> ({ page }) => {
+    <span class="code-keyword">const</span> checkout = <span class="code-keyword">new</span> CheckoutPage(page);
+
+    <span class="code-comment">// カートに商品追加〜配送先入力（省略）</span>
+    <span class="code-comment">// ...</span>
+
+    <span class="code-comment">// 決済失敗用カードを使用</span>
+    <span class="code-keyword">await</span> checkout.selectPaymentMethod(<span class="code-string">'credit'</span>);
+    <span class="code-keyword">await</span> checkout.fillCreditCard(TEST_CARDS.declined);
+
+    <span class="code-comment">// 注文を試行</span>
+    <span class="code-keyword">await</span> page.locator(<span class="code-string">'[data-testid="submit-order"]'</span>).click();
+    <span class="code-keyword">await</span> page.locator(<span class="code-string">'[data-testid="confirm-order"]'</span>).click();
+
+    <span class="code-comment">// エラーメッセージを確認</span>
+    <span class="code-keyword">await</span> expect(page.getByText(<span class="code-string">'カード決済に失敗しました'</span>)).toBeVisible();
+    <span class="code-keyword">await</span> expect(page.getByText(<span class="code-string">'別のお支払い方法をお選びください'</span>)).toBeVisible();
+
+    <span class="code-comment">// 注文は完了していないこと</span>
+    <span class="code-keyword">await</span> expect(page).not.toHaveURL(/.*\/order\/complete/);
+
+    <span class="code-comment">// カートの商品は残っていること</span>
+    <span class="code-keyword">await</span> page.goto(<span class="code-string">'/cart'</span>);
+    <span class="code-keyword">await</span> expect(page.locator(<span class="code-string">'[data-testid="cart-item"]'</span>)).toHaveCount(1);
+});</code>
+                </div>
+            </div>
+
+            <div class="scenario-card">
+                <h4>シナリオ3: 外部決済APIのモック</h4>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                    <code><span class="code-comment">// 外部決済APIをモックして高速・安定テスト</span>
+test(<span class="code-string">'PayPay決済（APIモック）'</span>, <span class="code-keyword">async</span> ({ page }) => {
+    <span class="code-comment">// PayPay APIレスポンスをモック</span>
+    <span class="code-keyword">await</span> page.route(<span class="code-string">'**/api/paypay/**'</span>, <span class="code-keyword">async</span> (route) => {
+        <span class="code-keyword">const</span> url = route.request().url();
+
+        <span class="code-keyword">if</span> (url.includes(<span class="code-string">'/create-payment'</span>)) {
+            <span class="code-comment">// 決済作成成功レスポンス</span>
+            <span class="code-keyword">await</span> route.fulfill({
+                status: 200,
+                contentType: <span class="code-string">'application/json'</span>,
+                body: JSON.stringify({
+                    resultInfo: { code: <span class="code-string">'SUCCESS'</span> },
+                    paymentId: <span class="code-string">'MOCK_PAYMENT_123'</span>,
+                    paymentUrl: <span class="code-string">'https://mock-paypay.example.com/pay'</span>
+                })
+            });
+        } <span class="code-keyword">else if</span> (url.includes(<span class="code-string">'/payment-details'</span>)) {
+            <span class="code-comment">// 決済完了レスポンス</span>
+            <span class="code-keyword">await</span> route.fulfill({
+                status: 200,
+                contentType: <span class="code-string">'application/json'</span>,
+                body: JSON.stringify({
+                    resultInfo: { code: <span class="code-string">'SUCCESS'</span> },
+                    status: <span class="code-string">'COMPLETED'</span>,
+                    paymentId: <span class="code-string">'MOCK_PAYMENT_123'</span>
+                })
+            });
+        }
+    });
+
+    <span class="code-comment">// PayPay決済フローをテスト</span>
+    <span class="code-keyword">const</span> checkout = <span class="code-keyword">new</span> CheckoutPage(page);
+    <span class="code-comment">// ... カート追加・配送先入力</span>
+
+    <span class="code-keyword">await</span> checkout.selectPaymentMethod(<span class="code-string">'paypay'</span>);
+    <span class="code-keyword">await</span> page.locator(<span class="code-string">'[data-testid="submit-order"]'</span>).click();
+
+    <span class="code-comment">// PayPay画面への遷移（モック）を確認</span>
+    <span class="code-keyword">await</span> expect(page.getByText(<span class="code-string">'PayPayで支払う'</span>)).toBeVisible();
+});</code>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🔒 セキュリティテスト</h2>
+
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code><span class="code-comment">// 決済関連のセキュリティテスト</span>
+test.describe(<span class="code-string">'決済セキュリティ'</span>, () => {
+    test(<span class="code-string">'カード番号がマスキングされている'</span>, <span class="code-keyword">async</span> ({ page }) => {
+        <span class="code-comment">// カード入力後、確認画面でマスキング表示</span>
+        <span class="code-keyword">await</span> expect(page.getByText(<span class="code-string">'**** **** **** 1111'</span>)).toBeVisible();
+
+        <span class="code-comment">// CVVは表示されないこと</span>
+        <span class="code-keyword">await</span> expect(page.getByText(<span class="code-string">'123'</span>)).not.toBeVisible();
+    });
+
+    test(<span class="code-string">'決済完了後、戻るボタンで再注文できない'</span>, <span class="code-keyword">async</span> ({ page }) => {
+        <span class="code-comment">// 決済完了後</span>
+        <span class="code-keyword">await</span> page.goBack();
+
+        <span class="code-comment">// 二重注文防止メッセージ</span>
+        <span class="code-keyword">await</span> expect(page.getByText(<span class="code-string">'この注文は既に完了しています'</span>)).toBeVisible();
+    });
+
+    test(<span class="code-string">'金額改ざんが検知される'</span>, <span class="code-keyword">async</span> ({ page }) => {
+        <span class="code-comment">// クライアント側でDOMを改ざん</span>
+        <span class="code-keyword">await</span> page.evaluate(() => {
+            document.querySelector(<span class="code-string">'[data-testid="order-total"]'</span>).textContent = <span class="code-string">'¥1'</span>;
+        });
+
+        <span class="code-keyword">await</span> page.locator(<span class="code-string">'[data-testid="confirm-order"]'</span>).click();
+
+        <span class="code-comment">// サーバー側で検知されエラーになること</span>
+        <span class="code-keyword">await</span> expect(page.getByText(<span class="code-string">'金額が一致しません'</span>)).toBeVisible();
+    });
+
+    test(<span class="code-string">'CSRFトークンが必要'</span>, <span class="code-keyword">async</span> ({ page, request }) => {
+        <span class="code-comment">// CSRFトークンなしでAPIを叩く</span>
+        <span class="code-keyword">const</span> response = <span class="code-keyword">await</span> request.post(<span class="code-string">'/api/orders'</span>, {
+            data: { items: [{ id: 1, quantity: 1 }] }
+        });
+
+        <span class="code-comment">// 403エラーになること</span>
+        expect(response.status()).toBe(403);
+    });
+});</code>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>📊 金額計算の整合性テスト</h2>
+
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>test.describe(<span class="code-string">'金額計算整合性'</span>, () => {
+    test(<span class="code-string">'税込金額が正しく計算される'</span>, <span class="code-keyword">async</span> ({ page }) => {
+        <span class="code-comment">// 商品: 1,000円（税抜）を3個</span>
+        <span class="code-keyword">const</span> checkout = <span class="code-keyword">new</span> CheckoutPage(page);
+
+        <span class="code-keyword">const</span> subtotal = <span class="code-keyword">await</span> page.locator(<span class="code-string">'[data-testid="subtotal"]'</span>).textContent();
+        <span class="code-keyword">const</span> tax = <span class="code-keyword">await</span> page.locator(<span class="code-string">'[data-testid="tax"]'</span>).textContent();
+        <span class="code-keyword">const</span> total = <span class="code-keyword">await</span> checkout.getOrderTotal();
+
+        <span class="code-comment">// 小計: 3,000円</span>
+        expect(subtotal).toContain(<span class="code-string">'3,000'</span>);
+        <span class="code-comment">// 消費税（10%）: 300円</span>
+        expect(tax).toContain(<span class="code-string">'300'</span>);
+        <span class="code-comment">// 合計: 3,300円</span>
+        expect(total).toBe(3300);
+    });
+
+    test(<span class="code-string">'クーポン適用後の金額が正しい'</span>, <span class="code-keyword">async</span> ({ page }) => {
+        <span class="code-comment">// 10%OFFクーポン適用</span>
+        <span class="code-keyword">await</span> page.locator(<span class="code-string">'[data-testid="coupon-input"]'</span>).fill(<span class="code-string">'SAVE10'</span>);
+        <span class="code-keyword">await</span> page.locator(<span class="code-string">'[data-testid="apply-coupon"]'</span>).click();
+
+        <span class="code-keyword">await</span> expect(page.getByText(<span class="code-string">'クーポン適用: -300円'</span>)).toBeVisible();
+
+        <span class="code-keyword">const</span> checkout = <span class="code-keyword">new</span> CheckoutPage(page);
+        <span class="code-keyword">const</span> total = <span class="code-keyword">await</span> checkout.getOrderTotal();
+
+        <span class="code-comment">// 3,300円 - 300円 = 3,000円</span>
+        expect(total).toBe(3000);
+    });
+
+    test(<span class="code-string">'送料が正しく加算される'</span>, <span class="code-keyword">async</span> ({ page }) => {
+        <span class="code-comment">// 北海道への送料</span>
+        <span class="code-keyword">await</span> page.locator(<span class="code-string">'select[data-testid="prefecture"]'</span>).selectOption(<span class="code-string">'北海道'</span>);
+
+        <span class="code-keyword">const</span> shipping = <span class="code-keyword">await</span> page.locator(<span class="code-string">'[data-testid="shipping-fee"]'</span>).textContent();
+        expect(shipping).toContain(<span class="code-string">'1,200'</span>);  <span class="code-comment">// 北海道送料</span>
+
+        <span class="code-keyword">const</span> checkout = <span class="code-keyword">new</span> CheckoutPage(page);
+        <span class="code-keyword">const</span> total = <span class="code-keyword">await</span> checkout.getOrderTotal();
+        expect(total).toBe(4500);  <span class="code-comment">// 3,300円 + 1,200円</span>
+    });
+
+    test(<span class="code-string">'ポイント利用が正しく反映される'</span>, <span class="code-keyword">async</span> ({ page }) => {
+        <span class="code-comment">// 500ポイント利用</span>
+        <span class="code-keyword">await</span> page.locator(<span class="code-string">'[data-testid="use-points"]'</span>).fill(<span class="code-string">'500'</span>);
+        <span class="code-keyword">await</span> page.locator(<span class="code-string">'[data-testid="apply-points"]'</span>).click();
+
+        <span class="code-keyword">await</span> expect(page.getByText(<span class="code-string">'ポイント利用: -500円'</span>)).toBeVisible();
+
+        <span class="code-keyword">const</span> checkout = <span class="code-keyword">new</span> CheckoutPage(page);
+        <span class="code-keyword">const</span> total = <span class="code-keyword">await</span> checkout.getOrderTotal();
+        expect(total).toBe(2800);  <span class="code-comment">// 3,300円 - 500円</span>
+    });
+});</code>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🎯 このレッスンのまとめ</h2>
+
+            <div class="success-box">
+                <h4>マスターした内容</h4>
+                <ul>
+                    <li>決済フロー全体のE2Eテスト設計</li>
+                    <li>テスト用クレジットカードの使用方法</li>
+                    <li>外部APIのモック戦略</li>
+                    <li>セキュリティ・金額整合性テスト</li>
+                </ul>
+            </div>
+
+            <div class="hint-box">
+                <h4>💡 プロのヒント</h4>
+                <ul>
+                    <li>決済テストは必ずサンドボックス環境で実行</li>
+                    <li>テストデータのクリーンアップを忘れずに</li>
+                    <li>決済代行会社のテストカード一覧を確認</li>
+                    <li>本番デプロイ前に必ずステージングでE2Eを実行</li>
+                </ul>
+            </div>
+        </section>
+
+        <div class="navigation-buttons">
+            <a href="cart-operations.html" class="btn btn-primary">← カート操作</a>
+            <a href="product-search.html" class="btn btn-secondary">商品検索テスト →</a>
+        </div>
+    </main>
+
+    <script>
+        function copyCode(btn) {
+            const codeBlock = btn.parentElement;
+            const code = codeBlock.querySelector('code').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                btn.textContent = '✓ コピー完了';
+                setTimeout(() => { btn.textContent = 'コピー'; }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>

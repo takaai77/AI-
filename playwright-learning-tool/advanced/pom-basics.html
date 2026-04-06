@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Object Model (POM) の基礎 | Playwright マスター道場 Pro</title>
+    <style>
+        :root { --primary: #6366f1; --secondary: #10b981; --accent: #f59e0b; --bg: #0f172a; --bg-light: #1e293b; --text: #e2e8f0; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg); color: var(--text); line-height: 1.8; }
+        .nav { background: var(--bg-light); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .nav a { color: var(--text); text-decoration: none; }
+        .lesson-header { background: linear-gradient(135deg, #8b5cf6, #a78bfa); padding: 3rem 2rem; text-align: center; }
+        .lesson-badge { background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 2rem; font-size: 0.85rem; display: inline-block; margin-bottom: 1rem; }
+        .lesson-header h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+        .content { max-width: 900px; margin: 0 auto; padding: 2rem; }
+        .section { background: var(--bg-light); border-radius: 1rem; padding: 2rem; margin-bottom: 2rem; }
+        .section h2 { color: var(--primary); margin-bottom: 1rem; font-size: 1.5rem; }
+        .section h3 { color: var(--accent); margin: 1.5rem 0 1rem; }
+        .code-block { background: #0d1117; border-radius: 0.5rem; padding: 1.5rem; margin: 1rem 0; overflow-x: auto; font-family: 'Fira Code', 'Consolas', monospace; font-size: 0.85rem; border: 1px solid #30363d; position: relative; }
+        .code-comment { color: #8b949e; }
+        .code-keyword { color: #ff7b72; }
+        .code-string { color: #a5d6ff; }
+        .code-function { color: #d2a8ff; }
+        .code-variable { color: #ffa657; }
+        .code-class { color: #7ee787; }
+        .copy-btn { position: absolute; top: 0.5rem; right: 0.5rem; background: var(--primary); color: white; border: none; padding: 0.4rem 1rem; border-radius: 0.3rem; cursor: pointer; font-size: 0.8rem; }
+        .comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin: 1.5rem 0; }
+        .comparison-item { background: var(--bg); padding: 1.5rem; border-radius: 0.5rem; }
+        .comparison-item.bad { border-left: 4px solid #ef4444; }
+        .comparison-item.good { border-left: 4px solid var(--secondary); }
+        .comparison-item h4 { margin-bottom: 1rem; }
+        .tip-box { background: rgba(16, 185, 129, 0.2); border-left: 4px solid var(--secondary); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 0.5rem 0.5rem 0; }
+        .tip-box h4 { color: var(--secondary); margin-bottom: 0.5rem; }
+        .folder-structure { background: var(--bg); padding: 1.5rem; border-radius: 0.5rem; font-family: monospace; margin: 1rem 0; }
+        .folder { color: var(--accent); }
+        .file { color: var(--text-muted); margin-left: 1.5rem; }
+        .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-size: 1rem; font-weight: 600; cursor: pointer; border: none; text-decoration: none; color: white; }
+        .btn-primary { background: var(--primary); }
+        .navigation-buttons { display: flex; justify-content: space-between; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--bg-light); }
+        @media (max-width: 768px) { .comparison { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="../index.html">← ホームに戻る</a>
+        <span>上級コース / POM基礎</span>
+    </nav>
+
+    <header class="lesson-header">
+        <span class="lesson-badge">Month 2: テスト設計</span>
+        <h1>🏗️ Page Object Model (POM) の基礎</h1>
+        <p>保守性の高いテストコードを書くための設計パターン</p>
+    </header>
+
+    <main class="content">
+        <section class="section">
+            <h2>🤔 なぜPOMが必要？</h2>
+            <p>テストコードが増えてくると、以下の問題が発生します：</p>
+            <ul style="margin-left: 1.5rem; margin-top: 1rem;">
+                <li>同じセレクタが複数のテストに散在</li>
+                <li>UIが変更されると、多くのテストを修正する必要がある</li>
+                <li>テストコードが読みにくい</li>
+            </ul>
+            <p style="margin-top: 1rem;"><strong>Page Object Model</strong>は、ページごとにクラスを作成し、セレクタとアクションをカプセル化することで、これらの問題を解決します。</p>
+        </section>
+
+        <section class="section">
+            <h2>📊 Before / After 比較</h2>
+
+            <div class="comparison">
+                <div class="comparison-item bad">
+                    <h4>❌ POMなし（悪い例）</h4>
+                    <div class="code-block" style="margin: 0;">
+                        <code><span class="code-comment">// セレクタが散在</span>
+test(<span class="code-string">'ログインできる'</span>, <span class="code-keyword">async</span> ({ page }) => {
+    <span class="code-keyword">await</span> page.<span class="code-function">goto</span>(<span class="code-string">'/login'</span>);
+    <span class="code-keyword">await</span> page.<span class="code-function">fill</span>(<span class="code-string">'#email'</span>, <span class="code-string">'test@test.com'</span>);
+    <span class="code-keyword">await</span> page.<span class="code-function">fill</span>(<span class="code-string">'#password'</span>, <span class="code-string">'pass123'</span>);
+    <span class="code-keyword">await</span> page.<span class="code-function">click</span>(<span class="code-string">'button[type="submit"]'</span>);
+});
+
+test(<span class="code-string">'ログイン失敗'</span>, <span class="code-keyword">async</span> ({ page }) => {
+    <span class="code-keyword">await</span> page.<span class="code-function">goto</span>(<span class="code-string">'/login'</span>);
+    <span class="code-keyword">await</span> page.<span class="code-function">fill</span>(<span class="code-string">'#email'</span>, <span class="code-string">'wrong@test.com'</span>);
+    <span class="code-keyword">await</span> page.<span class="code-function">fill</span>(<span class="code-string">'#password'</span>, <span class="code-string">'wrong'</span>);
+    <span class="code-keyword">await</span> page.<span class="code-function">click</span>(<span class="code-string">'button[type="submit"]'</span>);
+});</code>
+                    </div>
+                </div>
+                <div class="comparison-item good">
+                    <h4>✅ POMあり（良い例）</h4>
+                    <div class="code-block" style="margin: 0;">
+                        <code><span class="code-comment">// 読みやすく保守しやすい</span>
+test(<span class="code-string">'ログインできる'</span>, <span class="code-keyword">async</span> ({ page }) => {
+    <span class="code-keyword">const</span> loginPage = <span class="code-keyword">new</span> <span class="code-class">LoginPage</span>(page);
+    <span class="code-keyword">await</span> loginPage.<span class="code-function">goto</span>();
+    <span class="code-keyword">await</span> loginPage.<span class="code-function">login</span>(
+        <span class="code-string">'test@test.com'</span>,
+        <span class="code-string">'pass123'</span>
+    );
+});
+
+test(<span class="code-string">'ログイン失敗'</span>, <span class="code-keyword">async</span> ({ page }) => {
+    <span class="code-keyword">const</span> loginPage = <span class="code-keyword">new</span> <span class="code-class">LoginPage</span>(page);
+    <span class="code-keyword">await</span> loginPage.<span class="code-function">goto</span>();
+    <span class="code-keyword">await</span> loginPage.<span class="code-function">login</span>(
+        <span class="code-string">'wrong@test.com'</span>,
+        <span class="code-string">'wrong'</span>
+    );
+});</code>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>📁 推奨フォルダ構成</h2>
+
+            <div class="folder-structure">
+                <div class="folder">📁 tests/</div>
+                <div class="file">├── login.spec.js</div>
+                <div class="file">├── cart.spec.js</div>
+                <div class="file">└── checkout.spec.js</div>
+                <div class="folder">📁 pages/</div>
+                <div class="file">├── LoginPage.js</div>
+                <div class="file">├── CartPage.js</div>
+                <div class="file">├── CheckoutPage.js</div>
+                <div class="file">└── BasePage.js</div>
+                <div class="folder">📁 fixtures/</div>
+                <div class="file">└── test-data.json</div>
+                <div class="file">📄 playwright.config.js</div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🔧 実装方法</h2>
+
+            <h3>1. BasePage（共通機能）</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code><span class="code-comment">// pages/BasePage.js</span>
+<span class="code-keyword">class</span> <span class="code-class">BasePage</span> {
+    <span class="code-function">constructor</span>(page) {
+        <span class="code-keyword">this</span>.page = page;
+        <span class="code-keyword">this</span>.baseURL = process.env.BASE_URL || <span class="code-string">'https://example.com'</span>;
+    }
+
+    <span class="code-comment">// 共通: ページ遷移</span>
+    <span class="code-keyword">async</span> <span class="code-function">navigate</span>(path) {
+        <span class="code-keyword">await</span> <span class="code-keyword">this</span>.page.<span class="code-function">goto</span>(<span class="code-string">`${this.baseURL}${path}`</span>);
+    }
+
+    <span class="code-comment">// 共通: タイトル取得</span>
+    <span class="code-keyword">async</span> <span class="code-function">getTitle</span>() {
+        <span class="code-keyword">return await</span> <span class="code-keyword">this</span>.page.<span class="code-function">title</span>();
+    }
+
+    <span class="code-comment">// 共通: ローディング待機</span>
+    <span class="code-keyword">async</span> <span class="code-function">waitForLoading</span>() {
+        <span class="code-keyword">await</span> <span class="code-keyword">this</span>.page.<span class="code-function">waitForLoadState</span>(<span class="code-string">'networkidle'</span>);
+    }
+
+    <span class="code-comment">// 共通: スクリーンショット</span>
+    <span class="code-keyword">async</span> <span class="code-function">takeScreenshot</span>(name) {
+        <span class="code-keyword">await</span> <span class="code-keyword">this</span>.page.<span class="code-function">screenshot</span>({
+            <span class="code-variable">path</span>: <span class="code-string">`screenshots/${name}.png`</span>,
+            <span class="code-variable">fullPage</span>: <span class="code-keyword">true</span>
+        });
+    }
+}
+
+module.exports = { <span class="code-class">BasePage</span> };</code>
+            </div>
+
+            <h3>2. LoginPage（ログインページ）</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code><span class="code-comment">// pages/LoginPage.js</span>
+<span class="code-keyword">const</span> { <span class="code-class">BasePage</span> } = <span class="code-function">require</span>(<span class="code-string">'./BasePage'</span>);
+
+<span class="code-keyword">class</span> <span class="code-class">LoginPage</span> <span class="code-keyword">extends</span> <span class="code-class">BasePage</span> {
+    <span class="code-function">constructor</span>(page) {
+        <span class="code-keyword">super</span>(page);
+
+        <span class="code-comment">// セレクタを1箇所に集約</span>
+        <span class="code-keyword">this</span>.selectors = {
+            <span class="code-variable">emailInput</span>: <span class="code-string">'[data-testid="email-input"]'</span>,
+            <span class="code-variable">passwordInput</span>: <span class="code-string">'[data-testid="password-input"]'</span>,
+            <span class="code-variable">submitButton</span>: <span class="code-string">'[data-testid="login-button"]'</span>,
+            <span class="code-variable">errorMessage</span>: <span class="code-string">'[data-testid="error-message"]'</span>,
+            <span class="code-variable">forgotPassword</span>: <span class="code-string">'[data-testid="forgot-password-link"]'</span>
+        };
+    }
+
+    <span class="code-comment">// ログインページに移動</span>
+    <span class="code-keyword">async</span> <span class="code-function">goto</span>() {
+        <span class="code-keyword">await</span> <span class="code-keyword">this</span>.<span class="code-function">navigate</span>(<span class="code-string">'/login'</span>);
+        <span class="code-keyword">await</span> <span class="code-keyword">this</span>.<span class="code-function">waitForLoading</span>();
+    }
+
+    <span class="code-comment">// メールアドレスを入力</span>
+    <span class="code-keyword">async</span> <span class="code-function">fillEmail</span>(email) {
+        <span class="code-keyword">await</span> <span class="code-keyword">this</span>.page.<span class="code-function">fill</span>(<span class="code-keyword">this</span>.selectors.emailInput, email);
+    }
+
+    <span class="code-comment">// パスワードを入力</span>
+    <span class="code-keyword">async</span> <span class="code-function">fillPassword</span>(password) {
+        <span class="code-keyword">await</span> <span class="code-keyword">this</span>.page.<span class="code-function">fill</span>(<span class="code-keyword">this</span>.selectors.passwordInput, password);
+    }
+
+    <span class="code-comment">// ログインボタンをクリック</span>
+    <span class="code-keyword">async</span> <span class="code-function">clickSubmit</span>() {
+        <span class="code-keyword">await</span> <span class="code-keyword">this</span>.page.<span class="code-function">click</span>(<span class="code-keyword">this</span>.selectors.submitButton);
+    }
+
+    <span class="code-comment">// ログイン処理（よく使う操作をまとめる）</span>
+    <span class="code-keyword">async</span> <span class="code-function">login</span>(email, password) {
+        <span class="code-keyword">await</span> <span class="code-keyword">this</span>.<span class="code-function">fillEmail</span>(email);
+        <span class="code-keyword">await</span> <span class="code-keyword">this</span>.<span class="code-function">fillPassword</span>(password);
+        <span class="code-keyword">await</span> <span class="code-keyword">this</span>.<span class="code-function">clickSubmit</span>();
+        <span class="code-keyword">await</span> <span class="code-keyword">this</span>.<span class="code-function">waitForLoading</span>();
+    }
+
+    <span class="code-comment">// エラーメッセージを取得</span>
+    <span class="code-keyword">async</span> <span class="code-function">getErrorMessage</span>() {
+        <span class="code-keyword">const</span> element = <span class="code-keyword">this</span>.page.<span class="code-function">locator</span>(<span class="code-keyword">this</span>.selectors.errorMessage);
+        <span class="code-keyword">if</span> (<span class="code-keyword">await</span> element.<span class="code-function">isVisible</span>()) {
+            <span class="code-keyword">return await</span> element.<span class="code-function">textContent</span>();
+        }
+        <span class="code-keyword">return null</span>;
+    }
+
+    <span class="code-comment">// ログイン成功したかチェック</span>
+    <span class="code-keyword">async</span> <span class="code-function">isLoggedIn</span>() {
+        <span class="code-keyword">return</span> <span class="code-keyword">this</span>.page.<span class="code-function">url</span>().<span class="code-function">includes</span>(<span class="code-string">'/dashboard'</span>);
+    }
+}
+
+module.exports = { <span class="code-class">LoginPage</span> };</code>
+            </div>
+
+            <h3>3. テストコード</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code><span class="code-comment">// tests/login.spec.js</span>
+<span class="code-keyword">const</span> { test, expect } = <span class="code-function">require</span>(<span class="code-string">'@playwright/test'</span>);
+<span class="code-keyword">const</span> { <span class="code-class">LoginPage</span> } = <span class="code-function">require</span>(<span class="code-string">'../pages/LoginPage'</span>);
+
+test.<span class="code-function">describe</span>(<span class="code-string">'ログイン機能'</span>, () => {
+    <span class="code-keyword">let</span> loginPage;
+
+    test.<span class="code-function">beforeEach</span>(<span class="code-keyword">async</span> ({ page }) => {
+        loginPage = <span class="code-keyword">new</span> <span class="code-class">LoginPage</span>(page);
+        <span class="code-keyword">await</span> loginPage.<span class="code-function">goto</span>();
+    });
+
+    test(<span class="code-string">'正しい認証情報でログインできる'</span>, <span class="code-keyword">async</span> () => {
+        <span class="code-keyword">await</span> loginPage.<span class="code-function">login</span>(<span class="code-string">'user@example.com'</span>, <span class="code-string">'password123'</span>);
+
+        <span class="code-function">expect</span>(<span class="code-keyword">await</span> loginPage.<span class="code-function">isLoggedIn</span>()).<span class="code-function">toBe</span>(<span class="code-keyword">true</span>);
+    });
+
+    test(<span class="code-string">'間違ったパスワードでエラーが表示される'</span>, <span class="code-keyword">async</span> () => {
+        <span class="code-keyword">await</span> loginPage.<span class="code-function">login</span>(<span class="code-string">'user@example.com'</span>, <span class="code-string">'wrongpass'</span>);
+
+        <span class="code-keyword">const</span> errorMsg = <span class="code-keyword">await</span> loginPage.<span class="code-function">getErrorMessage</span>();
+        <span class="code-function">expect</span>(errorMsg).<span class="code-function">toContain</span>(<span class="code-string">'パスワードが正しくありません'</span>);
+    });
+
+    test(<span class="code-string">'空のフィールドでバリデーションエラー'</span>, <span class="code-keyword">async</span> () => {
+        <span class="code-keyword">await</span> loginPage.<span class="code-function">clickSubmit</span>();
+
+        <span class="code-keyword">const</span> errorMsg = <span class="code-keyword">await</span> loginPage.<span class="code-function">getErrorMessage</span>();
+        <span class="code-function">expect</span>(errorMsg).<span class="code-function">toContain</span>(<span class="code-string">'入力してください'</span>);
+    });
+});</code>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>💡 ベストプラクティス</h2>
+
+            <div class="tip-box">
+                <h4>1. data-testid を使う</h4>
+                <p>CSSクラスやIDは変更されやすいため、テスト専用の <code>data-testid</code> 属性を使うことで、UIの変更に強いテストを書けます。</p>
+            </div>
+
+            <div class="tip-box">
+                <h4>2. アクションは動詞で命名</h4>
+                <p><code>login()</code>, <code>addToCart()</code>, <code>submitForm()</code> のように、何をするかが明確な名前を付けましょう。</p>
+            </div>
+
+            <div class="tip-box">
+                <h4>3. 状態確認は is/has/get で命名</h4>
+                <p><code>isLoggedIn()</code>, <code>hasError()</code>, <code>getTotal()</code> のように、結果を返すメソッドは明確に区別しましょう。</p>
+            </div>
+
+            <div class="tip-box">
+                <h4>4. 待機処理をメソッド内に含める</h4>
+                <p>アクションメソッド内で適切な待機を行うことで、テストコードがシンプルになります。</p>
+            </div>
+        </section>
+
+        <div class="navigation-buttons">
+            <a href="../index.html" class="btn btn-primary">← カリキュラムへ</a>
+            <a href="fixture-pattern.html" class="btn btn-primary">Fixtureパターン →</a>
+        </div>
+    </main>
+
+    <script>
+        function copyCode(btn) {
+            const codeBlock = btn.parentElement;
+            const code = codeBlock.querySelector('code').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                btn.textContent = '✓ コピー完了';
+                setTimeout(() => { btn.textContent = 'コピー'; }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Week 1 - レッスン4: ページを移動しよう | Playwright マスター道場</title>
+    <style>
+        :root { --primary: #6366f1; --primary-dark: #4f46e5; --secondary: #10b981; --accent: #f59e0b; --bg: #0f172a; --bg-light: #1e293b; --text: #e2e8f0; --text-muted: #94a3b8; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg); color: var(--text); line-height: 1.8; }
+        .nav { background: var(--bg-light); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .nav a { color: var(--text); text-decoration: none; }
+        .nav a:hover { color: var(--primary); }
+        .lesson-header { background: linear-gradient(135deg, #3b82f6, #60a5fa); padding: 3rem 2rem; text-align: center; }
+        .lesson-badge { background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 2rem; font-size: 0.9rem; display: inline-block; margin-bottom: 1rem; }
+        .lesson-header h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+        .content { max-width: 800px; margin: 0 auto; padding: 2rem; }
+        .section { background: var(--bg-light); border-radius: 1rem; padding: 2rem; margin-bottom: 2rem; }
+        .section h2 { color: var(--primary); margin-bottom: 1rem; font-size: 1.5rem; }
+        .section h3 { color: var(--accent); margin: 1.5rem 0 1rem; }
+        .section p { margin-bottom: 1rem; }
+        .code-block { background: #0d1117; border-radius: 0.5rem; padding: 1.5rem; margin: 1rem 0; overflow-x: auto; font-family: 'Fira Code', 'Consolas', monospace; font-size: 0.9rem; border: 1px solid #30363d; position: relative; }
+        .code-comment { color: #8b949e; }
+        .code-keyword { color: #ff7b72; }
+        .code-string { color: #a5d6ff; }
+        .code-function { color: #d2a8ff; }
+        .code-variable { color: #ffa657; }
+        .copy-btn { position: absolute; top: 0.5rem; right: 0.5rem; background: var(--primary); color: white; border: none; padding: 0.3rem 0.8rem; border-radius: 0.3rem; cursor: pointer; font-size: 0.8rem; }
+        .hint-box { background: rgba(245, 158, 11, 0.2); border-left: 4px solid var(--accent); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 0.5rem 0.5rem 0; }
+        .hint-box h4 { color: var(--accent); margin-bottom: 0.5rem; }
+        .success-box { background: rgba(16, 185, 129, 0.2); border-left: 4px solid var(--secondary); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 0.5rem 0.5rem 0; }
+        .success-box h4 { color: var(--secondary); margin-bottom: 0.5rem; }
+        .info-box { background: rgba(99, 102, 241, 0.2); border-left: 4px solid var(--primary); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 0.5rem 0.5rem 0; }
+        .info-box h4 { color: var(--primary); margin-bottom: 0.5rem; }
+        .command-table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+        .command-table th, .command-table td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--bg); }
+        .command-table th { background: var(--bg); color: var(--accent); }
+        .command-table td:first-child { font-family: 'Fira Code', monospace; color: var(--primary); }
+        .exercise { background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(6, 182, 212, 0.2)); border-radius: 1rem; padding: 1.5rem; margin: 1.5rem 0; border: 2px solid var(--secondary); }
+        .exercise h4 { color: var(--secondary); margin-bottom: 1rem; }
+        .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-size: 1rem; font-weight: 600; cursor: pointer; border: none; transition: all 0.3s; text-decoration: none; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-secondary { background: var(--secondary); color: white; }
+        .navigation-buttons { display: flex; justify-content: space-between; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--bg-light); }
+        .progress-indicator { display: flex; justify-content: center; gap: 0.5rem; margin: 2rem 0; }
+        .progress-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--bg-light); }
+        .progress-dot.active { background: var(--primary); }
+        .progress-dot.completed { background: var(--secondary); }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="../index.html">← ホームに戻る</a>
+        <span>Week 1 / Lesson 4</span>
+    </nav>
+
+    <header class="lesson-header">
+        <span class="lesson-badge">Week 1 - レッスン 4/5</span>
+        <h1>🧭 ページを移動しよう</h1>
+        <p>前に戻る・進む・更新をマスター！</p>
+    </header>
+
+    <div class="progress-indicator">
+        <span class="progress-dot completed"></span>
+        <span class="progress-dot completed"></span>
+        <span class="progress-dot completed"></span>
+        <span class="progress-dot active"></span>
+        <span class="progress-dot"></span>
+    </div>
+
+    <main class="content">
+        <section class="section">
+            <h2>🚗 ナビゲーションコマンド</h2>
+            <p>ブラウザで「戻る」「進む」「更新」ボタンを押すのと同じことが、コードでできます！</p>
+
+            <table class="command-table">
+                <thead>
+                    <tr>
+                        <th>コマンド</th>
+                        <th>説明</th>
+                        <th>使う場面</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>page.goto(url)</td>
+                        <td>URLに移動</td>
+                        <td>新しいページを開きたい時</td>
+                    </tr>
+                    <tr>
+                        <td>page.goBack()</td>
+                        <td>前のページに戻る</td>
+                        <td>「戻る」ボタン</td>
+                    </tr>
+                    <tr>
+                        <td>page.goForward()</td>
+                        <td>次のページに進む</td>
+                        <td>「進む」ボタン</td>
+                    </tr>
+                    <tr>
+                        <td>page.reload()</td>
+                        <td>ページを更新</td>
+                        <td>「F5」キー</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="section">
+            <h2>📝 ナビゲーション実践コード</h2>
+
+            <h3>ファイル名: navigation.js</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>
+<span class="code-keyword">const</span> { chromium } = <span class="code-function">require</span>(<span class="code-string">'playwright'</span>);
+
+(<span class="code-keyword">async</span> () => {
+    <span class="code-keyword">const</span> browser = <span class="code-keyword">await</span> chromium.<span class="code-function">launch</span>({
+        <span class="code-variable">headless</span>: <span class="code-keyword">false</span>
+    });
+    <span class="code-keyword">const</span> page = <span class="code-keyword">await</span> browser.<span class="code-function">newPage</span>();
+
+    <span class="code-comment">// 1. Googleにアクセス</span>
+    console.<span class="code-function">log</span>(<span class="code-string">'1️⃣ Googleにアクセス'</span>);
+    <span class="code-keyword">await</span> page.<span class="code-function">goto</span>(<span class="code-string">'https://www.google.com'</span>);
+    <span class="code-keyword">await</span> page.<span class="code-function">waitForTimeout</span>(2000);
+
+    <span class="code-comment">// 2. Yahoo!に移動</span>
+    console.<span class="code-function">log</span>(<span class="code-string">'2️⃣ Yahoo!に移動'</span>);
+    <span class="code-keyword">await</span> page.<span class="code-function">goto</span>(<span class="code-string">'https://www.yahoo.co.jp'</span>);
+    <span class="code-keyword">await</span> page.<span class="code-function">waitForTimeout</span>(2000);
+
+    <span class="code-comment">// 3. 前のページ（Google）に戻る</span>
+    console.<span class="code-function">log</span>(<span class="code-string">'3️⃣ 前のページ（Google）に戻る'</span>);
+    <span class="code-keyword">await</span> page.<span class="code-function">goBack</span>();
+    <span class="code-keyword">await</span> page.<span class="code-function">waitForTimeout</span>(2000);
+
+    <span class="code-comment">// 4. 次のページ（Yahoo!）に進む</span>
+    console.<span class="code-function">log</span>(<span class="code-string">'4️⃣ 次のページ（Yahoo!）に進む'</span>);
+    <span class="code-keyword">await</span> page.<span class="code-function">goForward</span>();
+    <span class="code-keyword">await</span> page.<span class="code-function">waitForTimeout</span>(2000);
+
+    <span class="code-comment">// 5. ページを更新</span>
+    console.<span class="code-function">log</span>(<span class="code-string">'5️⃣ ページを更新'</span>);
+    <span class="code-keyword">await</span> page.<span class="code-function">reload</span>();
+    <span class="code-keyword">await</span> page.<span class="code-function">waitForTimeout</span>(2000);
+
+    console.<span class="code-function">log</span>(<span class="code-string">'✅ ナビゲーション完了！'</span>);
+    <span class="code-keyword">await</span> browser.<span class="code-function">close</span>();
+})();
+                </code>
+            </div>
+
+            <div class="hint-box">
+                <h4>💡 ポイント</h4>
+                <p>goBack() や goForward() は履歴がないと動きません。まず goto() で複数のページにアクセスしてから使おう！</p>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>📊 ページ情報を取得しよう</h2>
+            <p>今いるページの情報も取得できます！</p>
+
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>
+<span class="code-keyword">const</span> { chromium } = <span class="code-function">require</span>(<span class="code-string">'playwright'</span>);
+
+(<span class="code-keyword">async</span> () => {
+    <span class="code-keyword">const</span> browser = <span class="code-keyword">await</span> chromium.<span class="code-function">launch</span>();
+    <span class="code-keyword">const</span> page = <span class="code-keyword">await</span> browser.<span class="code-function">newPage</span>();
+
+    <span class="code-keyword">await</span> page.<span class="code-function">goto</span>(<span class="code-string">'https://www.google.com'</span>);
+
+    <span class="code-comment">// 現在のURL</span>
+    <span class="code-keyword">const</span> url = page.<span class="code-function">url</span>();
+    console.<span class="code-function">log</span>(<span class="code-string">'URL:'</span>, url);
+
+    <span class="code-comment">// ページのタイトル</span>
+    <span class="code-keyword">const</span> title = <span class="code-keyword">await</span> page.<span class="code-function">title</span>();
+    console.<span class="code-function">log</span>(<span class="code-string">'タイトル:'</span>, title);
+
+    <span class="code-keyword">await</span> browser.<span class="code-function">close</span>();
+})();
+                </code>
+            </div>
+
+            <table class="command-table">
+                <thead>
+                    <tr>
+                        <th>コマンド</th>
+                        <th>戻り値</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>page.url()</td>
+                        <td>現在のURL（例: "https://www.google.com"）</td>
+                    </tr>
+                    <tr>
+                        <td>page.title()</td>
+                        <td>ページのタイトル（例: "Google"）</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="info-box">
+                <h4>📝 注意</h4>
+                <p><code>url()</code> は <code>await</code> 不要ですが、<code>title()</code> は <code>await</code> が必要です！</p>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🔗 gotoのオプション</h2>
+            <p>goto() にはいくつかのオプションがあります。</p>
+
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>
+<span class="code-comment">// 基本的な使い方</span>
+<span class="code-keyword">await</span> page.<span class="code-function">goto</span>(<span class="code-string">'https://example.com'</span>);
+
+<span class="code-comment">// タイムアウトを設定（30秒）</span>
+<span class="code-keyword">await</span> page.<span class="code-function">goto</span>(<span class="code-string">'https://example.com'</span>, {
+    <span class="code-variable">timeout</span>: 30000
+});
+
+<span class="code-comment">// ページ読み込みの待機条件を指定</span>
+<span class="code-keyword">await</span> page.<span class="code-function">goto</span>(<span class="code-string">'https://example.com'</span>, {
+    <span class="code-variable">waitUntil</span>: <span class="code-string">'networkidle'</span>
+});
+                </code>
+            </div>
+
+            <table class="command-table">
+                <thead>
+                    <tr>
+                        <th>waitUntil の値</th>
+                        <th>説明</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>'load'</td>
+                        <td>ページの読み込み完了（デフォルト）</td>
+                    </tr>
+                    <tr>
+                        <td>'domcontentloaded'</td>
+                        <td>HTMLの読み込み完了（画像などは待たない）</td>
+                    </tr>
+                    <tr>
+                        <td>'networkidle'</td>
+                        <td>ネットワーク通信が落ち着くまで待つ</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="section">
+            <h2>🏋️ 練習問題</h2>
+
+            <div class="exercise">
+                <h4>チャレンジ: サイト巡回プログラム</h4>
+                <p>3つのサイトを順番に訪問して、各サイトのタイトルとURLを表示するプログラムを作ってみよう！</p>
+
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                    <code>
+<span class="code-keyword">const</span> { chromium } = <span class="code-function">require</span>(<span class="code-string">'playwright'</span>);
+
+(<span class="code-keyword">async</span> () => {
+    <span class="code-keyword">const</span> browser = <span class="code-keyword">await</span> chromium.<span class="code-function">launch</span>({ <span class="code-variable">headless</span>: <span class="code-keyword">false</span> });
+    <span class="code-keyword">const</span> page = <span class="code-keyword">await</span> browser.<span class="code-function">newPage</span>();
+
+    <span class="code-comment">// 訪問するサイトのリスト</span>
+    <span class="code-keyword">const</span> sites = [
+        <span class="code-string">'https://www.google.com'</span>,
+        <span class="code-string">'https://www.yahoo.co.jp'</span>,
+        <span class="code-string">'https://www.youtube.com'</span>
+    ];
+
+    <span class="code-comment">// 各サイトを訪問</span>
+    <span class="code-keyword">for</span> (<span class="code-keyword">const</span> site <span class="code-keyword">of</span> sites) {
+        <span class="code-keyword">await</span> page.<span class="code-function">goto</span>(site);
+
+        <span class="code-keyword">const</span> title = <span class="code-keyword">await</span> page.<span class="code-function">title</span>();
+        <span class="code-keyword">const</span> url = page.<span class="code-function">url</span>();
+
+        console.<span class="code-function">log</span>(<span class="code-string">'━━━━━━━━━━━━━━━━━━━━'</span>);
+        console.<span class="code-function">log</span>(<span class="code-string">'📌 タイトル:'</span>, title);
+        console.<span class="code-function">log</span>(<span class="code-string">'🔗 URL:'</span>, url);
+
+        <span class="code-keyword">await</span> page.<span class="code-function">waitForTimeout</span>(2000);
+    }
+
+    console.<span class="code-function">log</span>(<span class="code-string">'━━━━━━━━━━━━━━━━━━━━'</span>);
+    console.<span class="code-function">log</span>(<span class="code-string">'✅ 巡回完了！'</span>);
+
+    <span class="code-keyword">await</span> browser.<span class="code-function">close</span>();
+})();
+                    </code>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🎯 このレッスンのまとめ</h2>
+            <ul style="margin-left: 1.5rem;">
+                <li><strong>goto()</strong> - URLに移動</li>
+                <li><strong>goBack()</strong> - 前のページへ</li>
+                <li><strong>goForward()</strong> - 次のページへ</li>
+                <li><strong>reload()</strong> - ページを更新</li>
+                <li><strong>url()</strong> - 現在のURLを取得</li>
+                <li><strong>title()</strong> - ページタイトルを取得</li>
+            </ul>
+
+            <div class="success-box">
+                <h4>🎉 よくできました！</h4>
+                <p>ブラウザナビゲーションをマスターしました！次はスクリーンショットを撮ってみよう！</p>
+            </div>
+        </section>
+
+        <div class="navigation-buttons">
+            <a href="week1-lesson3.html" class="btn btn-primary">← 前のレッスン</a>
+            <a href="week1-lesson5.html" class="btn btn-secondary">次のレッスンへ →</a>
+        </div>
+    </main>
+
+    <script>
+        function copyCode(btn) {
+            const codeBlock = btn.parentElement;
+            const code = codeBlock.querySelector('code').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                btn.textContent = '✓ コピー完了';
+                setTimeout(() => { btn.textContent = 'コピー'; }, 2000);
+            });
+        }
+
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                let progress = JSON.parse(localStorage.getItem('playwright-progress')) || { lessonsCompleted: 0, completedLessons: [] };
+                if (!progress.completedLessons.includes('week1-lesson4')) {
+                    progress.completedLessons.push('week1-lesson4');
+                    progress.lessonsCompleted++;
+                    localStorage.setItem('playwright-progress', JSON.stringify(progress));
+                }
+            }, 5000);
+        });
+    </script>
+</body>
+</html>

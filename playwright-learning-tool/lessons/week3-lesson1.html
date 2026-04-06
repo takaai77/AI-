@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Week 3 - レッスン1: 待機処理を理解しよう | Playwright マスター道場</title>
+    <style>
+        :root { --primary: #6366f1; --secondary: #10b981; --accent: #f59e0b; --bg: #0f172a; --bg-light: #1e293b; --text: #e2e8f0; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg); color: var(--text); line-height: 1.8; }
+        .nav { background: var(--bg-light); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .nav a { color: var(--text); text-decoration: none; }
+        .lesson-header { background: linear-gradient(135deg, #10b981, #34d399); padding: 3rem 2rem; text-align: center; }
+        .lesson-badge { background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 2rem; font-size: 0.9rem; display: inline-block; margin-bottom: 1rem; }
+        .lesson-header h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+        .content { max-width: 800px; margin: 0 auto; padding: 2rem; }
+        .section { background: var(--bg-light); border-radius: 1rem; padding: 2rem; margin-bottom: 2rem; }
+        .section h2 { color: var(--primary); margin-bottom: 1rem; font-size: 1.5rem; }
+        .section h3 { color: var(--accent); margin: 1.5rem 0 1rem; }
+        .section p { margin-bottom: 1rem; }
+        .code-block { background: #0d1117; border-radius: 0.5rem; padding: 1.5rem; margin: 1rem 0; overflow-x: auto; font-family: 'Fira Code', 'Consolas', monospace; font-size: 0.9rem; border: 1px solid #30363d; position: relative; }
+        .code-comment { color: #8b949e; }
+        .code-keyword { color: #ff7b72; }
+        .code-string { color: #a5d6ff; }
+        .code-function { color: #d2a8ff; }
+        .code-variable { color: #ffa657; }
+        .copy-btn { position: absolute; top: 0.5rem; right: 0.5rem; background: var(--primary); color: white; border: none; padding: 0.3rem 0.8rem; border-radius: 0.3rem; cursor: pointer; font-size: 0.8rem; }
+        .hint-box { background: rgba(245, 158, 11, 0.2); border-left: 4px solid var(--accent); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 0.5rem 0.5rem 0; }
+        .hint-box h4 { color: var(--accent); margin-bottom: 0.5rem; }
+        .success-box { background: rgba(16, 185, 129, 0.2); border-left: 4px solid var(--secondary); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 0.5rem 0.5rem 0; }
+        .success-box h4 { color: var(--secondary); margin-bottom: 0.5rem; }
+        .warning-box { background: rgba(239, 68, 68, 0.2); border-left: 4px solid #ef4444; padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 0.5rem 0.5rem 0; }
+        .warning-box h4 { color: #ef4444; margin-bottom: 0.5rem; }
+        .command-table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+        .command-table th, .command-table td { padding: 0.8rem; text-align: left; border-bottom: 1px solid var(--bg); }
+        .command-table th { background: var(--bg); color: var(--accent); }
+        .command-table td:first-child { font-family: 'Fira Code', monospace; color: var(--primary); font-size: 0.8rem; }
+        .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-size: 1rem; font-weight: 600; cursor: pointer; border: none; text-decoration: none; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-secondary { background: var(--secondary); color: white; }
+        .navigation-buttons { display: flex; justify-content: space-between; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--bg-light); }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="../index.html">← ホームに戻る</a>
+        <span>Week 3 / Lesson 1</span>
+    </nav>
+
+    <header class="lesson-header">
+        <span class="lesson-badge">Week 3 - レッスン 1/5</span>
+        <h1>⏳ 待機処理を理解しよう</h1>
+        <p>ページの読み込みを待つ方法を学ぼう！</p>
+    </header>
+
+    <main class="content">
+        <section class="section">
+            <h2>🤔 なぜ待機が必要？</h2>
+            <p>Webページは一瞬で表示されるわけではありません。</p>
+            <ul style="margin-left: 1.5rem;">
+                <li>画像やデータの読み込みに時間がかかる</li>
+                <li>ボタンをクリックした後、結果が表示されるまで時間がかかる</li>
+                <li>ページの一部が後から表示される（Ajax）</li>
+            </ul>
+            <p style="margin-top: 1rem;">Playwrightは自動的に待ってくれますが、手動で待機を指定することもできます。</p>
+        </section>
+
+        <section class="section">
+            <h2>⏰ 待機の種類</h2>
+
+            <table class="command-table">
+                <thead>
+                    <tr><th>メソッド</th><th>説明</th><th>使う場面</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>waitForTimeout(ms)</td><td>指定時間待つ</td><td>デバッグ・確認用</td></tr>
+                    <tr><td>waitFor()</td><td>要素が表示されるまで待つ</td><td>動的コンテンツ</td></tr>
+                    <tr><td>waitForLoadState()</td><td>ページ読み込み完了を待つ</td><td>ページ遷移後</td></tr>
+                    <tr><td>waitForURL()</td><td>URLが変わるまで待つ</td><td>リダイレクト</td></tr>
+                    <tr><td>waitForResponse()</td><td>API応答を待つ</td><td>データ取得後</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="section">
+            <h2>📝 基本的な待機</h2>
+
+            <h3>1. 固定時間待機（デバッグ用）</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>
+<span class="code-comment">// 3秒待つ</span>
+<span class="code-keyword">await</span> page.<span class="code-function">waitForTimeout</span>(3000);
+                </code>
+            </div>
+
+            <div class="warning-box">
+                <h4>⚠️ 注意</h4>
+                <p>waitForTimeout は本番コードでは避けよう！実際の状態を待つ方が確実で速い。</p>
+            </div>
+
+            <h3>2. 要素が表示されるまで待つ（おすすめ）</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>
+<span class="code-comment">// 「ログイン成功」が表示されるまで待つ</span>
+<span class="code-keyword">await</span> page.<span class="code-function">getByText</span>(<span class="code-string">'ログイン成功'</span>).<span class="code-function">waitFor</span>();
+
+<span class="code-comment">// 特定の状態を待つ</span>
+<span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'#loading'</span>).<span class="code-function">waitFor</span>({ <span class="code-variable">state</span>: <span class="code-string">'hidden'</span> });
+                </code>
+            </div>
+
+            <h3>3. ページ読み込み完了を待つ</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>
+<span class="code-comment">// DOMの読み込み完了を待つ</span>
+<span class="code-keyword">await</span> page.<span class="code-function">waitForLoadState</span>(<span class="code-string">'domcontentloaded'</span>);
+
+<span class="code-comment">// ネットワーク通信が落ち着くまで待つ</span>
+<span class="code-keyword">await</span> page.<span class="code-function">waitForLoadState</span>(<span class="code-string">'networkidle'</span>);
+                </code>
+            </div>
+
+            <h3>4. URLが変わるまで待つ</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>
+<span class="code-comment">// ログインボタンをクリック</span>
+<span class="code-keyword">await</span> page.<span class="code-function">getByRole</span>(<span class="code-string">'button'</span>, { <span class="code-variable">name</span>: <span class="code-string">'ログイン'</span> }).<span class="code-function">click</span>();
+
+<span class="code-comment">// ダッシュボードページに遷移するまで待つ</span>
+<span class="code-keyword">await</span> page.<span class="code-function">waitForURL</span>(<span class="code-string">'**/dashboard'</span>);
+                </code>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🎯 実践例</h2>
+
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>
+<span class="code-keyword">const</span> { chromium } = <span class="code-function">require</span>(<span class="code-string">'playwright'</span>);
+
+(<span class="code-keyword">async</span> () => {
+    <span class="code-keyword">const</span> browser = <span class="code-keyword">await</span> chromium.<span class="code-function">launch</span>({ <span class="code-variable">headless</span>: <span class="code-keyword">false</span> });
+    <span class="code-keyword">const</span> page = <span class="code-keyword">await</span> browser.<span class="code-function">newPage</span>();
+
+    <span class="code-keyword">await</span> page.<span class="code-function">goto</span>(<span class="code-string">'https://example.com'</span>);
+
+    <span class="code-comment">// ボタンをクリック</span>
+    <span class="code-keyword">await</span> page.<span class="code-function">getByRole</span>(<span class="code-string">'button'</span>, { <span class="code-variable">name</span>: <span class="code-string">'データを取得'</span> }).<span class="code-function">click</span>();
+
+    <span class="code-comment">// ローディングが消えるまで待つ</span>
+    <span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'.loading-spinner'</span>).<span class="code-function">waitFor</span>({ <span class="code-variable">state</span>: <span class="code-string">'hidden'</span> });
+
+    <span class="code-comment">// 結果が表示されるまで待つ</span>
+    <span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'.results'</span>).<span class="code-function">waitFor</span>();
+
+    <span class="code-comment">// 結果を取得</span>
+    <span class="code-keyword">const</span> results = <span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'.results'</span>).<span class="code-function">textContent</span>();
+    console.<span class="code-function">log</span>(<span class="code-string">'結果:'</span>, results);
+
+    <span class="code-keyword">await</span> browser.<span class="code-function">close</span>();
+})();
+                </code>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🎯 このレッスンのまとめ</h2>
+            <ul style="margin-left: 1.5rem;">
+                <li><strong>waitFor()</strong> - 要素の表示を待つ（最もよく使う）</li>
+                <li><strong>waitForLoadState()</strong> - ページ読み込みを待つ</li>
+                <li><strong>waitForURL()</strong> - URL変更を待つ</li>
+                <li><strong>waitForTimeout()</strong> - 固定時間待つ（デバッグ用）</li>
+            </ul>
+
+            <div class="success-box">
+                <h4>🎉 よくできました！</h4>
+                <p>待機処理をマスターしました！次は条件分岐を学ぼう！</p>
+            </div>
+        </section>
+
+        <div class="navigation-buttons">
+            <a href="week2-lesson5.html" class="btn btn-primary">← 前のレッスン</a>
+            <a href="week3-lesson2.html" class="btn btn-secondary">次のレッスンへ →</a>
+        </div>
+    </main>
+
+    <script>
+        function copyCode(btn) {
+            const codeBlock = btn.parentElement;
+            const code = codeBlock.querySelector('code').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                btn.textContent = '✓ コピー完了';
+                setTimeout(() => { btn.textContent = 'コピー'; }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>

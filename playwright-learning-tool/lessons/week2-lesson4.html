@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Week 2 - レッスン4: ページ情報を取得 | Playwright マスター道場</title>
+    <style>
+        :root { --primary: #6366f1; --secondary: #10b981; --accent: #f59e0b; --bg: #0f172a; --bg-light: #1e293b; --text: #e2e8f0; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg); color: var(--text); line-height: 1.8; }
+        .nav { background: var(--bg-light); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .nav a { color: var(--text); text-decoration: none; }
+        .lesson-header { background: linear-gradient(135deg, #8b5cf6, #a78bfa); padding: 3rem 2rem; text-align: center; }
+        .lesson-badge { background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 2rem; font-size: 0.9rem; display: inline-block; margin-bottom: 1rem; }
+        .lesson-header h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+        .content { max-width: 800px; margin: 0 auto; padding: 2rem; }
+        .section { background: var(--bg-light); border-radius: 1rem; padding: 2rem; margin-bottom: 2rem; }
+        .section h2 { color: var(--primary); margin-bottom: 1rem; font-size: 1.5rem; }
+        .section h3 { color: var(--accent); margin: 1.5rem 0 1rem; }
+        .section p { margin-bottom: 1rem; }
+        .code-block { background: #0d1117; border-radius: 0.5rem; padding: 1.5rem; margin: 1rem 0; overflow-x: auto; font-family: 'Fira Code', 'Consolas', monospace; font-size: 0.9rem; border: 1px solid #30363d; position: relative; }
+        .code-comment { color: #8b949e; }
+        .code-keyword { color: #ff7b72; }
+        .code-string { color: #a5d6ff; }
+        .code-function { color: #d2a8ff; }
+        .code-variable { color: #ffa657; }
+        .copy-btn { position: absolute; top: 0.5rem; right: 0.5rem; background: var(--primary); color: white; border: none; padding: 0.3rem 0.8rem; border-radius: 0.3rem; cursor: pointer; font-size: 0.8rem; }
+        .hint-box { background: rgba(245, 158, 11, 0.2); border-left: 4px solid var(--accent); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 0.5rem 0.5rem 0; }
+        .hint-box h4 { color: var(--accent); margin-bottom: 0.5rem; }
+        .success-box { background: rgba(16, 185, 129, 0.2); border-left: 4px solid var(--secondary); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 0.5rem 0.5rem 0; }
+        .success-box h4 { color: var(--secondary); margin-bottom: 0.5rem; }
+        .command-table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+        .command-table th, .command-table td { padding: 0.8rem; text-align: left; border-bottom: 1px solid var(--bg); }
+        .command-table th { background: var(--bg); color: var(--accent); }
+        .command-table td:first-child { font-family: 'Fira Code', monospace; color: var(--primary); font-size: 0.8rem; }
+        .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-size: 1rem; font-weight: 600; cursor: pointer; border: none; text-decoration: none; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-secondary { background: var(--secondary); color: white; }
+        .navigation-buttons { display: flex; justify-content: space-between; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--bg-light); }
+        .progress-indicator { display: flex; justify-content: center; gap: 0.5rem; margin: 2rem 0; }
+        .progress-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--bg-light); }
+        .progress-dot.active { background: var(--primary); }
+        .progress-dot.completed { background: var(--secondary); }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="../index.html">← ホームに戻る</a>
+        <span>Week 2 / Lesson 4</span>
+    </nav>
+
+    <header class="lesson-header">
+        <span class="lesson-badge">Week 2 - レッスン 4/5</span>
+        <h1>📊 ページ情報を取得</h1>
+        <p>テキストや属性値を読み取ろう！</p>
+    </header>
+
+    <div class="progress-indicator">
+        <span class="progress-dot completed"></span>
+        <span class="progress-dot completed"></span>
+        <span class="progress-dot completed"></span>
+        <span class="progress-dot active"></span>
+        <span class="progress-dot"></span>
+    </div>
+
+    <main class="content">
+        <section class="section">
+            <h2>📖 情報取得の基本</h2>
+            <p>Webページからテキストや値を読み取る方法を学びます。スクレイピング（データ収集）に必須のスキル！</p>
+
+            <table class="command-table">
+                <thead>
+                    <tr><th>メソッド</th><th>取得できるもの</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>textContent()</td><td>要素内のテキスト</td></tr>
+                    <tr><td>innerText()</td><td>見えているテキスト</td></tr>
+                    <tr><td>inputValue()</td><td>入力欄の値</td></tr>
+                    <tr><td>getAttribute()</td><td>属性の値</td></tr>
+                    <tr><td>count()</td><td>要素の数</td></tr>
+                    <tr><td>isVisible()</td><td>表示されているか</td></tr>
+                    <tr><td>isEnabled()</td><td>有効かどうか</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="section">
+            <h2>📝 テキストを取得</h2>
+
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>
+<span class="code-keyword">const</span> { chromium } = <span class="code-function">require</span>(<span class="code-string">'playwright'</span>);
+
+(<span class="code-keyword">async</span> () => {
+    <span class="code-keyword">const</span> browser = <span class="code-keyword">await</span> chromium.<span class="code-function">launch</span>();
+    <span class="code-keyword">const</span> page = <span class="code-keyword">await</span> browser.<span class="code-function">newPage</span>();
+    <span class="code-keyword">await</span> page.<span class="code-function">goto</span>(<span class="code-string">'https://example.com'</span>);
+
+    <span class="code-comment">// 要素のテキストを取得</span>
+    <span class="code-keyword">const</span> title = <span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'h1'</span>).<span class="code-function">textContent</span>();
+    console.<span class="code-function">log</span>(<span class="code-string">'タイトル:'</span>, title);
+
+    <span class="code-comment">// 複数の要素のテキストを配列で取得</span>
+    <span class="code-keyword">const</span> items = <span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'p'</span>).<span class="code-function">allTextContents</span>();
+    console.<span class="code-function">log</span>(<span class="code-string">'段落一覧:'</span>, items);
+
+    <span class="code-keyword">await</span> browser.<span class="code-function">close</span>();
+})();
+                </code>
+            </div>
+
+            <div class="hint-box">
+                <h4>💡 textContent と innerText の違い</h4>
+                <p><code>textContent</code> は非表示要素も含む全テキスト、<code>innerText</code> は画面に見えているテキストだけ取得します。</p>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🏷️ 属性値を取得</h2>
+
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>
+<span class="code-comment">// リンクのURL（href属性）を取得</span>
+<span class="code-keyword">const</span> href = <span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'a'</span>).<span class="code-function">getAttribute</span>(<span class="code-string">'href'</span>);
+console.<span class="code-function">log</span>(<span class="code-string">'リンク先:'</span>, href);
+
+<span class="code-comment">// 画像のURL（src属性）を取得</span>
+<span class="code-keyword">const</span> src = <span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'img'</span>).<span class="code-function">getAttribute</span>(<span class="code-string">'src'</span>);
+console.<span class="code-function">log</span>(<span class="code-string">'画像URL:'</span>, src);
+
+<span class="code-comment">// 入力欄のプレースホルダーを取得</span>
+<span class="code-keyword">const</span> placeholder = <span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'input'</span>).<span class="code-function">getAttribute</span>(<span class="code-string">'placeholder'</span>);
+console.<span class="code-function">log</span>(<span class="code-string">'プレースホルダー:'</span>, placeholder);
+                </code>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>📋 実践例: ニュースタイトル収集</h2>
+
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>
+<span class="code-keyword">const</span> { chromium } = <span class="code-function">require</span>(<span class="code-string">'playwright'</span>);
+
+(<span class="code-keyword">async</span> () => {
+    <span class="code-keyword">const</span> browser = <span class="code-keyword">await</span> chromium.<span class="code-function">launch</span>();
+    <span class="code-keyword">const</span> page = <span class="code-keyword">await</span> browser.<span class="code-function">newPage</span>();
+
+    <span class="code-keyword">await</span> page.<span class="code-function">goto</span>(<span class="code-string">'https://news.yahoo.co.jp'</span>);
+
+    <span class="code-comment">// ニュースの見出しを取得</span>
+    <span class="code-keyword">const</span> headlines = page.<span class="code-function">locator</span>(<span class="code-string">'article h2'</span>);
+    <span class="code-keyword">const</span> count = <span class="code-keyword">await</span> headlines.<span class="code-function">count</span>();
+
+    console.<span class="code-function">log</span>(<span class="code-string">`📰 ${count}件のニュースを発見！`</span>);
+
+    <span class="code-comment">// 各見出しを表示</span>
+    <span class="code-keyword">for</span> (<span class="code-keyword">let</span> i = 0; i < count && i < 5; i++) {
+        <span class="code-keyword">const</span> text = <span class="code-keyword">await</span> headlines.<span class="code-function">nth</span>(i).<span class="code-function">textContent</span>();
+        console.<span class="code-function">log</span>(<span class="code-string">`${i + 1}. ${text}`</span>);
+    }
+
+    <span class="code-keyword">await</span> browser.<span class="code-function">close</span>();
+})();
+                </code>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>✅ 状態を確認</h2>
+
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>
+<span class="code-comment">// 要素が表示されているか</span>
+<span class="code-keyword">const</span> isVisible = <span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'#modal'</span>).<span class="code-function">isVisible</span>();
+console.<span class="code-function">log</span>(<span class="code-string">'モーダル表示中:'</span>, isVisible);
+
+<span class="code-comment">// ボタンが有効か（クリックできるか）</span>
+<span class="code-keyword">const</span> isEnabled = <span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'button'</span>).<span class="code-function">isEnabled</span>();
+console.<span class="code-function">log</span>(<span class="code-string">'ボタン有効:'</span>, isEnabled);
+
+<span class="code-comment">// チェックボックスがチェックされているか</span>
+<span class="code-keyword">const</span> isChecked = <span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'input[type="checkbox"]'</span>).<span class="code-function">isChecked</span>();
+console.<span class="code-function">log</span>(<span class="code-string">'チェック済み:'</span>, isChecked);
+
+<span class="code-comment">// 要素の数</span>
+<span class="code-keyword">const</span> count = <span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'.item'</span>).<span class="code-function">count</span>();
+console.<span class="code-function">log</span>(<span class="code-string">'アイテム数:'</span>, count);
+                </code>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🎯 このレッスンのまとめ</h2>
+            <ul style="margin-left: 1.5rem;">
+                <li><strong>textContent()</strong> - テキストを取得</li>
+                <li><strong>allTextContents()</strong> - 全要素のテキストを配列で</li>
+                <li><strong>getAttribute()</strong> - 属性値を取得</li>
+                <li><strong>inputValue()</strong> - 入力値を取得</li>
+                <li><strong>count()</strong> - 要素数を取得</li>
+                <li><strong>isVisible() / isEnabled()</strong> - 状態確認</li>
+            </ul>
+
+            <div class="success-box">
+                <h4>🎉 よくできました！</h4>
+                <p>データ取得をマスターしました！次はフォームの自動入力を学ぼう！</p>
+            </div>
+        </section>
+
+        <div class="navigation-buttons">
+            <a href="week2-lesson3.html" class="btn btn-primary">← 前のレッスン</a>
+            <a href="week2-lesson5.html" class="btn btn-secondary">次のレッスンへ →</a>
+        </div>
+    </main>
+
+    <script>
+        function copyCode(btn) {
+            const codeBlock = btn.parentElement;
+            const code = codeBlock.querySelector('code').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                btn.textContent = '✓ コピー完了';
+                setTimeout(() => { btn.textContent = 'コピー'; }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>

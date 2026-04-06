@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>コードプレイグラウンド | Playwright マスター道場</title>
+    <style>
+        :root { --primary: #6366f1; --secondary: #10b981; --accent: #f59e0b; --bg: #0f172a; --bg-light: #1e293b; --text: #e2e8f0; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+        .nav { background: var(--bg-light); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .nav a { color: var(--text); text-decoration: none; }
+        .header { background: linear-gradient(135deg, #06b6d4, #0891b2); padding: 1.5rem 2rem; text-align: center; }
+        .header h1 { font-size: 1.5rem; margin-bottom: 0.3rem; }
+        .header p { font-size: 0.9rem; opacity: 0.9; }
+        .main { display: flex; flex: 1; overflow: hidden; }
+        .sidebar { width: 250px; background: var(--bg-light); padding: 1rem; overflow-y: auto; border-right: 1px solid #374151; }
+        .sidebar h3 { color: var(--accent); margin-bottom: 1rem; font-size: 1rem; }
+        .template-btn { width: 100%; padding: 0.75rem; margin-bottom: 0.5rem; background: var(--bg); border: 1px solid #374151; color: var(--text); border-radius: 0.5rem; cursor: pointer; text-align: left; font-size: 0.9rem; transition: all 0.2s; }
+        .template-btn:hover { border-color: var(--primary); background: rgba(99, 102, 241, 0.1); }
+        .editor-container { flex: 1; display: flex; flex-direction: column; }
+        .toolbar { background: var(--bg-light); padding: 0.75rem 1rem; display: flex; gap: 1rem; align-items: center; border-bottom: 1px solid #374151; }
+        .toolbar-btn { padding: 0.5rem 1rem; border-radius: 0.5rem; border: none; cursor: pointer; font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem; }
+        .btn-run { background: var(--secondary); color: white; }
+        .btn-run:hover { background: #059669; }
+        .btn-copy { background: var(--primary); color: white; }
+        .btn-copy:hover { background: #4f46e5; }
+        .btn-clear { background: #ef4444; color: white; }
+        .btn-clear:hover { background: #dc2626; }
+        .editor-wrapper { flex: 1; display: flex; }
+        .code-editor { flex: 1; padding: 1rem; background: #0d1117; font-family: 'Fira Code', 'Consolas', monospace; font-size: 14px; color: #c9d1d9; border: none; resize: none; line-height: 1.6; }
+        .code-editor:focus { outline: none; }
+        .output-panel { width: 350px; background: #0d1117; border-left: 1px solid #374151; display: flex; flex-direction: column; }
+        .output-header { background: var(--bg-light); padding: 0.75rem 1rem; font-weight: 600; border-bottom: 1px solid #374151; }
+        .output-content { flex: 1; padding: 1rem; font-family: 'Fira Code', monospace; font-size: 0.85rem; overflow-y: auto; white-space: pre-wrap; }
+        .output-line { margin-bottom: 0.3rem; }
+        .output-success { color: #34d399; }
+        .output-error { color: #f87171; }
+        .output-info { color: #60a5fa; }
+        .tips { background: rgba(245, 158, 11, 0.1); border: 1px solid var(--accent); border-radius: 0.5rem; padding: 1rem; margin-top: 1rem; }
+        .tips h4 { color: var(--accent); margin-bottom: 0.5rem; font-size: 0.9rem; }
+        .tips p { font-size: 0.85rem; color: var(--text); }
+        @media (max-width: 900px) {
+            .main { flex-direction: column; }
+            .sidebar { width: 100%; max-height: 150px; }
+            .editor-wrapper { flex-direction: column; }
+            .output-panel { width: 100%; height: 200px; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="index.html">← ホームに戻る</a>
+        <span>コードプレイグラウンド</span>
+    </nav>
+
+    <header class="header">
+        <h1>💻 Playwright コードプレイグラウンド</h1>
+        <p>コードを書いて構文チェック！実行はローカルで試してね</p>
+    </header>
+
+    <div class="main">
+        <aside class="sidebar">
+            <h3>📝 テンプレート</h3>
+            <button class="template-btn" onclick="loadTemplate('basic')">🚀 基本テンプレート</button>
+            <button class="template-btn" onclick="loadTemplate('screenshot')">📸 スクリーンショット</button>
+            <button class="template-btn" onclick="loadTemplate('search')">🔍 Google検索</button>
+            <button class="template-btn" onclick="loadTemplate('scrape')">📰 データ収集</button>
+            <button class="template-btn" onclick="loadTemplate('form')">📝 フォーム入力</button>
+            <button class="template-btn" onclick="loadTemplate('loop')">🔄 繰り返し処理</button>
+
+            <div class="tips">
+                <h4>💡 ヒント</h4>
+                <p>このプレイグラウンドはコードの書き方を練習する場所です。実際にブラウザを動かすには、コードをコピーしてローカルで実行してね！</p>
+            </div>
+        </aside>
+
+        <div class="editor-container">
+            <div class="toolbar">
+                <button class="toolbar-btn btn-run" onclick="checkCode()">▶ 構文チェック</button>
+                <button class="toolbar-btn btn-copy" onclick="copyCode()">📋 コピー</button>
+                <button class="toolbar-btn btn-clear" onclick="clearEditor()">🗑️ クリア</button>
+            </div>
+            <div class="editor-wrapper">
+                <textarea class="code-editor" id="editor" spellcheck="false" placeholder="ここにPlaywrightのコードを書いてね..."></textarea>
+                <div class="output-panel">
+                    <div class="output-header">📤 出力</div>
+                    <div class="output-content" id="output">
+                        <div class="output-line output-info">💡 コードを書いて「構文チェック」を押してね！</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const templates = {
+            basic: `const { chromium } = require('playwright');
+
+(async () => {
+    // ブラウザを起動（画面表示あり）
+    const browser = await chromium.launch({
+        headless: false
+    });
+
+    // 新しいページを開く
+    const page = await browser.newPage();
+
+    // ここにやりたいことを書こう！
+    await page.goto('https://example.com');
+
+    // 3秒待つ
+    await page.waitForTimeout(3000);
+
+    // ブラウザを閉じる
+    await browser.close();
+
+    console.log('✅ 完了！');
+})();`,
+
+            screenshot: `const { chromium } = require('playwright');
+
+(async () => {
+    const browser = await chromium.launch();
+    const page = await browser.newPage();
+
+    // ページにアクセス
+    await page.goto('https://www.google.com');
+
+    // スクリーンショットを撮影
+    await page.screenshot({
+        path: 'screenshot.png',
+        fullPage: true  // ページ全体を撮影
+    });
+
+    console.log('📸 screenshot.png を保存しました！');
+
+    await browser.close();
+})();`,
+
+            search: `const { chromium } = require('playwright');
+
+(async () => {
+    const browser = await chromium.launch({ headless: false });
+    const page = await browser.newPage();
+
+    // Googleにアクセス
+    await page.goto('https://www.google.com');
+
+    // 検索ボックスに入力
+    await page.locator('input[name="q"]').fill('Playwright 入門');
+
+    // Enterキーで検索
+    await page.locator('input[name="q"]').press('Enter');
+
+    // 結果を待つ
+    await page.waitForLoadState('networkidle');
+
+    // スクリーンショット
+    await page.screenshot({ path: 'search-result.png' });
+
+    console.log('✅ 検索完了！');
+
+    await browser.close();
+})();`,
+
+            scrape: `const { chromium } = require('playwright');
+
+(async () => {
+    const browser = await chromium.launch();
+    const page = await browser.newPage();
+
+    await page.goto('https://example.com');
+
+    // ページタイトルを取得
+    const title = await page.title();
+    console.log('タイトル:', title);
+
+    // 見出しのテキストを取得
+    const heading = await page.locator('h1').textContent();
+    console.log('見出し:', heading);
+
+    // リンクのURLを取得
+    const href = await page.locator('a').getAttribute('href');
+    console.log('リンク:', href);
+
+    await browser.close();
+})();`,
+
+            form: `const { chromium } = require('playwright');
+
+(async () => {
+    const browser = await chromium.launch({ headless: false });
+    const page = await browser.newPage();
+
+    await page.goto('https://example.com/form');
+
+    // テキスト入力
+    await page.getByLabel('お名前').fill('山田 太郎');
+    await page.getByLabel('メール').fill('taro@example.com');
+
+    // セレクトボックス
+    await page.locator('select#country').selectOption('japan');
+
+    // チェックボックス
+    await page.getByLabel('利用規約に同意').check();
+
+    // ラジオボタン
+    await page.getByLabel('男性').check();
+
+    console.log('✅ フォーム入力完了！');
+
+    await page.waitForTimeout(3000);
+    await browser.close();
+})();`,
+
+            loop: `const { chromium } = require('playwright');
+
+(async () => {
+    const browser = await chromium.launch();
+    const page = await browser.newPage();
+
+    // 複数のサイトを巡回
+    const sites = [
+        'https://google.com',
+        'https://yahoo.co.jp',
+        'https://youtube.com'
+    ];
+
+    for (let i = 0; i < sites.length; i++) {
+        console.log(\`\${i + 1}. \${sites[i]} にアクセス中...\`);
+
+        await page.goto(sites[i]);
+        const title = await page.title();
+        console.log(\`   タイトル: \${title}\`);
+
+        await page.screenshot({ path: \`site-\${i + 1}.png\` });
+    }
+
+    console.log('🎉 全サイト巡回完了！');
+    await browser.close();
+})();`
+        };
+
+        function loadTemplate(name) {
+            document.getElementById('editor').value = templates[name];
+            addOutput('📝 テンプレートを読み込みました', 'info');
+        }
+
+        function checkCode() {
+            const code = document.getElementById('editor').value;
+            const output = document.getElementById('output');
+            output.innerHTML = '';
+
+            if (!code.trim()) {
+                addOutput('⚠️ コードを入力してください', 'error');
+                return;
+            }
+
+            try {
+                // 基本的な構文チェック
+                new Function(code);
+
+                addOutput('✅ 構文チェック: OK', 'success');
+
+                // Playwright固有のチェック
+                if (!code.includes('require(\'playwright\')') && !code.includes('require("playwright")')) {
+                    addOutput('💡 Playwrightのrequireが見つかりません', 'info');
+                }
+
+                if (!code.includes('browser.close()')) {
+                    addOutput('⚠️ browser.close() を忘れずに！', 'info');
+                }
+
+                if (code.includes('async') && !code.includes('await')) {
+                    addOutput('💡 async関数内でawaitを使っていますか？', 'info');
+                }
+
+                if (code.includes('headless: false')) {
+                    addOutput('👀 headless: false → ブラウザ画面が表示されます', 'info');
+                } else if (code.includes('launch()') && !code.includes('headless')) {
+                    addOutput('🙈 デフォルトはheadlessモード（画面なし）です', 'info');
+                }
+
+                addOutput('', 'info');
+                addOutput('📋 コードをコピーしてローカルで実行してね！', 'info');
+                addOutput('   node your-script.js', 'info');
+
+            } catch (error) {
+                addOutput('❌ 構文エラー: ' + error.message, 'error');
+
+                // よくあるエラーのヒント
+                if (error.message.includes('Unexpected token')) {
+                    addOutput('💡 括弧やクォートの閉じ忘れがないか確認してね', 'info');
+                }
+            }
+        }
+
+        function addOutput(text, type) {
+            const output = document.getElementById('output');
+            const line = document.createElement('div');
+            line.className = 'output-line output-' + type;
+            line.textContent = text;
+            output.appendChild(line);
+        }
+
+        function copyCode() {
+            const code = document.getElementById('editor').value;
+            navigator.clipboard.writeText(code).then(() => {
+                addOutput('📋 コードをコピーしました！', 'success');
+            });
+        }
+
+        function clearEditor() {
+            document.getElementById('editor').value = '';
+            document.getElementById('output').innerHTML = '<div class="output-line output-info">🧹 クリアしました</div>';
+        }
+
+        // 初期テンプレートを読み込み
+        loadTemplate('basic');
+    </script>
+</body>
+</html>

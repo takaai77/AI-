@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>コマンド辞典 | Playwright マスター道場</title>
+    <style>
+        :root { --primary: #6366f1; --secondary: #10b981; --accent: #f59e0b; --bg: #0f172a; --bg-light: #1e293b; --text: #e2e8f0; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg); color: var(--text); line-height: 1.8; }
+        .nav { background: var(--bg-light); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .nav a { color: var(--text); text-decoration: none; }
+        .header { background: linear-gradient(135deg, var(--primary), #8b5cf6); padding: 3rem 2rem; text-align: center; }
+        .header h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+        .content { max-width: 1000px; margin: 0 auto; padding: 2rem; }
+        .search-box { background: var(--bg-light); padding: 1rem; border-radius: 0.5rem; margin-bottom: 2rem; }
+        .search-input { width: 100%; padding: 1rem; font-size: 1.1rem; border: 2px solid #374151; border-radius: 0.5rem; background: var(--bg); color: var(--text); }
+        .search-input:focus { border-color: var(--primary); outline: none; }
+        .category { background: var(--bg-light); border-radius: 1rem; padding: 1.5rem; margin-bottom: 1.5rem; }
+        .category h2 { color: var(--accent); margin-bottom: 1rem; font-size: 1.3rem; border-bottom: 2px solid var(--accent); padding-bottom: 0.5rem; }
+        .command { background: var(--bg); border-radius: 0.5rem; padding: 1rem; margin-bottom: 0.75rem; border-left: 3px solid var(--primary); }
+        .command-name { font-family: 'Fira Code', monospace; color: var(--primary); font-size: 1rem; font-weight: bold; }
+        .command-desc { color: var(--text); margin-top: 0.3rem; font-size: 0.9rem; }
+        .command-example { background: #0d1117; padding: 0.5rem 1rem; border-radius: 0.3rem; margin-top: 0.5rem; font-family: 'Fira Code', monospace; font-size: 0.85rem; color: #a5d6ff; overflow-x: auto; }
+        .tag { display: inline-block; background: var(--secondary); color: white; padding: 0.1rem 0.5rem; border-radius: 0.25rem; font-size: 0.7rem; margin-left: 0.5rem; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="../index.html">← ホームに戻る</a>
+        <span>コマンド辞典</span>
+    </nav>
+
+    <header class="header">
+        <h1>📖 Playwright コマンド辞典</h1>
+        <p>よく使うコマンドをすぐに調べられる！</p>
+    </header>
+
+    <main class="content">
+        <div class="search-box">
+            <input type="text" class="search-input" id="search" placeholder="🔍 コマンドを検索...（例: click, fill, wait）" oninput="filterCommands()">
+        </div>
+
+        <div class="category" data-category="browser">
+            <h2>🌐 ブラウザ操作</h2>
+            <div class="command" data-keywords="launch 起動 開く ブラウザ">
+                <div class="command-name">chromium.launch(options)</div>
+                <div class="command-desc">ブラウザを起動する</div>
+                <div class="command-example">await chromium.launch({ headless: false })</div>
+            </div>
+            <div class="command" data-keywords="newpage 新規 タブ ページ">
+                <div class="command-name">browser.newPage()</div>
+                <div class="command-desc">新しいページ（タブ）を開く</div>
+                <div class="command-example">const page = await browser.newPage()</div>
+            </div>
+            <div class="command" data-keywords="close 閉じる 終了">
+                <div class="command-name">browser.close()</div>
+                <div class="command-desc">ブラウザを閉じる</div>
+                <div class="command-example">await browser.close()</div>
+            </div>
+        </div>
+
+        <div class="category" data-category="navigation">
+            <h2>🧭 ナビゲーション</h2>
+            <div class="command" data-keywords="goto 移動 アクセス url">
+                <div class="command-name">page.goto(url)</div>
+                <div class="command-desc">指定URLに移動する</div>
+                <div class="command-example">await page.goto('https://google.com')</div>
+            </div>
+            <div class="command" data-keywords="goback 戻る 前">
+                <div class="command-name">page.goBack()</div>
+                <div class="command-desc">前のページに戻る</div>
+                <div class="command-example">await page.goBack()</div>
+            </div>
+            <div class="command" data-keywords="goforward 進む 次">
+                <div class="command-name">page.goForward()</div>
+                <div class="command-desc">次のページに進む</div>
+                <div class="command-example">await page.goForward()</div>
+            </div>
+            <div class="command" data-keywords="reload 更新 リロード">
+                <div class="command-name">page.reload()</div>
+                <div class="command-desc">ページを更新する</div>
+                <div class="command-example">await page.reload()</div>
+            </div>
+            <div class="command" data-keywords="url 現在 アドレス">
+                <div class="command-name">page.url()</div>
+                <div class="command-desc">現在のURLを取得</div>
+                <div class="command-example">const currentUrl = page.url()</div>
+            </div>
+            <div class="command" data-keywords="title タイトル 題名">
+                <div class="command-name">page.title()</div>
+                <div class="command-desc">ページタイトルを取得</div>
+                <div class="command-example">const title = await page.title()</div>
+            </div>
+        </div>
+
+        <div class="category" data-category="locators">
+            <h2>🎯 要素の検索（セレクタ）</h2>
+            <div class="command" data-keywords="getbyrole ロール 役割 ボタン リンク">
+                <div class="command-name">page.getByRole(role, options) <span class="tag">おすすめ</span></div>
+                <div class="command-desc">役割で要素を探す（button, link, textboxなど）</div>
+                <div class="command-example">page.getByRole('button', { name: '送信' })</div>
+            </div>
+            <div class="command" data-keywords="getbytext テキスト 文字">
+                <div class="command-name">page.getByText(text) <span class="tag">おすすめ</span></div>
+                <div class="command-desc">表示テキストで要素を探す</div>
+                <div class="command-example">page.getByText('ログイン')</div>
+            </div>
+            <div class="command" data-keywords="getbylabel ラベル フォーム">
+                <div class="command-name">page.getByLabel(label)</div>
+                <div class="command-desc">ラベルで入力欄を探す</div>
+                <div class="command-example">page.getByLabel('メールアドレス')</div>
+            </div>
+            <div class="command" data-keywords="getbyplaceholder プレースホルダー">
+                <div class="command-name">page.getByPlaceholder(text)</div>
+                <div class="command-desc">プレースホルダーで探す</div>
+                <div class="command-example">page.getByPlaceholder('検索...')</div>
+            </div>
+            <div class="command" data-keywords="locator css セレクタ id class">
+                <div class="command-name">page.locator(selector)</div>
+                <div class="command-desc">CSSセレクタで要素を探す</div>
+                <div class="command-example">page.locator('#login-btn')</div>
+            </div>
+            <div class="command" data-keywords="first 最初 1番目">
+                <div class="command-name">locator.first()</div>
+                <div class="command-desc">最初の要素を選択</div>
+                <div class="command-example">page.locator('button').first()</div>
+            </div>
+            <div class="command" data-keywords="last 最後">
+                <div class="command-name">locator.last()</div>
+                <div class="command-desc">最後の要素を選択</div>
+                <div class="command-example">page.locator('button').last()</div>
+            </div>
+            <div class="command" data-keywords="nth n番目 インデックス">
+                <div class="command-name">locator.nth(index)</div>
+                <div class="command-desc">N番目の要素を選択（0始まり）</div>
+                <div class="command-example">page.locator('li').nth(2) // 3番目</div>
+            </div>
+        </div>
+
+        <div class="category" data-category="actions">
+            <h2>🖱️ アクション</h2>
+            <div class="command" data-keywords="click クリック 押す">
+                <div class="command-name">locator.click()</div>
+                <div class="command-desc">要素をクリック</div>
+                <div class="command-example">await page.getByRole('button').click()</div>
+            </div>
+            <div class="command" data-keywords="dblclick ダブルクリック">
+                <div class="command-name">locator.dblclick()</div>
+                <div class="command-desc">ダブルクリック</div>
+                <div class="command-example">await page.locator('#item').dblclick()</div>
+            </div>
+            <div class="command" data-keywords="fill 入力 テキスト 文字">
+                <div class="command-name">locator.fill(text)</div>
+                <div class="command-desc">テキストを入力（上書き）</div>
+                <div class="command-example">await page.getByLabel('名前').fill('太郎')</div>
+            </div>
+            <div class="command" data-keywords="type タイプ 1文字ずつ">
+                <div class="command-name">locator.type(text)</div>
+                <div class="command-desc">1文字ずつ入力</div>
+                <div class="command-example">await page.locator('input').type('hello')</div>
+            </div>
+            <div class="command" data-keywords="press キー enter tab">
+                <div class="command-name">locator.press(key)</div>
+                <div class="command-desc">キーを押す</div>
+                <div class="command-example">await page.locator('input').press('Enter')</div>
+            </div>
+            <div class="command" data-keywords="clear クリア 消す 削除">
+                <div class="command-name">locator.clear()</div>
+                <div class="command-desc">入力欄をクリア</div>
+                <div class="command-example">await page.locator('input').clear()</div>
+            </div>
+            <div class="command" data-keywords="check チェック チェックボックス">
+                <div class="command-name">locator.check()</div>
+                <div class="command-desc">チェックボックスをチェック</div>
+                <div class="command-example">await page.getByLabel('同意する').check()</div>
+            </div>
+            <div class="command" data-keywords="uncheck チェック解除">
+                <div class="command-name">locator.uncheck()</div>
+                <div class="command-desc">チェックを外す</div>
+                <div class="command-example">await page.getByLabel('メール配信').uncheck()</div>
+            </div>
+            <div class="command" data-keywords="selectoption セレクト ドロップダウン 選択">
+                <div class="command-name">locator.selectOption(value)</div>
+                <div class="command-desc">セレクトボックスで選択</div>
+                <div class="command-example">await page.locator('select').selectOption('japan')</div>
+            </div>
+            <div class="command" data-keywords="hover マウスオーバー">
+                <div class="command-name">locator.hover()</div>
+                <div class="command-desc">マウスを乗せる</div>
+                <div class="command-example">await page.getByText('メニュー').hover()</div>
+            </div>
+        </div>
+
+        <div class="category" data-category="get-info">
+            <h2>📊 情報取得</h2>
+            <div class="command" data-keywords="textcontent テキスト 文字 取得">
+                <div class="command-name">locator.textContent()</div>
+                <div class="command-desc">要素のテキストを取得</div>
+                <div class="command-example">const text = await page.locator('h1').textContent()</div>
+            </div>
+            <div class="command" data-keywords="alltextcontents 全て 配列">
+                <div class="command-name">locator.allTextContents()</div>
+                <div class="command-desc">全要素のテキストを配列で取得</div>
+                <div class="command-example">const texts = await page.locator('li').allTextContents()</div>
+            </div>
+            <div class="command" data-keywords="getattribute 属性 href src">
+                <div class="command-name">locator.getAttribute(name)</div>
+                <div class="command-desc">属性値を取得</div>
+                <div class="command-example">const href = await page.locator('a').getAttribute('href')</div>
+            </div>
+            <div class="command" data-keywords="inputvalue 入力値">
+                <div class="command-name">locator.inputValue()</div>
+                <div class="command-desc">入力欄の値を取得</div>
+                <div class="command-example">const value = await page.locator('input').inputValue()</div>
+            </div>
+            <div class="command" data-keywords="count 数 カウント">
+                <div class="command-name">locator.count()</div>
+                <div class="command-desc">要素の数を取得</div>
+                <div class="command-example">const count = await page.locator('.item').count()</div>
+            </div>
+            <div class="command" data-keywords="isvisible 表示 見える">
+                <div class="command-name">locator.isVisible()</div>
+                <div class="command-desc">表示されているか確認</div>
+                <div class="command-example">const visible = await page.locator('#modal').isVisible()</div>
+            </div>
+            <div class="command" data-keywords="isenabled 有効 クリック可能">
+                <div class="command-name">locator.isEnabled()</div>
+                <div class="command-desc">有効（操作可能）か確認</div>
+                <div class="command-example">const enabled = await page.locator('button').isEnabled()</div>
+            </div>
+            <div class="command" data-keywords="ischecked チェック状態">
+                <div class="command-name">locator.isChecked()</div>
+                <div class="command-desc">チェック状態を確認</div>
+                <div class="command-example">const checked = await page.locator('input').isChecked()</div>
+            </div>
+        </div>
+
+        <div class="category" data-category="wait">
+            <h2>⏳ 待機</h2>
+            <div class="command" data-keywords="waitfortimeout 秒 待つ タイムアウト">
+                <div class="command-name">page.waitForTimeout(ms)</div>
+                <div class="command-desc">指定ミリ秒待つ（デバッグ用）</div>
+                <div class="command-example">await page.waitForTimeout(3000) // 3秒</div>
+            </div>
+            <div class="command" data-keywords="waitfor 表示 待つ">
+                <div class="command-name">locator.waitFor()</div>
+                <div class="command-desc">要素が表示されるまで待つ</div>
+                <div class="command-example">await page.locator('#result').waitFor()</div>
+            </div>
+            <div class="command" data-keywords="waitforloadstate 読み込み">
+                <div class="command-name">page.waitForLoadState(state)</div>
+                <div class="command-desc">ページ読み込み完了を待つ</div>
+                <div class="command-example">await page.waitForLoadState('networkidle')</div>
+            </div>
+            <div class="command" data-keywords="waitforurl url 遷移">
+                <div class="command-name">page.waitForURL(url)</div>
+                <div class="command-desc">URLが変わるまで待つ</div>
+                <div class="command-example">await page.waitForURL('**/dashboard')</div>
+            </div>
+        </div>
+
+        <div class="category" data-category="screenshot">
+            <h2>📸 スクリーンショット</h2>
+            <div class="command" data-keywords="screenshot 撮影 画像 保存">
+                <div class="command-name">page.screenshot(options)</div>
+                <div class="command-desc">ページのスクリーンショットを撮る</div>
+                <div class="command-example">await page.screenshot({ path: 'screenshot.png' })</div>
+            </div>
+            <div class="command" data-keywords="fullpage 全体 フルページ">
+                <div class="command-name">page.screenshot({ fullPage: true })</div>
+                <div class="command-desc">ページ全体を撮影</div>
+                <div class="command-example">await page.screenshot({ path: 'full.png', fullPage: true })</div>
+            </div>
+            <div class="command" data-keywords="element 要素 部分">
+                <div class="command-name">locator.screenshot()</div>
+                <div class="command-desc">特定要素だけ撮影</div>
+                <div class="command-example">await page.locator('#chart').screenshot({ path: 'chart.png' })</div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function filterCommands() {
+            const query = document.getElementById('search').value.toLowerCase();
+            const commands = document.querySelectorAll('.command');
+
+            commands.forEach(cmd => {
+                const keywords = cmd.dataset.keywords.toLowerCase();
+                const name = cmd.querySelector('.command-name').textContent.toLowerCase();
+                const desc = cmd.querySelector('.command-desc').textContent.toLowerCase();
+
+                if (keywords.includes(query) || name.includes(query) || desc.includes(query)) {
+                    cmd.classList.remove('hidden');
+                } else {
+                    cmd.classList.add('hidden');
+                }
+            });
+
+            // カテゴリの表示/非表示
+            document.querySelectorAll('.category').forEach(cat => {
+                const visibleCommands = cat.querySelectorAll('.command:not(.hidden)');
+                cat.style.display = visibleCommands.length > 0 ? 'block' : 'none';
+            });
+        }
+    </script>
+</body>
+</html>

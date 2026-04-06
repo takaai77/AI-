@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Week 2 - レッスン2: テキストを入力しよう | Playwright マスター道場</title>
+    <style>
+        :root { --primary: #6366f1; --primary-dark: #4f46e5; --secondary: #10b981; --accent: #f59e0b; --bg: #0f172a; --bg-light: #1e293b; --text: #e2e8f0; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg); color: var(--text); line-height: 1.8; }
+        .nav { background: var(--bg-light); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .nav a { color: var(--text); text-decoration: none; }
+        .lesson-header { background: linear-gradient(135deg, #8b5cf6, #a78bfa); padding: 3rem 2rem; text-align: center; }
+        .lesson-badge { background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 2rem; font-size: 0.9rem; display: inline-block; margin-bottom: 1rem; }
+        .lesson-header h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+        .content { max-width: 800px; margin: 0 auto; padding: 2rem; }
+        .section { background: var(--bg-light); border-radius: 1rem; padding: 2rem; margin-bottom: 2rem; }
+        .section h2 { color: var(--primary); margin-bottom: 1rem; font-size: 1.5rem; }
+        .section h3 { color: var(--accent); margin: 1.5rem 0 1rem; }
+        .section p { margin-bottom: 1rem; }
+        .code-block { background: #0d1117; border-radius: 0.5rem; padding: 1.5rem; margin: 1rem 0; overflow-x: auto; font-family: 'Fira Code', 'Consolas', monospace; font-size: 0.9rem; border: 1px solid #30363d; position: relative; }
+        .code-comment { color: #8b949e; }
+        .code-keyword { color: #ff7b72; }
+        .code-string { color: #a5d6ff; }
+        .code-function { color: #d2a8ff; }
+        .code-variable { color: #ffa657; }
+        .copy-btn { position: absolute; top: 0.5rem; right: 0.5rem; background: var(--primary); color: white; border: none; padding: 0.3rem 0.8rem; border-radius: 0.3rem; cursor: pointer; font-size: 0.8rem; }
+        .hint-box { background: rgba(245, 158, 11, 0.2); border-left: 4px solid var(--accent); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 0.5rem 0.5rem 0; }
+        .hint-box h4 { color: var(--accent); margin-bottom: 0.5rem; }
+        .success-box { background: rgba(16, 185, 129, 0.2); border-left: 4px solid var(--secondary); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 0.5rem 0.5rem 0; }
+        .success-box h4 { color: var(--secondary); margin-bottom: 0.5rem; }
+        .command-table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+        .command-table th, .command-table td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--bg); }
+        .command-table th { background: var(--bg); color: var(--accent); }
+        .command-table td:first-child { font-family: 'Fira Code', monospace; color: var(--primary); font-size: 0.85rem; }
+        .demo-box { background: white; color: #1f2937; padding: 2rem; border-radius: 0.5rem; margin: 1rem 0; }
+        .demo-input { width: 100%; padding: 1rem; font-size: 1.1rem; border: 2px solid #e5e7eb; border-radius: 0.5rem; margin-bottom: 1rem; }
+        .demo-input:focus { border-color: #3b82f6; outline: none; }
+        .exercise { background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(6, 182, 212, 0.2)); border-radius: 1rem; padding: 1.5rem; margin: 1.5rem 0; border: 2px solid var(--secondary); }
+        .exercise h4 { color: var(--secondary); margin-bottom: 1rem; }
+        .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-size: 1rem; font-weight: 600; cursor: pointer; border: none; text-decoration: none; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-secondary { background: var(--secondary); color: white; }
+        .navigation-buttons { display: flex; justify-content: space-between; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--bg-light); }
+        .progress-indicator { display: flex; justify-content: center; gap: 0.5rem; margin: 2rem 0; }
+        .progress-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--bg-light); }
+        .progress-dot.active { background: var(--primary); }
+        .progress-dot.completed { background: var(--secondary); }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="../index.html">← ホームに戻る</a>
+        <span>Week 2 / Lesson 2</span>
+    </nav>
+
+    <header class="lesson-header">
+        <span class="lesson-badge">Week 2 - レッスン 2/5</span>
+        <h1>⌨️ テキストを入力しよう</h1>
+        <p>検索ボックスやフォームに文字を入力しよう！</p>
+    </header>
+
+    <div class="progress-indicator">
+        <span class="progress-dot completed"></span>
+        <span class="progress-dot active"></span>
+        <span class="progress-dot"></span>
+        <span class="progress-dot"></span>
+        <span class="progress-dot"></span>
+    </div>
+
+    <main class="content">
+        <section class="section">
+            <h2>📝 入力の基本</h2>
+            <p>Webページのテキスト入力欄（input）に文字を入力する方法を学びます。</p>
+
+            <div class="demo-box">
+                <p style="margin-bottom: 0.5rem;">↓ 実際に入力してみよう！</p>
+                <input type="text" class="demo-input" placeholder="ここに入力してね..." id="demo-input">
+                <p style="font-size: 0.9rem; color: #6b7280;">入力した文字: <span id="demo-output"></span></p>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🖊️ 入力のコード</h2>
+
+            <h3>方法1: fill() - 一番よく使う！</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>
+<span class="code-comment">// 入力欄を見つけてテキストを入力</span>
+<span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'input[name="q"]'</span>).<span class="code-function">fill</span>(<span class="code-string">'Playwright 入門'</span>);
+
+<span class="code-comment">// プレースホルダーで見つけて入力</span>
+<span class="code-keyword">await</span> page.<span class="code-function">getByPlaceholder</span>(<span class="code-string">'検索'</span>).<span class="code-function">fill</span>(<span class="code-string">'こんにちは'</span>);
+
+<span class="code-comment">// ラベルで見つけて入力</span>
+<span class="code-keyword">await</span> page.<span class="code-function">getByLabel</span>(<span class="code-string">'ユーザー名'</span>).<span class="code-function">fill</span>(<span class="code-string">'taro'</span>);
+                </code>
+            </div>
+
+            <div class="hint-box">
+                <h4>💡 fill() の特徴</h4>
+                <p>fill() は入力欄の中身を「一瞬で」置き換えます。すでに文字が入っていても、全部消して新しい文字を入れます。</p>
+            </div>
+
+            <h3>方法2: type() - 1文字ずつ入力</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>
+<span class="code-comment">// 人間が打つように1文字ずつ入力</span>
+<span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'input'</span>).<span class="code-function">type</span>(<span class="code-string">'こんにちは'</span>);
+
+<span class="code-comment">// 入力速度を指定（ミリ秒）</span>
+<span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'input'</span>).<span class="code-function">type</span>(<span class="code-string">'ゆっくり入力'</span>, { <span class="code-variable">delay</span>: 100 });
+                </code>
+            </div>
+
+            <h3>方法3: pressSequentially() - 最新の方法</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>
+<span class="code-comment">// 1文字ずつ順番に押す</span>
+<span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'input'</span>).<span class="code-function">pressSequentially</span>(<span class="code-string">'hello'</span>);
+                </code>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🎹 特殊キーの入力</h2>
+            <p>Enterキーやタブキーなど、特殊なキーも入力できます。</p>
+
+            <table class="command-table">
+                <thead>
+                    <tr>
+                        <th>コード</th>
+                        <th>キー</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>press('Enter')</td>
+                        <td>Enterキー（決定・送信）</td>
+                    </tr>
+                    <tr>
+                        <td>press('Tab')</td>
+                        <td>Tabキー（次の入力欄へ）</td>
+                    </tr>
+                    <tr>
+                        <td>press('Escape')</td>
+                        <td>Escキー（キャンセル）</td>
+                    </tr>
+                    <tr>
+                        <td>press('Backspace')</td>
+                        <td>バックスペース（1文字削除）</td>
+                    </tr>
+                    <tr>
+                        <td>press('Control+a')</td>
+                        <td>Ctrl+A（全選択）</td>
+                    </tr>
+                    <tr>
+                        <td>press('Control+c')</td>
+                        <td>Ctrl+C（コピー）</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>
+<span class="code-comment">// 入力してEnterキーを押す</span>
+<span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'input'</span>).<span class="code-function">fill</span>(<span class="code-string">'Playwright'</span>);
+<span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'input'</span>).<span class="code-function">press</span>(<span class="code-string">'Enter'</span>);
+
+<span class="code-comment">// 全選択して削除</span>
+<span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'input'</span>).<span class="code-function">press</span>(<span class="code-string">'Control+a'</span>);
+<span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'input'</span>).<span class="code-function">press</span>(<span class="code-string">'Backspace'</span>);
+                </code>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🔍 実践例: Google検索</h2>
+
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>
+<span class="code-keyword">const</span> { chromium } = <span class="code-function">require</span>(<span class="code-string">'playwright'</span>);
+
+(<span class="code-keyword">async</span> () => {
+    <span class="code-keyword">const</span> browser = <span class="code-keyword">await</span> chromium.<span class="code-function">launch</span>({ <span class="code-variable">headless</span>: <span class="code-keyword">false</span> });
+    <span class="code-keyword">const</span> page = <span class="code-keyword">await</span> browser.<span class="code-function">newPage</span>();
+
+    <span class="code-comment">// Googleにアクセス</span>
+    <span class="code-keyword">await</span> page.<span class="code-function">goto</span>(<span class="code-string">'https://www.google.com'</span>);
+
+    <span class="code-comment">// 検索ボックスに入力</span>
+    <span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'input[name="q"]'</span>).<span class="code-function">fill</span>(<span class="code-string">'Playwright 使い方'</span>);
+
+    <span class="code-comment">// Enterキーを押して検索</span>
+    <span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'input[name="q"]'</span>).<span class="code-function">press</span>(<span class="code-string">'Enter'</span>);
+
+    <span class="code-comment">// 結果を確認</span>
+    <span class="code-keyword">await</span> page.<span class="code-function">waitForTimeout</span>(3000);
+
+    console.<span class="code-function">log</span>(<span class="code-string">'✅ 検索完了！'</span>);
+
+    <span class="code-keyword">await</span> browser.<span class="code-function">close</span>();
+})();
+                </code>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🧹 入力欄をクリアする</h2>
+
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>
+<span class="code-comment">// 方法1: clear() を使う</span>
+<span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'input'</span>).<span class="code-function">clear</span>();
+
+<span class="code-comment">// 方法2: 空文字で fill() する</span>
+<span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'input'</span>).<span class="code-function">fill</span>(<span class="code-string">''</span>);
+
+<span class="code-comment">// 方法3: 全選択して削除</span>
+<span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'input'</span>).<span class="code-function">press</span>(<span class="code-string">'Control+a'</span>);
+<span class="code-keyword">await</span> page.<span class="code-function">locator</span>(<span class="code-string">'input'</span>).<span class="code-function">press</span>(<span class="code-string">'Backspace'</span>);
+                </code>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🏋️ 練習問題</h2>
+
+            <div class="exercise">
+                <h4>チャレンジ: Wikipedia検索</h4>
+                <p>Wikipedia（ja.wikipedia.org）にアクセスして、好きな言葉を検索してみよう！</p>
+                <ol style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                    <li>Wikipediaにアクセス</li>
+                    <li>検索ボックスに言葉を入力</li>
+                    <li>Enterキーで検索</li>
+                    <li>スクリーンショットを撮影</li>
+                </ol>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🎯 このレッスンのまとめ</h2>
+            <ul style="margin-left: 1.5rem;">
+                <li><strong>fill()</strong> - テキストを一瞬で入力（おすすめ）</li>
+                <li><strong>type()</strong> - 1文字ずつ入力</li>
+                <li><strong>press()</strong> - 特殊キーを押す</li>
+                <li><strong>clear()</strong> - 入力欄をクリア</li>
+                <li><strong>getByPlaceholder()</strong> - プレースホルダーで要素を探す</li>
+                <li><strong>getByLabel()</strong> - ラベルで要素を探す</li>
+            </ul>
+
+            <div class="success-box">
+                <h4>🎉 よくできました！</h4>
+                <p>テキスト入力をマスターしました！次はセレクタについて詳しく学ぼう！</p>
+            </div>
+        </section>
+
+        <div class="navigation-buttons">
+            <a href="week2-lesson1.html" class="btn btn-primary">← 前のレッスン</a>
+            <a href="week2-lesson3.html" class="btn btn-secondary">次のレッスンへ →</a>
+        </div>
+    </main>
+
+    <script>
+        function copyCode(btn) {
+            const codeBlock = btn.parentElement;
+            const code = codeBlock.querySelector('code').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                btn.textContent = '✓ コピー完了';
+                setTimeout(() => { btn.textContent = 'コピー'; }, 2000);
+            });
+        }
+
+        document.getElementById('demo-input').addEventListener('input', function() {
+            document.getElementById('demo-output').textContent = this.value;
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Week 1 - レッスン2: Playwrightのしくみ | Playwright マスター道場</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #10b981;
+            --accent: #f59e0b;
+            --bg: #0f172a;
+            --bg-light: #1e293b;
+            --text: #e2e8f0;
+            --text-muted: #94a3b8;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.8;
+        }
+        .nav {
+            background: var(--bg-light);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .nav a { color: var(--text); text-decoration: none; }
+        .nav a:hover { color: var(--primary); }
+        .lesson-header {
+            background: linear-gradient(135deg, #3b82f6, #60a5fa);
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+        .lesson-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.9rem;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+        .lesson-header h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+        .lesson-header p { opacity: 0.9; }
+        .content { max-width: 800px; margin: 0 auto; padding: 2rem; }
+        .section {
+            background: var(--bg-light);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        .section h2 { color: var(--primary); margin-bottom: 1rem; font-size: 1.5rem; }
+        .section h3 { color: var(--accent); margin: 1.5rem 0 1rem; }
+        .section p { margin-bottom: 1rem; }
+        .hint-box {
+            background: rgba(245, 158, 11, 0.2);
+            border-left: 4px solid var(--accent);
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+        .hint-box h4 { color: var(--accent); margin-bottom: 0.5rem; }
+        .info-box {
+            background: rgba(99, 102, 241, 0.2);
+            border-left: 4px solid var(--primary);
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+        .info-box h4 { color: var(--primary); margin-bottom: 0.5rem; }
+        .success-box {
+            background: rgba(16, 185, 129, 0.2);
+            border-left: 4px solid var(--secondary);
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+        .success-box h4 { color: var(--secondary); margin-bottom: 0.5rem; }
+        .code-block {
+            background: #0d1117;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+            font-family: 'Fira Code', 'Consolas', monospace;
+            font-size: 0.9rem;
+            border: 1px solid #30363d;
+        }
+        .code-comment { color: #8b949e; }
+        .code-keyword { color: #ff7b72; }
+        .code-string { color: #a5d6ff; }
+        .code-function { color: #d2a8ff; }
+        .code-variable { color: #ffa657; }
+        .diagram {
+            background: var(--bg);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+        .diagram-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+        .diagram-box {
+            background: var(--primary);
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            min-width: 120px;
+        }
+        .diagram-arrow {
+            font-size: 1.5rem;
+            color: var(--accent);
+        }
+        .structure-list {
+            list-style: none;
+            margin: 1rem 0;
+        }
+        .structure-list li {
+            background: var(--bg);
+            padding: 1rem;
+            margin: 0.5rem 0;
+            border-radius: 0.5rem;
+            border-left: 4px solid var(--primary);
+        }
+        .structure-list li strong {
+            color: var(--accent);
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-secondary { background: var(--secondary); color: white; }
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--bg-light);
+        }
+        .progress-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 2rem 0;
+        }
+        .progress-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--bg-light);
+        }
+        .progress-dot.active { background: var(--primary); }
+        .progress-dot.completed { background: var(--secondary); }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="../index.html">← ホームに戻る</a>
+        <span>Week 1 / Lesson 2</span>
+    </nav>
+
+    <header class="lesson-header">
+        <span class="lesson-badge">Week 1 - レッスン 2/5</span>
+        <h1>⚙️ Playwrightのしくみを理解しよう</h1>
+        <p>ブラウザ・ページ・要素の関係を学ぼう！</p>
+    </header>
+
+    <div class="progress-indicator">
+        <span class="progress-dot completed"></span>
+        <span class="progress-dot active"></span>
+        <span class="progress-dot"></span>
+        <span class="progress-dot"></span>
+        <span class="progress-dot"></span>
+    </div>
+
+    <main class="content">
+        <section class="section">
+            <h2>🏗️ Playwrightの3つの階層</h2>
+            <p>Playwrightでは、3つの大きな「箱」を使ってブラウザを操作します。</p>
+
+            <div class="diagram">
+                <div class="diagram-row">
+                    <div class="diagram-box" style="background: #ef4444;">🌐 Browser<br><small>ブラウザ本体</small></div>
+                </div>
+                <div class="diagram-arrow">↓ 中に</div>
+                <div class="diagram-row">
+                    <div class="diagram-box" style="background: #f59e0b;">📄 Page<br><small>タブ（ページ）</small></div>
+                    <div class="diagram-box" style="background: #f59e0b;">📄 Page<br><small>タブ（ページ）</small></div>
+                </div>
+                <div class="diagram-arrow">↓ 中に</div>
+                <div class="diagram-row">
+                    <div class="diagram-box" style="background: #10b981;">🔘 Element<br><small>ボタンや入力欄</small></div>
+                    <div class="diagram-box" style="background: #10b981;">📝 Element<br><small>テキストや画像</small></div>
+                </div>
+            </div>
+
+            <ul class="structure-list">
+                <li><strong>Browser（ブラウザ）</strong> - ChromeやFirefoxのこと。一番大きな箱。</li>
+                <li><strong>Page（ページ）</strong> - ブラウザのタブのこと。複数のタブを開ける。</li>
+                <li><strong>Element（要素）</strong> - ボタン、入力欄、画像など、ページの中身。</li>
+            </ul>
+        </section>
+
+        <section class="section">
+            <h2>📝 基本のコード構造</h2>
+            <p>Playwrightのコードは、いつもこの形で始まります。</p>
+
+            <div class="code-block">
+                <code>
+<span class="code-comment">// ステップ1: Playwrightを読み込む</span>
+<span class="code-keyword">const</span> { chromium } = <span class="code-function">require</span>(<span class="code-string">'playwright'</span>);
+
+<span class="code-comment">// ステップ2: 処理を書く場所（おまじない）</span>
+(<span class="code-keyword">async</span> () => {
+
+    <span class="code-comment">// ステップ3: ブラウザを起動</span>
+    <span class="code-keyword">const</span> browser = <span class="code-keyword">await</span> chromium.<span class="code-function">launch</span>();
+
+    <span class="code-comment">// ステップ4: 新しいページ（タブ）を開く</span>
+    <span class="code-keyword">const</span> page = <span class="code-keyword">await</span> browser.<span class="code-function">newPage</span>();
+
+    <span class="code-comment">// ───────────────────────────</span>
+    <span class="code-comment">// ここにやりたいことを書く！</span>
+    <span class="code-comment">// ───────────────────────────</span>
+
+    <span class="code-comment">// ステップ5: ブラウザを閉じる</span>
+    <span class="code-keyword">await</span> browser.<span class="code-function">close</span>();
+
+})();
+                </code>
+            </div>
+
+            <div class="hint-box">
+                <h4>💡 覚えるポイント</h4>
+                <p>この基本形は毎回使うので、コピペして使い回そう！<br>
+                「async」と「await」は「待つ」という意味。ブラウザの処理が終わるまで待ってから次に進むよ。</p>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🖥️ headless と headed</h2>
+            <p>Playwrightは2つのモードでブラウザを動かせます。</p>
+
+            <div class="diagram">
+                <div class="diagram-row">
+                    <div class="diagram-box" style="background: #6366f1; flex: 1; max-width: 200px;">
+                        <strong>headless: true</strong><br>
+                        🙈 画面なし<br>
+                        <small>速い！でも見えない</small>
+                    </div>
+                    <div class="diagram-box" style="background: #10b981; flex: 1; max-width: 200px;">
+                        <strong>headless: false</strong><br>
+                        👀 画面あり<br>
+                        <small>遅いけど見える！</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="code-block">
+                <code>
+<span class="code-comment">// 画面なし（デフォルト・高速）</span>
+<span class="code-keyword">const</span> browser = <span class="code-keyword">await</span> chromium.<span class="code-function">launch</span>();
+
+<span class="code-comment">// 画面あり（動きが見える・学習向き）</span>
+<span class="code-keyword">const</span> browser = <span class="code-keyword">await</span> chromium.<span class="code-function">launch</span>({
+    <span class="code-variable">headless</span>: <span class="code-keyword">false</span>
+});
+                </code>
+            </div>
+
+            <div class="info-box">
+                <h4>📝 おすすめ</h4>
+                <p>学習中は <code>headless: false</code> にして、ブラウザの動きを目で確認しよう！</p>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🎨 3つのブラウザエンジン</h2>
+            <p>Playwrightは3種類のブラウザを動かせます。</p>
+
+            <ul class="structure-list">
+                <li><strong>chromium</strong> - Chromeと同じエンジン。一番よく使う。</li>
+                <li><strong>firefox</strong> - Firefoxを動かす。</li>
+                <li><strong>webkit</strong> - Safari（iPhoneのブラウザ）を動かす。</li>
+            </ul>
+
+            <div class="code-block">
+                <code>
+<span class="code-comment">// Chrome系を使う（おすすめ）</span>
+<span class="code-keyword">const</span> { chromium } = <span class="code-function">require</span>(<span class="code-string">'playwright'</span>);
+
+<span class="code-comment">// Firefoxを使う</span>
+<span class="code-keyword">const</span> { firefox } = <span class="code-function">require</span>(<span class="code-string">'playwright'</span>);
+
+<span class="code-comment">// Safariを使う</span>
+<span class="code-keyword">const</span> { webkit } = <span class="code-function">require</span>(<span class="code-string">'playwright'</span>);
+                </code>
+            </div>
+
+            <div class="hint-box">
+                <h4>💡 使い分け</h4>
+                <p>まずは <code>chromium</code> だけ使えばOK！慣れてきたら他も試してみよう。</p>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🎯 このレッスンのまとめ</h2>
+            <ul style="margin-left: 1.5rem;">
+                <li><strong>Browser → Page → Element</strong> の3階層構造</li>
+                <li><strong>async/await</strong> で処理の完了を待つ</li>
+                <li><strong>headless: false</strong> で動きを確認できる</li>
+                <li><strong>chromium</strong> をメインで使う</li>
+            </ul>
+
+            <div class="success-box">
+                <h4>🎉 よくできました！</h4>
+                <p>Playwrightの仕組みがわかりました！次は実際にブラウザを操作してみよう！</p>
+            </div>
+        </section>
+
+        <div class="navigation-buttons">
+            <a href="week1-lesson1.html" class="btn btn-primary">← 前のレッスン</a>
+            <a href="week1-lesson3.html" class="btn btn-secondary">次のレッスンへ →</a>
+        </div>
+    </main>
+
+    <script>
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                let progress = JSON.parse(localStorage.getItem('playwright-progress')) || {
+                    lessonsCompleted: 0,
+                    completedLessons: []
+                };
+                if (!progress.completedLessons.includes('week1-lesson2')) {
+                    progress.completedLessons.push('week1-lesson2');
+                    progress.lessonsCompleted++;
+                    localStorage.setItem('playwright-progress', JSON.stringify(progress));
+                }
+            }, 5000);
+        });
+    </script>
+</body>
+</html>

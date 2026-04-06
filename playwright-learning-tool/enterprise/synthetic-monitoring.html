@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>本番監視（Synthetic Monitoring） | Playwright マスター道場</title>
+    <style>
+        :root { --primary: #6366f1; --secondary: #10b981; --accent: #f59e0b; --bg: #0f172a; --bg-light: #1e293b; --text: #e2e8f0; --danger: #ef4444; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg); color: var(--text); line-height: 1.8; }
+        .nav { background: var(--bg-light); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .nav a { color: var(--text); text-decoration: none; }
+        .lesson-header { background: linear-gradient(135deg, #dc2626, #991b1b); padding: 3rem 2rem; text-align: center; }
+        .lesson-badge { background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 2rem; font-size: 0.9rem; display: inline-block; margin-bottom: 1rem; }
+        .lesson-header h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+        .content { max-width: 900px; margin: 0 auto; padding: 2rem; }
+        .section { background: var(--bg-light); border-radius: 1rem; padding: 2rem; margin-bottom: 2rem; }
+        .section h2 { color: var(--primary); margin-bottom: 1rem; font-size: 1.5rem; }
+        .section h3 { color: var(--accent); margin: 1.5rem 0 1rem; }
+        .code-block { background: #0d1117; border-radius: 0.5rem; padding: 1.5rem; margin: 1rem 0; overflow-x: auto; font-family: 'Fira Code', 'Consolas', monospace; font-size: 0.85rem; border: 1px solid #30363d; position: relative; }
+        .code-comment { color: #8b949e; }
+        .code-keyword { color: #ff7b72; }
+        .code-string { color: #a5d6ff; }
+        .code-function { color: #d2a8ff; }
+        .code-variable { color: #ffa657; }
+        .copy-btn { position: absolute; top: 0.5rem; right: 0.5rem; background: var(--primary); color: white; border: none; padding: 0.3rem 0.8rem; border-radius: 0.3rem; cursor: pointer; font-size: 0.8rem; }
+        .warning-box { background: rgba(239, 68, 68, 0.2); border-left: 4px solid var(--danger); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 0.5rem 0.5rem 0; }
+        .warning-box h4 { color: var(--danger); margin-bottom: 0.5rem; }
+        .success-box { background: rgba(16, 185, 129, 0.2); border-left: 4px solid var(--secondary); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 0.5rem 0.5rem 0; }
+        .success-box h4 { color: var(--secondary); margin-bottom: 0.5rem; }
+        .hint-box { background: rgba(245, 158, 11, 0.2); border-left: 4px solid var(--accent); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 0.5rem 0.5rem 0; }
+        .hint-box h4 { color: var(--accent); margin-bottom: 0.5rem; }
+        .metric-card { background: var(--bg); border: 1px solid #374151; border-radius: 0.5rem; padding: 1.5rem; margin: 0.5rem 0; }
+        .metric-card h4 { color: var(--secondary); margin-bottom: 0.5rem; }
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 1rem 0; }
+        .metric-box { background: var(--bg); padding: 1rem; border-radius: 0.5rem; text-align: center; border: 1px solid #374151; }
+        .metric-value { font-size: 2rem; font-weight: bold; color: var(--secondary); }
+        .metric-label { font-size: 0.9rem; color: #9ca3af; }
+        ul { margin-left: 1.5rem; }
+        .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-size: 1rem; font-weight: 600; cursor: pointer; border: none; text-decoration: none; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-secondary { background: var(--secondary); color: white; }
+        .navigation-buttons { display: flex; justify-content: space-between; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--bg-light); }
+        .flow-diagram { display: flex; align-items: center; justify-content: center; gap: 0.5rem; flex-wrap: wrap; padding: 1.5rem; background: var(--bg); border-radius: 0.5rem; margin: 1rem 0; }
+        .flow-step { background: var(--primary); color: white; padding: 0.75rem 1.25rem; border-radius: 0.5rem; font-weight: 600; font-size: 0.9rem; }
+        .flow-arrow { color: var(--accent); font-size: 1.5rem; }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="../index.html">← ホームに戻る</a>
+        <span>エンタープライズ / Synthetic Monitoring</span>
+    </nav>
+
+    <header class="lesson-header">
+        <span class="lesson-badge">エンタープライズ - Lv.9</span>
+        <h1>📡 本番Synthetic Monitoring</h1>
+        <p>100億ECサイトを24時間365日監視する仕組み</p>
+    </header>
+
+    <main class="content">
+        <section class="section">
+            <h2>🎯 このレッスンで学ぶこと</h2>
+            <ul>
+                <li>Synthetic Monitoringとは何か</li>
+                <li>PlaywrightでEC監視スクリプトを構築</li>
+                <li>クリティカルパスの定義と監視</li>
+                <li>アラート・Slack通知の設定</li>
+                <li>SLA/SLO監視とダッシュボード</li>
+            </ul>
+        </section>
+
+        <section class="section">
+            <h2>❓ Synthetic Monitoringとは</h2>
+            <p>実際のユーザー操作をシミュレートして、本番サイトの稼働状況を継続的に監視する手法です。</p>
+
+            <div class="flow-diagram">
+                <span class="flow-step">監視サーバー</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-step">Playwright実行</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-step">本番サイト</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-step">結果収集</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-step">アラート</span>
+            </div>
+
+            <div class="metrics-grid">
+                <div class="metric-box">
+                    <div class="metric-value">5分</div>
+                    <div class="metric-label">監視間隔</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-value">99.9%</div>
+                    <div class="metric-label">SLA目標</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-value">&lt;3秒</div>
+                    <div class="metric-label">レスポンス閾値</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-value">24/7</div>
+                    <div class="metric-label">監視時間</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🛒 EC監視の重要クリティカルパス</h2>
+
+            <div class="warning-box">
+                <h4>⚠️ 100億ECで絶対に止めてはいけないパス</h4>
+                <ul>
+                    <li><strong>トップページ表示</strong> - サイトの入り口</li>
+                    <li><strong>商品検索</strong> - 購買への導線</li>
+                    <li><strong>商品詳細表示</strong> - 購入判断の場</li>
+                    <li><strong>カート追加</strong> - 購入の第一歩</li>
+                    <li><strong>決済完了</strong> - 売上直結</li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>📝 監視スクリプト実装</h2>
+
+            <h3>基本構成</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code><span class="code-comment">// monitoring/ec-health-check.ts</span>
+<span class="code-keyword">import</span> { chromium, Browser, Page } <span class="code-keyword">from</span> <span class="code-string">'playwright'</span>;
+
+<span class="code-keyword">interface</span> HealthCheckResult {
+    checkName: string;
+    status: <span class="code-string">'pass'</span> | <span class="code-string">'fail'</span>;
+    responseTime: number;
+    error?: string;
+    timestamp: Date;
+}
+
+<span class="code-keyword">class</span> <span class="code-function">ECHealthMonitor</span> {
+    <span class="code-keyword">private</span> browser: Browser | null = null;
+    <span class="code-keyword">private</span> baseUrl: string;
+    <span class="code-keyword">private</span> timeout: number;
+
+    <span class="code-function">constructor</span>(baseUrl: string, timeout = 30000) {
+        <span class="code-keyword">this</span>.baseUrl = baseUrl;
+        <span class="code-keyword">this</span>.timeout = timeout;
+    }
+
+    <span class="code-keyword">async</span> <span class="code-function">initialize</span>() {
+        <span class="code-keyword">this</span>.browser = <span class="code-keyword">await</span> chromium.launch({
+            headless: <span class="code-keyword">true</span>,
+            args: [<span class="code-string">'--no-sandbox'</span>, <span class="code-string">'--disable-dev-shm-usage'</span>]
+        });
+    }
+
+    <span class="code-keyword">async</span> <span class="code-function">runAllChecks</span>(): Promise&lt;HealthCheckResult[]&gt; {
+        <span class="code-keyword">const</span> results: HealthCheckResult[] = [];
+
+        results.push(<span class="code-keyword">await</span> <span class="code-keyword">this</span>.checkTopPage());
+        results.push(<span class="code-keyword">await</span> <span class="code-keyword">this</span>.checkSearch());
+        results.push(<span class="code-keyword">await</span> <span class="code-keyword">this</span>.checkProductDetail());
+        results.push(<span class="code-keyword">await</span> <span class="code-keyword">this</span>.checkAddToCart());
+        results.push(<span class="code-keyword">await</span> <span class="code-keyword">this</span>.checkCheckoutFlow());
+
+        <span class="code-keyword">return</span> results;
+    }
+
+    <span class="code-comment">// トップページ監視</span>
+    <span class="code-keyword">async</span> <span class="code-function">checkTopPage</span>(): Promise&lt;HealthCheckResult&gt; {
+        <span class="code-keyword">return</span> <span class="code-keyword">await</span> <span class="code-keyword">this</span>.executeCheck(<span class="code-string">'TopPage'</span>, <span class="code-keyword">async</span> (page) => {
+            <span class="code-keyword">await</span> page.goto(<span class="code-keyword">this</span>.baseUrl);
+            <span class="code-keyword">await</span> page.waitForSelector(<span class="code-string">'[data-testid="main-content"]'</span>);
+
+            <span class="code-comment">// 主要要素の存在確認</span>
+            <span class="code-keyword">await</span> page.waitForSelector(<span class="code-string">'[data-testid="search-box"]'</span>);
+            <span class="code-keyword">await</span> page.waitForSelector(<span class="code-string">'[data-testid="category-nav"]'</span>);
+        });
+    }
+
+    <span class="code-comment">// 検索機能監視</span>
+    <span class="code-keyword">async</span> <span class="code-function">checkSearch</span>(): Promise&lt;HealthCheckResult&gt; {
+        <span class="code-keyword">return</span> <span class="code-keyword">await</span> <span class="code-keyword">this</span>.executeCheck(<span class="code-string">'Search'</span>, <span class="code-keyword">async</span> (page) => {
+            <span class="code-keyword">await</span> page.goto(<span class="code-keyword">this</span>.baseUrl);
+            <span class="code-keyword">await</span> page.fill(<span class="code-string">'[data-testid="search-box"]'</span>, <span class="code-string">'テスト商品'</span>);
+            <span class="code-keyword">await</span> page.click(<span class="code-string">'[data-testid="search-submit"]'</span>);
+
+            <span class="code-comment">// 検索結果が表示されることを確認</span>
+            <span class="code-keyword">await</span> page.waitForSelector(<span class="code-string">'[data-testid="search-results"]'</span>);
+        });
+    }
+
+    <span class="code-comment">// 商品詳細監視</span>
+    <span class="code-keyword">async</span> <span class="code-function">checkProductDetail</span>(): Promise&lt;HealthCheckResult&gt; {
+        <span class="code-keyword">return</span> <span class="code-keyword">await</span> <span class="code-keyword">this</span>.executeCheck(<span class="code-string">'ProductDetail'</span>, <span class="code-keyword">async</span> (page) => {
+            <span class="code-comment">// 監視用商品ページ</span>
+            <span class="code-keyword">await</span> page.goto(<span class="code-string">`</span>${<span class="code-keyword">this</span>.baseUrl}<span class="code-string">/products/monitoring-test-item`</span>);
+
+            <span class="code-keyword">await</span> page.waitForSelector(<span class="code-string">'[data-testid="product-title"]'</span>);
+            <span class="code-keyword">await</span> page.waitForSelector(<span class="code-string">'[data-testid="product-price"]'</span>);
+            <span class="code-keyword">await</span> page.waitForSelector(<span class="code-string">'[data-testid="add-to-cart-btn"]'</span>);
+        });
+    }
+
+    <span class="code-comment">// カート追加監視</span>
+    <span class="code-keyword">async</span> <span class="code-function">checkAddToCart</span>(): Promise&lt;HealthCheckResult&gt; {
+        <span class="code-keyword">return</span> <span class="code-keyword">await</span> <span class="code-keyword">this</span>.executeCheck(<span class="code-string">'AddToCart'</span>, <span class="code-keyword">async</span> (page) => {
+            <span class="code-keyword">await</span> page.goto(<span class="code-string">`</span>${<span class="code-keyword">this</span>.baseUrl}<span class="code-string">/products/monitoring-test-item`</span>);
+            <span class="code-keyword">await</span> page.click(<span class="code-string">'[data-testid="add-to-cart-btn"]'</span>);
+
+            <span class="code-comment">// カートに追加されたことを確認</span>
+            <span class="code-keyword">await</span> page.waitForSelector(<span class="code-string">'[data-testid="cart-notification"]'</span>);
+        });
+    }
+
+    <span class="code-comment">// 購入フロー監視（決済直前まで）</span>
+    <span class="code-keyword">async</span> <span class="code-function">checkCheckoutFlow</span>(): Promise&lt;HealthCheckResult&gt; {
+        <span class="code-keyword">return</span> <span class="code-keyword">await</span> <span class="code-keyword">this</span>.executeCheck(<span class="code-string">'CheckoutFlow'</span>, <span class="code-keyword">async</span> (page) => {
+            <span class="code-comment">// テスト用カートページへ直接遷移</span>
+            <span class="code-keyword">await</span> page.goto(<span class="code-string">`</span>${<span class="code-keyword">this</span>.baseUrl}<span class="code-string">/cart?monitoring=true`</span>);
+            <span class="code-keyword">await</span> page.click(<span class="code-string">'[data-testid="proceed-checkout"]'</span>);
+
+            <span class="code-comment">// チェックアウト画面が表示されることを確認</span>
+            <span class="code-keyword">await</span> page.waitForSelector(<span class="code-string">'[data-testid="checkout-form"]'</span>);
+        });
+    }
+
+    <span class="code-comment">// 汎用チェック実行</span>
+    <span class="code-keyword">private async</span> <span class="code-function">executeCheck</span>(
+        name: string,
+        checkFn: (page: Page) => Promise&lt;void&gt;
+    ): Promise&lt;HealthCheckResult&gt; {
+        <span class="code-keyword">const</span> start = Date.now();
+        <span class="code-keyword">const</span> context = <span class="code-keyword">await</span> <span class="code-keyword">this</span>.browser!.newContext();
+        <span class="code-keyword">const</span> page = <span class="code-keyword">await</span> context.newPage();
+        page.setDefaultTimeout(<span class="code-keyword">this</span>.timeout);
+
+        <span class="code-keyword">try</span> {
+            <span class="code-keyword">await</span> checkFn(page);
+            <span class="code-keyword">return</span> {
+                checkName: name,
+                status: <span class="code-string">'pass'</span>,
+                responseTime: Date.now() - start,
+                timestamp: <span class="code-keyword">new</span> Date()
+            };
+        } <span class="code-keyword">catch</span> (error) {
+            <span class="code-keyword">return</span> {
+                checkName: name,
+                status: <span class="code-string">'fail'</span>,
+                responseTime: Date.now() - start,
+                error: error.message,
+                timestamp: <span class="code-keyword">new</span> Date()
+            };
+        } <span class="code-keyword">finally</span> {
+            <span class="code-keyword">await</span> context.close();
+        }
+    }
+
+    <span class="code-keyword">async</span> <span class="code-function">close</span>() {
+        <span class="code-keyword">await</span> <span class="code-keyword">this</span>.browser?.close();
+    }
+}</code>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🚨 Slack通知の実装</h2>
+
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code><span class="code-comment">// monitoring/slack-notifier.ts</span>
+<span class="code-keyword">interface</span> SlackMessage {
+    channel: string;
+    text: string;
+    attachments?: Array&lt;{
+        color: string;
+        title: string;
+        fields: Array&lt;{ title: string; value: string; short: boolean }&gt;;
+    }&gt;;
+}
+
+<span class="code-keyword">class</span> <span class="code-function">SlackNotifier</span> {
+    <span class="code-keyword">private</span> webhookUrl: string;
+
+    <span class="code-function">constructor</span>(webhookUrl: string) {
+        <span class="code-keyword">this</span>.webhookUrl = webhookUrl;
+    }
+
+    <span class="code-keyword">async</span> <span class="code-function">sendAlert</span>(results: HealthCheckResult[]) {
+        <span class="code-keyword">const</span> failures = results.filter(r => r.status === <span class="code-string">'fail'</span>);
+
+        <span class="code-keyword">if</span> (failures.length === 0) <span class="code-keyword">return</span>;
+
+        <span class="code-keyword">const</span> message: SlackMessage = {
+            channel: <span class="code-string">'#ec-alerts'</span>,
+            text: <span class="code-string">`🚨 EC監視アラート: </span>${failures.length}<span class="code-string">件の障害検知`</span>,
+            attachments: failures.map(f => ({
+                color: <span class="code-string">'danger'</span>,
+                title: <span class="code-string">`❌ </span>${f.checkName}<span class="code-string"> - 失敗`</span>,
+                fields: [
+                    { title: <span class="code-string">'エラー内容'</span>, value: f.error || <span class="code-string">'Unknown'</span>, short: <span class="code-keyword">false</span> },
+                    { title: <span class="code-string">'応答時間'</span>, value: <span class="code-string">`</span>${f.responseTime}<span class="code-string">ms`</span>, short: <span class="code-keyword">true</span> },
+                    { title: <span class="code-string">'検知時刻'</span>, value: f.timestamp.toISOString(), short: <span class="code-keyword">true</span> }
+                ]
+            }))
+        };
+
+        <span class="code-keyword">await</span> fetch(<span class="code-keyword">this</span>.webhookUrl, {
+            method: <span class="code-string">'POST'</span>,
+            headers: { <span class="code-string">'Content-Type'</span>: <span class="code-string">'application/json'</span> },
+            body: JSON.stringify(message)
+        });
+    }
+
+    <span class="code-keyword">async</span> <span class="code-function">sendRecovery</span>(checkName: string) {
+        <span class="code-keyword">const</span> message: SlackMessage = {
+            channel: <span class="code-string">'#ec-alerts'</span>,
+            text: <span class="code-string">`✅ 復旧: </span>${checkName}<span class="code-string"> が正常に戻りました`</span>
+        };
+
+        <span class="code-keyword">await</span> fetch(<span class="code-keyword">this</span>.webhookUrl, {
+            method: <span class="code-string">'POST'</span>,
+            headers: { <span class="code-string">'Content-Type'</span>: <span class="code-string">'application/json'</span> },
+            body: JSON.stringify(message)
+        });
+    }
+}</code>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>⚙️ GitHub Actions定期実行</h2>
+
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code><span class="code-comment"># .github/workflows/synthetic-monitoring.yml</span>
+name: EC Synthetic Monitoring
+
+on:
+  schedule:
+    <span class="code-comment"># 5分おきに実行</span>
+    - cron: <span class="code-string">'*/5 * * * *'</span>
+  workflow_dispatch:  <span class="code-comment"># 手動実行も可能</span>
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: <span class="code-string">'20'</span>
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright
+        run: npx playwright install chromium
+
+      - name: Run monitoring checks
+        id: monitoring
+        env:
+          BASE_URL: ${{ secrets.PRODUCTION_URL }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          npm run monitoring 2>&1 | tee monitoring-output.txt
+          echo "result=$?" >> $GITHUB_OUTPUT
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: monitoring-results-${{ github.run_number }}
+          path: |
+            monitoring-output.txt
+            monitoring-screenshots/
+
+      - name: Send metrics to Datadog
+        if: always()
+        env:
+          DD_API_KEY: ${{ secrets.DATADOG_API_KEY }}
+        run: |
+          npm run send-metrics</code>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>📊 メトリクス収集とダッシュボード</h2>
+
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code><span class="code-comment">// monitoring/metrics-reporter.ts</span>
+<span class="code-keyword">import</span> { HealthCheckResult } <span class="code-keyword">from</span> <span class="code-string">'./types'</span>;
+
+<span class="code-keyword">class</span> <span class="code-function">MetricsReporter</span> {
+    <span class="code-keyword">private</span> datadogApiKey: string;
+
+    <span class="code-function">constructor</span>(apiKey: string) {
+        <span class="code-keyword">this</span>.datadogApiKey = apiKey;
+    }
+
+    <span class="code-keyword">async</span> <span class="code-function">sendMetrics</span>(results: HealthCheckResult[]) {
+        <span class="code-keyword">const</span> timestamp = Math.floor(Date.now() / 1000);
+
+        <span class="code-keyword">const</span> metrics = results.flatMap(r => [
+            <span class="code-comment">// 可用性（0=失敗, 1=成功）</span>
+            {
+                metric: <span class="code-string">'ec.synthetic.availability'</span>,
+                points: [[timestamp, r.status === <span class="code-string">'pass'</span> ? 1 : 0]],
+                tags: [<span class="code-string">`check:</span>${r.checkName}<span class="code-string">`</span>, <span class="code-string">'env:production'</span>]
+            },
+            <span class="code-comment">// レスポンスタイム</span>
+            {
+                metric: <span class="code-string">'ec.synthetic.response_time'</span>,
+                points: [[timestamp, r.responseTime]],
+                tags: [<span class="code-string">`check:</span>${r.checkName}<span class="code-string">`</span>, <span class="code-string">'env:production'</span>]
+            }
+        ]);
+
+        <span class="code-keyword">await</span> fetch(<span class="code-string">'https://api.datadoghq.com/api/v1/series'</span>, {
+            method: <span class="code-string">'POST'</span>,
+            headers: {
+                <span class="code-string">'Content-Type'</span>: <span class="code-string">'application/json'</span>,
+                <span class="code-string">'DD-API-KEY'</span>: <span class="code-keyword">this</span>.datadogApiKey
+            },
+            body: JSON.stringify({ series: metrics })
+        });
+    }
+
+    <span class="code-comment">// SLO計算（過去30日の可用性）</span>
+    <span class="code-keyword">async</span> <span class="code-function">calculateSLO</span>(): Promise&lt;{ availability: number; target: number }&gt; {
+        <span class="code-comment">// Datadogからメトリクスを取得して計算</span>
+        <span class="code-keyword">const</span> thirtyDaysAgo = Math.floor(Date.now() / 1000) - (30 * 24 * 60 * 60);
+        <span class="code-keyword">const</span> now = Math.floor(Date.now() / 1000);
+
+        <span class="code-comment">// クエリ例: 過去30日の成功率</span>
+        <span class="code-keyword">const</span> query = <span class="code-string">`avg:ec.synthetic.availability{env:production}.rollup(avg, 86400)`</span>;
+
+        <span class="code-comment">// 実際のSLO計算ロジック...</span>
+        <span class="code-keyword">return</span> {
+            availability: 99.95,  <span class="code-comment">// 実績</span>
+            target: 99.9          <span class="code-comment">// 目標</span>
+        };
+    }
+}</code>
+            </div>
+
+            <div class="success-box">
+                <h4>SLO/SLIの設定例（100億EC）</h4>
+                <ul>
+                    <li><strong>SLI</strong>: Synthetic監視の成功率</li>
+                    <li><strong>SLO</strong>: 99.9%（月間ダウンタイム43分以内）</li>
+                    <li><strong>エラーバジェット</strong>: 月43分</li>
+                    <li><strong>アラート閾値</strong>: 連続3回失敗でPagerDuty</li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🎯 このレッスンのまとめ</h2>
+
+            <div class="success-box">
+                <h4>マスターした内容</h4>
+                <ul>
+                    <li>Synthetic Monitoringの概念と重要性</li>
+                    <li>ECクリティカルパスの監視スクリプト実装</li>
+                    <li>Slack/PagerDutyへのアラート通知</li>
+                    <li>Datadog連携とSLO監視</li>
+                </ul>
+            </div>
+
+            <div class="hint-box">
+                <h4>💡 運用のコツ</h4>
+                <ul>
+                    <li>監視専用のテスト商品・アカウントを用意</li>
+                    <li>決済は実際に行わない（確認画面まで）</li>
+                    <li>障害時のスクリーンショット保存を忘れずに</li>
+                    <li>誤検知を減らすため連続失敗でアラート</li>
+                </ul>
+            </div>
+        </section>
+
+        <div class="navigation-buttons">
+            <a href="../advanced/ci-templates.html" class="btn btn-primary">← CI/CDテンプレート</a>
+            <a href="performance-testing.html" class="btn btn-secondary">パフォーマンステスト →</a>
+        </div>
+    </main>
+
+    <script>
+        function copyCode(btn) {
+            const codeBlock = btn.parentElement;
+            const code = codeBlock.querySelector('code').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                btn.textContent = '✓ コピー完了';
+                setTimeout(() => { btn.textContent = 'コピー'; }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>

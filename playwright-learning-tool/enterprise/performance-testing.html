@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>パフォーマンステスト | Playwright マスター道場</title>
+    <style>
+        :root { --primary: #6366f1; --secondary: #10b981; --accent: #f59e0b; --bg: #0f172a; --bg-light: #1e293b; --text: #e2e8f0; --danger: #ef4444; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg); color: var(--text); line-height: 1.8; }
+        .nav { background: var(--bg-light); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .nav a { color: var(--text); text-decoration: none; }
+        .lesson-header { background: linear-gradient(135deg, #059669, #047857); padding: 3rem 2rem; text-align: center; }
+        .lesson-badge { background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 2rem; font-size: 0.9rem; display: inline-block; margin-bottom: 1rem; }
+        .lesson-header h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+        .content { max-width: 900px; margin: 0 auto; padding: 2rem; }
+        .section { background: var(--bg-light); border-radius: 1rem; padding: 2rem; margin-bottom: 2rem; }
+        .section h2 { color: var(--primary); margin-bottom: 1rem; font-size: 1.5rem; }
+        .section h3 { color: var(--accent); margin: 1.5rem 0 1rem; }
+        .code-block { background: #0d1117; border-radius: 0.5rem; padding: 1.5rem; margin: 1rem 0; overflow-x: auto; font-family: 'Fira Code', 'Consolas', monospace; font-size: 0.85rem; border: 1px solid #30363d; position: relative; }
+        .code-comment { color: #8b949e; }
+        .code-keyword { color: #ff7b72; }
+        .code-string { color: #a5d6ff; }
+        .code-function { color: #d2a8ff; }
+        .code-variable { color: #ffa657; }
+        .copy-btn { position: absolute; top: 0.5rem; right: 0.5rem; background: var(--primary); color: white; border: none; padding: 0.3rem 0.8rem; border-radius: 0.3rem; cursor: pointer; font-size: 0.8rem; }
+        .success-box { background: rgba(16, 185, 129, 0.2); border-left: 4px solid var(--secondary); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 0.5rem 0.5rem 0; }
+        .success-box h4 { color: var(--secondary); margin-bottom: 0.5rem; }
+        .hint-box { background: rgba(245, 158, 11, 0.2); border-left: 4px solid var(--accent); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 0.5rem 0.5rem 0; }
+        .hint-box h4 { color: var(--accent); margin-bottom: 0.5rem; }
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin: 1rem 0; }
+        .metric-box { background: var(--bg); padding: 1rem; border-radius: 0.5rem; text-align: center; border: 1px solid #374151; }
+        .metric-value { font-size: 1.5rem; font-weight: bold; color: var(--secondary); }
+        .metric-label { font-size: 0.85rem; color: #9ca3af; }
+        ul { margin-left: 1.5rem; }
+        .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-size: 1rem; font-weight: 600; cursor: pointer; border: none; text-decoration: none; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-secondary { background: var(--secondary); color: white; }
+        .navigation-buttons { display: flex; justify-content: space-between; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--bg-light); }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="../index.html">← ホームに戻る</a>
+        <span>エンタープライズ / パフォーマンステスト</span>
+    </nav>
+
+    <header class="lesson-header">
+        <span class="lesson-badge">エンタープライズ - Lv.8</span>
+        <h1>⚡ Playwrightパフォーマンステスト</h1>
+        <p>Core Web Vitalsとユーザー体験を数値化する</p>
+    </header>
+
+    <main class="content">
+        <section class="section">
+            <h2>🎯 このレッスンで学ぶこと</h2>
+            <ul>
+                <li>Core Web Vitals（LCP, FID, CLS）の計測</li>
+                <li>Playwrightでのパフォーマンス計測方法</li>
+                <li>リソース読み込み時間の分析</li>
+                <li>パフォーマンス回帰テストの自動化</li>
+                <li>Lighthouseとの連携</li>
+            </ul>
+        </section>
+
+        <section class="section">
+            <h2>📊 Core Web Vitals とは</h2>
+            <p>Googleが定義した、ユーザー体験の品質を測る指標です。</p>
+
+            <div class="metrics-grid">
+                <div class="metric-box">
+                    <div class="metric-value">LCP</div>
+                    <div class="metric-label">最大コンテンツ描画<br>&lt; 2.5秒</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-value">FID</div>
+                    <div class="metric-label">初回入力遅延<br>&lt; 100ms</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-value">CLS</div>
+                    <div class="metric-label">累積レイアウトシフト<br>&lt; 0.1</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-value">TTFB</div>
+                    <div class="metric-label">最初のバイトまでの時間<br>&lt; 800ms</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>📏 パフォーマンス計測の実装</h2>
+
+            <h3>基本的な計測</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code><span class="code-keyword">import</span> { test, expect } <span class="code-keyword">from</span> <span class="code-string">'@playwright/test'</span>;
+
+test(<span class="code-string">'ページ読み込みパフォーマンス計測'</span>, <span class="code-keyword">async</span> ({ page }) => {
+    <span class="code-comment">// Performance APIを使用</span>
+    <span class="code-keyword">await</span> page.goto(<span class="code-string">'https://example-ec.com'</span>);
+
+    <span class="code-comment">// ナビゲーションタイミングを取得</span>
+    <span class="code-keyword">const</span> performanceData = <span class="code-keyword">await</span> page.evaluate(() => {
+        <span class="code-keyword">const</span> nav = performance.getEntriesByType(<span class="code-string">'navigation'</span>)[0] <span class="code-keyword">as</span> PerformanceNavigationTiming;
+        <span class="code-keyword">return</span> {
+            <span class="code-comment">// DNS解決時間</span>
+            dnsLookup: nav.domainLookupEnd - nav.domainLookupStart,
+            <span class="code-comment">// TCP接続時間</span>
+            tcpConnect: nav.connectEnd - nav.connectStart,
+            <span class="code-comment">// TTFB (Time to First Byte)</span>
+            ttfb: nav.responseStart - nav.requestStart,
+            <span class="code-comment">// ダウンロード時間</span>
+            download: nav.responseEnd - nav.responseStart,
+            <span class="code-comment">// DOM解析時間</span>
+            domParsing: nav.domInteractive - nav.responseEnd,
+            <span class="code-comment">// DOMContentLoaded</span>
+            domContentLoaded: nav.domContentLoadedEventEnd - nav.fetchStart,
+            <span class="code-comment">// 完全読み込み</span>
+            loadComplete: nav.loadEventEnd - nav.fetchStart
+        };
+    });
+
+    console.log(<span class="code-string">'Performance Metrics:'</span>, performanceData);
+
+    <span class="code-comment">// しきい値チェック</span>
+    expect(performanceData.ttfb).toBeLessThan(800);
+    expect(performanceData.loadComplete).toBeLessThan(3000);
+});</code>
+            </div>
+
+            <h3>Core Web Vitals計測</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code><span class="code-keyword">import</span> { test, expect } <span class="code-keyword">from</span> <span class="code-string">'@playwright/test'</span>;
+
+test(<span class="code-string">'Core Web Vitals計測'</span>, <span class="code-keyword">async</span> ({ page }) => {
+    <span class="code-comment">// web-vitalsライブラリを注入して計測</span>
+    <span class="code-keyword">await</span> page.addInitScript(() => {
+        (<span class="code-keyword">window</span> <span class="code-keyword">as</span> any).webVitals = {
+            lcp: 0,
+            fid: 0,
+            cls: 0
+        };
+
+        <span class="code-comment">// LCP (Largest Contentful Paint)</span>
+        <span class="code-keyword">new</span> PerformanceObserver((list) => {
+            <span class="code-keyword">const</span> entries = list.getEntries();
+            <span class="code-keyword">const</span> lastEntry = entries[entries.length - 1];
+            (<span class="code-keyword">window</span> <span class="code-keyword">as</span> any).webVitals.lcp = lastEntry.startTime;
+        }).observe({ type: <span class="code-string">'largest-contentful-paint'</span>, buffered: <span class="code-keyword">true</span> });
+
+        <span class="code-comment">// CLS (Cumulative Layout Shift)</span>
+        <span class="code-keyword">let</span> clsValue = 0;
+        <span class="code-keyword">new</span> PerformanceObserver((list) => {
+            <span class="code-keyword">for</span> (<span class="code-keyword">const</span> entry <span class="code-keyword">of</span> list.getEntries()) {
+                <span class="code-keyword">if</span> (!(entry <span class="code-keyword">as</span> any).hadRecentInput) {
+                    clsValue += (entry <span class="code-keyword">as</span> any).value;
+                }
+            }
+            (<span class="code-keyword">window</span> <span class="code-keyword">as</span> any).webVitals.cls = clsValue;
+        }).observe({ type: <span class="code-string">'layout-shift'</span>, buffered: <span class="code-keyword">true</span> });
+
+        <span class="code-comment">// FID (First Input Delay) - インタラクション時に計測</span>
+        <span class="code-keyword">new</span> PerformanceObserver((list) => {
+            <span class="code-keyword">const</span> firstInput = list.getEntries()[0];
+            (<span class="code-keyword">window</span> <span class="code-keyword">as</span> any).webVitals.fid = (firstInput <span class="code-keyword">as</span> any).processingStart - firstInput.startTime;
+        }).observe({ type: <span class="code-string">'first-input'</span>, buffered: <span class="code-keyword">true</span> });
+    });
+
+    <span class="code-keyword">await</span> page.goto(<span class="code-string">'https://example-ec.com'</span>);
+
+    <span class="code-comment">// ページが安定するまで待機</span>
+    <span class="code-keyword">await</span> page.waitForLoadState(<span class="code-string">'networkidle'</span>);
+    <span class="code-keyword">await</span> page.waitForTimeout(2000);  <span class="code-comment">// CLS計測のため</span>
+
+    <span class="code-comment">// Core Web Vitalsを取得</span>
+    <span class="code-keyword">const</span> vitals = <span class="code-keyword">await</span> page.evaluate(() => (<span class="code-keyword">window</span> <span class="code-keyword">as</span> any).webVitals);
+
+    console.log(<span class="code-string">'Core Web Vitals:'</span>, {
+        LCP: <span class="code-string">`</span>${vitals.lcp.toFixed(0)}<span class="code-string">ms`</span>,
+        CLS: vitals.cls.toFixed(3),
+        FID: <span class="code-string">`</span>${vitals.fid.toFixed(0)}<span class="code-string">ms`</span>
+    });
+
+    <span class="code-comment">// Google推奨しきい値でチェック</span>
+    expect(vitals.lcp).toBeLessThan(2500);  <span class="code-comment">// LCP < 2.5秒</span>
+    expect(vitals.cls).toBeLessThan(0.1);   <span class="code-comment">// CLS < 0.1</span>
+});</code>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🔍 リソース分析</h2>
+
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code>test(<span class="code-string">'リソース読み込み分析'</span>, <span class="code-keyword">async</span> ({ page }) => {
+    <span class="code-keyword">const</span> resourceData: any[] = [];
+
+    <span class="code-comment">// リクエストを監視</span>
+    page.on(<span class="code-string">'response'</span>, <span class="code-keyword">async</span> (response) => {
+        <span class="code-keyword">const</span> timing = response.request().timing();
+        resourceData.push({
+            url: response.url(),
+            status: response.status(),
+            size: (response.headers()[<span class="code-string">'content-length'</span>] || <span class="code-string">'0'</span>),
+            responseTime: timing.responseEnd - timing.requestStart,
+            type: response.request().resourceType()
+        });
+    });
+
+    <span class="code-keyword">await</span> page.goto(<span class="code-string">'https://example-ec.com'</span>);
+    <span class="code-keyword">await</span> page.waitForLoadState(<span class="code-string">'networkidle'</span>);
+
+    <span class="code-comment">// リソース分析</span>
+    <span class="code-keyword">const</span> analysis = {
+        totalRequests: resourceData.length,
+        byType: {} <span class="code-keyword">as</span> Record&lt;string, number&gt;,
+        slowResources: resourceData
+            .filter(r => r.responseTime > 500)
+            .map(r => ({ url: r.url, time: r.responseTime })),
+        largeResources: resourceData
+            .filter(r => parseInt(r.size) > 100000)
+            .map(r => ({ url: r.url, size: r.size }))
+    };
+
+    <span class="code-comment">// タイプ別集計</span>
+    resourceData.forEach(r => {
+        analysis.byType[r.type] = (analysis.byType[r.type] || 0) + 1;
+    });
+
+    console.log(<span class="code-string">'Resource Analysis:'</span>, analysis);
+
+    <span class="code-comment">// パフォーマンス基準チェック</span>
+    expect(analysis.totalRequests).toBeLessThan(100);  <span class="code-comment">// リクエスト数</span>
+    expect(analysis.slowResources.length).toBeLessThan(5);  <span class="code-comment">// 遅いリソース</span>
+});</code>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🚦 Lighthouse連携</h2>
+
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code><span class="code-comment">// playwright.config.ts でLighthouse連携</span>
+<span class="code-keyword">import</span> { test <span class="code-keyword">as</span> base } <span class="code-keyword">from</span> <span class="code-string">'@playwright/test'</span>;
+<span class="code-keyword">import</span> { playAudit } <span class="code-keyword">from</span> <span class="code-string">'playwright-lighthouse'</span>;
+<span class="code-keyword">import</span> { chromium } <span class="code-keyword">from</span> <span class="code-string">'playwright'</span>;
+
+<span class="code-keyword">const</span> test = base.extend({
+    <span class="code-variable">lighthousePage</span>: <span class="code-keyword">async</span> ({}, use) => {
+        <span class="code-keyword">const</span> browser = <span class="code-keyword">await</span> chromium.launch({
+            args: [<span class="code-string">'--remote-debugging-port=9222'</span>]
+        });
+        <span class="code-keyword">const</span> page = <span class="code-keyword">await</span> browser.newPage();
+        <span class="code-keyword">await</span> use(page);
+        <span class="code-keyword">await</span> browser.close();
+    }
+});
+
+test(<span class="code-string">'Lighthouseスコア計測'</span>, <span class="code-keyword">async</span> ({ lighthousePage }) => {
+    <span class="code-keyword">await</span> lighthousePage.goto(<span class="code-string">'https://example-ec.com'</span>);
+
+    <span class="code-keyword">const</span> result = <span class="code-keyword">await</span> playAudit({
+        page: lighthousePage,
+        port: 9222,
+        thresholds: {
+            performance: 80,
+            accessibility: 90,
+            <span class="code-string">'best-practices'</span>: 80,
+            seo: 80
+        }
+    });
+
+    console.log(<span class="code-string">'Lighthouse Scores:'</span>, {
+        performance: result.lhr.categories.performance.score * 100,
+        accessibility: result.lhr.categories.accessibility.score * 100,
+        bestPractices: result.lhr.categories[<span class="code-string">'best-practices'</span>].score * 100,
+        seo: result.lhr.categories.seo.score * 100
+    });
+});</code>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>📈 回帰テスト自動化</h2>
+
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code><span class="code-comment">// performance-regression.spec.ts</span>
+<span class="code-keyword">import</span> { test, expect } <span class="code-keyword">from</span> <span class="code-string">'@playwright/test'</span>;
+<span class="code-keyword">import</span> * <span class="code-keyword">as</span> fs <span class="code-keyword">from</span> <span class="code-string">'fs'</span>;
+
+<span class="code-keyword">interface</span> PerformanceBaseline {
+    lcp: number;
+    cls: number;
+    ttfb: number;
+    loadComplete: number;
+}
+
+<span class="code-comment">// ベースライン（前回の計測値）</span>
+<span class="code-keyword">const</span> baseline: PerformanceBaseline = JSON.parse(
+    fs.readFileSync(<span class="code-string">'./performance-baseline.json'</span>, <span class="code-string">'utf-8'</span>)
+);
+
+<span class="code-comment">// 許容する回帰率（10%）</span>
+<span class="code-keyword">const</span> REGRESSION_THRESHOLD = 1.1;
+
+test.describe(<span class="code-string">'パフォーマンス回帰テスト'</span>, () => {
+    test(<span class="code-string">'トップページのパフォーマンスが回帰していない'</span>, <span class="code-keyword">async</span> ({ page }) => {
+        <span class="code-keyword">await</span> page.goto(<span class="code-string">'https://example-ec.com'</span>);
+        <span class="code-keyword">await</span> page.waitForLoadState(<span class="code-string">'networkidle'</span>);
+
+        <span class="code-keyword">const</span> metrics = <span class="code-keyword">await</span> page.evaluate(() => {
+            <span class="code-keyword">const</span> nav = performance.getEntriesByType(<span class="code-string">'navigation'</span>)[0] <span class="code-keyword">as</span> PerformanceNavigationTiming;
+            <span class="code-keyword">return</span> {
+                ttfb: nav.responseStart - nav.requestStart,
+                loadComplete: nav.loadEventEnd - nav.fetchStart
+            };
+        });
+
+        <span class="code-comment">// 回帰チェック</span>
+        expect(metrics.ttfb).toBeLessThan(baseline.ttfb * REGRESSION_THRESHOLD);
+        expect(metrics.loadComplete).toBeLessThan(baseline.loadComplete * REGRESSION_THRESHOLD);
+
+        <span class="code-comment">// 結果をレポート</span>
+        console.log(<span class="code-string">'Performance Comparison:'</span>, {
+            ttfb: {
+                baseline: baseline.ttfb,
+                current: metrics.ttfb,
+                change: <span class="code-string">`</span>${((metrics.ttfb / baseline.ttfb - 1) * 100).toFixed(1)}<span class="code-string">%`</span>
+            },
+            loadComplete: {
+                baseline: baseline.loadComplete,
+                current: metrics.loadComplete,
+                change: <span class="code-string">`</span>${((metrics.loadComplete / baseline.loadComplete - 1) * 100).toFixed(1)}<span class="code-string">%`</span>
+            }
+        });
+    });
+
+    test(<span class="code-string">'商品一覧ページの読み込み速度'</span>, <span class="code-keyword">async</span> ({ page }) => {
+        <span class="code-keyword">const</span> start = Date.now();
+        <span class="code-keyword">await</span> page.goto(<span class="code-string">'https://example-ec.com/products'</span>);
+        <span class="code-keyword">await</span> page.waitForSelector(<span class="code-string">'[data-testid="product-grid"]'</span>);
+        <span class="code-keyword">const</span> loadTime = Date.now() - start;
+
+        <span class="code-comment">// 絶対値でのチェック</span>
+        expect(loadTime).toBeLessThan(3000);  <span class="code-comment">// 3秒以内</span>
+    });
+});
+
+<span class="code-comment">// ベースライン更新スクリプト</span>
+test(<span class="code-string">'ベースライン更新'</span>, <span class="code-keyword">async</span> ({ page }) => {
+    test.skip(!process.env.UPDATE_BASELINE, <span class="code-string">'ベースライン更新モードでない'</span>);
+
+    <span class="code-keyword">await</span> page.goto(<span class="code-string">'https://example-ec.com'</span>);
+    <span class="code-keyword">await</span> page.waitForLoadState(<span class="code-string">'networkidle'</span>);
+
+    <span class="code-keyword">const</span> newBaseline = <span class="code-keyword">await</span> page.evaluate(() => {
+        <span class="code-keyword">const</span> nav = performance.getEntriesByType(<span class="code-string">'navigation'</span>)[0] <span class="code-keyword">as</span> PerformanceNavigationTiming;
+        <span class="code-keyword">return</span> {
+            ttfb: nav.responseStart - nav.requestStart,
+            loadComplete: nav.loadEventEnd - nav.fetchStart,
+            lcp: 0,  <span class="code-comment">// 別途計測</span>
+            cls: 0
+        };
+    });
+
+    fs.writeFileSync(
+        <span class="code-string">'./performance-baseline.json'</span>,
+        JSON.stringify(newBaseline, null, 2)
+    );
+});</code>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🎯 このレッスンのまとめ</h2>
+
+            <div class="success-box">
+                <h4>マスターした内容</h4>
+                <ul>
+                    <li>Core Web Vitals（LCP, FID, CLS）の計測</li>
+                    <li>Performance APIを使った詳細計測</li>
+                    <li>リソース読み込みの分析</li>
+                    <li>Lighthouse連携</li>
+                    <li>パフォーマンス回帰テストの自動化</li>
+                </ul>
+            </div>
+
+            <div class="hint-box">
+                <h4>💡 100億ECでの運用ポイント</h4>
+                <ul>
+                    <li>CI/CDでパフォーマンス回帰を自動検知</li>
+                    <li>本番モニタリングと連携してトレンド分析</li>
+                    <li>セール時の負荷を想定したベースライン設定</li>
+                    <li>モバイル・デスクトップ両方を計測</li>
+                </ul>
+            </div>
+        </section>
+
+        <div class="navigation-buttons">
+            <a href="synthetic-monitoring.html" class="btn btn-primary">← Synthetic Monitoring</a>
+            <a href="../index.html" class="btn btn-secondary">ホームに戻る →</a>
+        </div>
+    </main>
+
+    <script>
+        function copyCode(btn) {
+            const codeBlock = btn.parentElement;
+            const code = codeBlock.querySelector('code').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                btn.textContent = '✓ コピー完了';
+                setTimeout(() => { btn.textContent = 'コピー'; }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>

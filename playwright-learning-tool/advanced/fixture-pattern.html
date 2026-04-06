@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fixtureパターン | Playwright マスター道場</title>
+    <style>
+        :root { --primary: #6366f1; --secondary: #10b981; --accent: #f59e0b; --bg: #0f172a; --bg-light: #1e293b; --text: #e2e8f0; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg); color: var(--text); line-height: 1.8; }
+        .nav { background: var(--bg-light); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .nav a { color: var(--text); text-decoration: none; }
+        .lesson-header { background: linear-gradient(135deg, #8b5cf6, #6366f1); padding: 3rem 2rem; text-align: center; }
+        .lesson-badge { background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 2rem; font-size: 0.9rem; display: inline-block; margin-bottom: 1rem; }
+        .lesson-header h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+        .content { max-width: 900px; margin: 0 auto; padding: 2rem; }
+        .section { background: var(--bg-light); border-radius: 1rem; padding: 2rem; margin-bottom: 2rem; }
+        .section h2 { color: var(--primary); margin-bottom: 1rem; font-size: 1.5rem; }
+        .section h3 { color: var(--accent); margin: 1.5rem 0 1rem; }
+        .code-block { background: #0d1117; border-radius: 0.5rem; padding: 1.5rem; margin: 1rem 0; overflow-x: auto; font-family: 'Fira Code', 'Consolas', monospace; font-size: 0.85rem; border: 1px solid #30363d; position: relative; }
+        .code-comment { color: #8b949e; }
+        .code-keyword { color: #ff7b72; }
+        .code-string { color: #a5d6ff; }
+        .code-function { color: #d2a8ff; }
+        .code-variable { color: #ffa657; }
+        .copy-btn { position: absolute; top: 0.5rem; right: 0.5rem; background: var(--primary); color: white; border: none; padding: 0.3rem 0.8rem; border-radius: 0.3rem; cursor: pointer; font-size: 0.8rem; }
+        .hint-box { background: rgba(245, 158, 11, 0.2); border-left: 4px solid var(--accent); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 0.5rem 0.5rem 0; }
+        .hint-box h4 { color: var(--accent); margin-bottom: 0.5rem; }
+        .success-box { background: rgba(16, 185, 129, 0.2); border-left: 4px solid var(--secondary); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 0.5rem 0.5rem 0; }
+        .success-box h4 { color: var(--secondary); margin-bottom: 0.5rem; }
+        .comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; }
+        .comparison > div { background: var(--bg); padding: 1rem; border-radius: 0.5rem; }
+        .comparison h4 { margin-bottom: 0.5rem; }
+        .bad { border: 2px solid #ef4444; }
+        .good { border: 2px solid var(--secondary); }
+        ul { margin-left: 1.5rem; }
+        .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-size: 1rem; font-weight: 600; cursor: pointer; border: none; text-decoration: none; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-secondary { background: var(--secondary); color: white; }
+        .navigation-buttons { display: flex; justify-content: space-between; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--bg-light); }
+        @media (max-width: 768px) { .comparison { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="../index.html">← ホームに戻る</a>
+        <span>上級 / Fixtureパターン</span>
+    </nav>
+
+    <header class="lesson-header">
+        <span class="lesson-badge">上級コース - Lv.6</span>
+        <h1>🔧 Fixtureパターンで再利用性UP</h1>
+        <p>テストのセットアップを効率化する設計パターン</p>
+    </header>
+
+    <main class="content">
+        <section class="section">
+            <h2>🎯 このレッスンで学ぶこと</h2>
+            <ul>
+                <li>Fixtureとは何か、なぜ必要か</li>
+                <li>Playwrightの組み込みFixtureの使い方</li>
+                <li>カスタムFixtureの作成方法</li>
+                <li>Fixtureの合成と依存関係</li>
+                <li>EC特化のFixture設計例</li>
+            </ul>
+        </section>
+
+        <section class="section">
+            <h2>❓ Fixtureとは？</h2>
+            <p>Fixtureは「テストの前準備」を再利用可能な形でまとめたものです。</p>
+
+            <div class="comparison">
+                <div class="bad">
+                    <h4>❌ Fixtureなし（毎回同じ処理）</h4>
+                    <div class="code-block">
+                        <code>test(<span class="code-string">'テスト1'</span>, <span class="code-keyword">async</span> ({ page }) => {
+    <span class="code-comment">// 毎回ログイン処理を書く...</span>
+    <span class="code-keyword">await</span> page.goto(<span class="code-string">'/login'</span>);
+    <span class="code-keyword">await</span> page.fill(<span class="code-string">'#email'</span>, <span class="code-string">'test@example.com'</span>);
+    <span class="code-keyword">await</span> page.fill(<span class="code-string">'#password'</span>, <span class="code-string">'password'</span>);
+    <span class="code-keyword">await</span> page.click(<span class="code-string">'button[type="submit"]'</span>);
+    <span class="code-comment">// 本来のテスト...</span>
+});
+
+test(<span class="code-string">'テスト2'</span>, <span class="code-keyword">async</span> ({ page }) => {
+    <span class="code-comment">// また同じログイン処理...</span>
+    <span class="code-keyword">await</span> page.goto(<span class="code-string">'/login'</span>);
+    <span class="code-keyword">await</span> page.fill(<span class="code-string">'#email'</span>, <span class="code-string">'test@example.com'</span>);
+    <span class="code-comment">// ...</span>
+});</code>
+                    </div>
+                </div>
+                <div class="good">
+                    <h4>✅ Fixtureあり（再利用）</h4>
+                    <div class="code-block">
+                        <code><span class="code-comment">// Fixtureで認証済みページを提供</span>
+test(<span class="code-string">'テスト1'</span>, <span class="code-keyword">async</span> ({ <span class="code-variable">authenticatedPage</span> }) => {
+    <span class="code-comment">// 即座にテスト開始！</span>
+    <span class="code-keyword">await</span> authenticatedPage.goto(<span class="code-string">'/mypage'</span>);
+});
+
+test(<span class="code-string">'テスト2'</span>, <span class="code-keyword">async</span> ({ <span class="code-variable">authenticatedPage</span> }) => {
+    <span class="code-comment">// 同じFixtureを使用</span>
+    <span class="code-keyword">await</span> authenticatedPage.goto(<span class="code-string">'/orders'</span>);
+});</code>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>📦 Playwrightの組み込みFixture</h2>
+            <p>Playwrightには便利なFixtureが最初から用意されています。</p>
+
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code><span class="code-keyword">import</span> { test, expect } <span class="code-keyword">from</span> <span class="code-string">'@playwright/test'</span>;
+
+<span class="code-comment">// 組み込みFixtureの例</span>
+test(<span class="code-string">'組み込みFixtureを使う'</span>, <span class="code-keyword">async</span> ({
+    <span class="code-variable">page</span>,       <span class="code-comment">// ブラウザのページ</span>
+    <span class="code-variable">context</span>,    <span class="code-comment">// ブラウザコンテキスト</span>
+    <span class="code-variable">browser</span>,    <span class="code-comment">// ブラウザインスタンス</span>
+    <span class="code-variable">request</span>,    <span class="code-comment">// APIリクエスト用</span>
+    <span class="code-variable">browserName</span> <span class="code-comment">// "chromium" | "firefox" | "webkit"</span>
+}) => {
+    <span class="code-comment">// pageは最もよく使うFixture</span>
+    <span class="code-keyword">await</span> page.goto(<span class="code-string">'https://example.com'</span>);
+
+    <span class="code-comment">// requestでAPIテスト</span>
+    <span class="code-keyword">const</span> response = <span class="code-keyword">await</span> request.get(<span class="code-string">'/api/users'</span>);
+    expect(response.ok()).toBeTruthy();
+
+    <span class="code-comment">// browserNameで条件分岐</span>
+    <span class="code-keyword">if</span> (browserName === <span class="code-string">'webkit'</span>) {
+        <span class="code-comment">// Safari固有の処理</span>
+    }
+});</code>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🛠️ カスタムFixtureの作成</h2>
+
+            <h3>基本的なカスタムFixture</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code><span class="code-comment">// fixtures.ts</span>
+<span class="code-keyword">import</span> { test <span class="code-keyword">as</span> base } <span class="code-keyword">from</span> <span class="code-string">'@playwright/test'</span>;
+
+<span class="code-comment">// カスタムFixtureの型定義</span>
+<span class="code-keyword">type</span> MyFixtures = {
+    <span class="code-variable">authenticatedPage</span>: Page;
+    <span class="code-variable">testUser</span>: { email: string; password: string };
+};
+
+<span class="code-comment">// Fixtureを拡張</span>
+<span class="code-keyword">export const</span> test = base.extend&lt;MyFixtures&gt;({
+    <span class="code-comment">// テストユーザーFixture</span>
+    <span class="code-variable">testUser</span>: <span class="code-keyword">async</span> ({}, use) => {
+        <span class="code-keyword">const</span> user = {
+            email: <span class="code-string">'test@example.com'</span>,
+            password: <span class="code-string">'securePassword123'</span>
+        };
+        <span class="code-keyword">await</span> use(user);
+    },
+
+    <span class="code-comment">// 認証済みページFixture</span>
+    <span class="code-variable">authenticatedPage</span>: <span class="code-keyword">async</span> ({ page, testUser }, use) => {
+        <span class="code-comment">// セットアップ: ログイン処理</span>
+        <span class="code-keyword">await</span> page.goto(<span class="code-string">'/login'</span>);
+        <span class="code-keyword">await</span> page.fill(<span class="code-string">'[data-testid="email"]'</span>, testUser.email);
+        <span class="code-keyword">await</span> page.fill(<span class="code-string">'[data-testid="password"]'</span>, testUser.password);
+        <span class="code-keyword">await</span> page.click(<span class="code-string">'[data-testid="login-button"]'</span>);
+        <span class="code-keyword">await</span> page.waitForURL(<span class="code-string">'/dashboard'</span>);
+
+        <span class="code-comment">// Fixtureを提供</span>
+        <span class="code-keyword">await</span> use(page);
+
+        <span class="code-comment">// クリーンアップ: ログアウト</span>
+        <span class="code-keyword">await</span> page.goto(<span class="code-string">'/logout'</span>);
+    }
+});
+
+<span class="code-keyword">export</span> { expect } <span class="code-keyword">from</span> <span class="code-string">'@playwright/test'</span>;</code>
+            </div>
+
+            <h3>使用例</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code><span class="code-comment">// tests/mypage.spec.ts</span>
+<span class="code-keyword">import</span> { test, expect } <span class="code-keyword">from</span> <span class="code-string">'./fixtures'</span>;
+
+test(<span class="code-string">'マイページにアクセスできる'</span>, <span class="code-keyword">async</span> ({ authenticatedPage }) => {
+    <span class="code-comment">// すでにログイン済み！</span>
+    <span class="code-keyword">await</span> authenticatedPage.goto(<span class="code-string">'/mypage'</span>);
+    <span class="code-keyword">await</span> expect(authenticatedPage.getByText(<span class="code-string">'ようこそ'</span>)).toBeVisible();
+});
+
+test(<span class="code-string">'注文履歴を確認できる'</span>, <span class="code-keyword">async</span> ({ authenticatedPage }) => {
+    <span class="code-keyword">await</span> authenticatedPage.goto(<span class="code-string">'/mypage/orders'</span>);
+    <span class="code-keyword">await</span> expect(authenticatedPage.getByText(<span class="code-string">'注文履歴'</span>)).toBeVisible();
+});</code>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🛒 EC特化のFixture例</h2>
+
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code><span class="code-comment">// fixtures/ec-fixtures.ts</span>
+<span class="code-keyword">import</span> { test <span class="code-keyword">as</span> base, Page } <span class="code-keyword">from</span> <span class="code-string">'@playwright/test'</span>;
+<span class="code-keyword">import</span> { CartPage } <span class="code-keyword">from</span> <span class="code-string">'../pages/CartPage'</span>;
+<span class="code-keyword">import</span> { CheckoutPage } <span class="code-keyword">from</span> <span class="code-string">'../pages/CheckoutPage'</span>;
+
+<span class="code-keyword">type</span> ECFixtures = {
+    <span class="code-variable">cartPage</span>: CartPage;
+    <span class="code-variable">checkoutPage</span>: CheckoutPage;
+    <span class="code-variable">cartWithItems</span>: CartPage;
+    <span class="code-variable">testProducts</span>: Array&lt;{ id: string; name: string; price: number }&gt;;
+};
+
+<span class="code-keyword">export const</span> test = base.extend&lt;ECFixtures&gt;({
+    <span class="code-comment">// テスト用商品データ</span>
+    <span class="code-variable">testProducts</span>: <span class="code-keyword">async</span> ({}, use) => {
+        <span class="code-keyword">const</span> products = [
+            { id: <span class="code-string">'PROD001'</span>, name: <span class="code-string">'テスト商品A'</span>, price: 1000 },
+            { id: <span class="code-string">'PROD002'</span>, name: <span class="code-string">'テスト商品B'</span>, price: 2500 },
+            { id: <span class="code-string">'PROD003'</span>, name: <span class="code-string">'テスト商品C'</span>, price: 500 }
+        ];
+        <span class="code-keyword">await</span> use(products);
+    },
+
+    <span class="code-comment">// CartPage インスタンス</span>
+    <span class="code-variable">cartPage</span>: <span class="code-keyword">async</span> ({ page }, use) => {
+        <span class="code-keyword">const</span> cartPage = <span class="code-keyword">new</span> CartPage(page);
+        <span class="code-keyword">await</span> use(cartPage);
+    },
+
+    <span class="code-comment">// CheckoutPage インスタンス</span>
+    <span class="code-variable">checkoutPage</span>: <span class="code-keyword">async</span> ({ page }, use) => {
+        <span class="code-keyword">const</span> checkoutPage = <span class="code-keyword">new</span> CheckoutPage(page);
+        <span class="code-keyword">await</span> use(checkoutPage);
+    },
+
+    <span class="code-comment">// 商品入りカート（セットアップ済み）</span>
+    <span class="code-variable">cartWithItems</span>: <span class="code-keyword">async</span> ({ page, testProducts }, use) => {
+        <span class="code-keyword">const</span> cartPage = <span class="code-keyword">new</span> CartPage(page);
+
+        <span class="code-comment">// セットアップ: 商品をカートに追加</span>
+        <span class="code-keyword">for</span> (<span class="code-keyword">const</span> product <span class="code-keyword">of</span> testProducts) {
+            <span class="code-keyword">await</span> page.goto(<span class="code-string">`/products/</span>${product.id}<span class="code-string">`</span>);
+            <span class="code-keyword">await</span> page.click(<span class="code-string">'[data-testid="add-to-cart"]'</span>);
+        }
+
+        <span class="code-keyword">await</span> page.goto(<span class="code-string">'/cart'</span>);
+        <span class="code-keyword">await</span> use(cartPage);
+
+        <span class="code-comment">// クリーンアップ: カートを空にする</span>
+        <span class="code-keyword">await</span> cartPage.clearCart();
+    }
+});</code>
+            </div>
+
+            <h3>EC Fixtureの使用例</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code><span class="code-comment">// tests/ec-checkout.spec.ts</span>
+<span class="code-keyword">import</span> { test, expect } <span class="code-keyword">from</span> <span class="code-string">'./fixtures/ec-fixtures'</span>;
+
+test.describe(<span class="code-string">'ECチェックアウト'</span>, () => {
+    test(<span class="code-string">'カート内商品で購入手続きできる'</span>, <span class="code-keyword">async</span> ({
+        cartWithItems,
+        checkoutPage,
+        testProducts
+    }) => {
+        <span class="code-comment">// cartWithItemsは既に3商品入り！</span>
+        <span class="code-keyword">const</span> itemCount = <span class="code-keyword">await</span> cartWithItems.getItemCount();
+        expect(itemCount).toBe(testProducts.length);
+
+        <span class="code-comment">// 合計金額を確認</span>
+        <span class="code-keyword">const</span> expectedTotal = testProducts.reduce((sum, p) => sum + p.price, 0);
+        <span class="code-keyword">const</span> actualTotal = <span class="code-keyword">await</span> cartWithItems.getSubtotal();
+        expect(actualTotal).toBe(expectedTotal);
+
+        <span class="code-comment">// 購入手続きへ</span>
+        <span class="code-keyword">await</span> cartWithItems.proceedToCheckout();
+        <span class="code-comment">// checkoutPageで続きのテスト...</span>
+    });
+
+    test(<span class="code-string">'空のカートでは購入できない'</span>, <span class="code-keyword">async</span> ({ cartPage, page }) => {
+        <span class="code-comment">// cartPageは空の状態</span>
+        <span class="code-keyword">await</span> page.goto(<span class="code-string">'/cart'</span>);
+        <span class="code-keyword">await</span> expect(page.getByText(<span class="code-string">'カートは空です'</span>)).toBeVisible();
+    });
+});</code>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>⚡ 高度なFixtureテクニック</h2>
+
+            <h3>Worker-scoped Fixture（並列実行での共有）</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code><span class="code-comment">// 全テストで共有するFixture（Worker単位）</span>
+<span class="code-keyword">export const</span> test = base.extend&lt;{}, { sharedApiClient: APIClient }&gt;({
+    <span class="code-variable">sharedApiClient</span>: [<span class="code-keyword">async</span> ({}, use) => {
+        <span class="code-comment">// 重い初期化処理（1回だけ実行）</span>
+        <span class="code-keyword">const</span> client = <span class="code-keyword">new</span> APIClient();
+        <span class="code-keyword">await</span> client.initialize();
+
+        <span class="code-keyword">await</span> use(client);
+
+        <span class="code-comment">// Worker終了時にクリーンアップ</span>
+        <span class="code-keyword">await</span> client.close();
+    }, { scope: <span class="code-string">'worker'</span> }]
+});</code>
+            </div>
+
+            <h3>オプショナルFixture</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">コピー</button>
+                <code><span class="code-comment">// テストごとにカスタマイズ可能なFixture</span>
+<span class="code-keyword">type</span> TestOptions = {
+    <span class="code-variable">userRole</span>: <span class="code-string">'admin'</span> | <span class="code-string">'member'</span> | <span class="code-string">'guest'</span>;
+};
+
+<span class="code-keyword">export const</span> test = base.extend&lt;TestOptions&gt;({
+    <span class="code-variable">userRole</span>: [<span class="code-string">'member'</span>, { option: <span class="code-keyword">true</span> }]
+});
+
+<span class="code-comment">// 使用時にオーバーライド</span>
+test.use({ userRole: <span class="code-string">'admin'</span> });
+
+test(<span class="code-string">'管理者機能をテスト'</span>, <span class="code-keyword">async</span> ({ page, userRole }) => {
+    console.log(userRole); <span class="code-comment">// 'admin'</span>
+});</code>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🎯 このレッスンのまとめ</h2>
+
+            <div class="success-box">
+                <h4>マスターした内容</h4>
+                <ul>
+                    <li>Fixtureでテストのセットアップを再利用</li>
+                    <li>カスタムFixtureの作成方法</li>
+                    <li>EC特化のFixture設計</li>
+                    <li>Worker-scopedやオプションの活用</li>
+                </ul>
+            </div>
+
+            <div class="hint-box">
+                <h4>💡 ベストプラクティス</h4>
+                <ul>
+                    <li>Fixtureは小さく、単一責任に</li>
+                    <li>クリーンアップを忘れずに</li>
+                    <li>型定義で補完を効かせる</li>
+                    <li>Worker-scopedは本当に必要な時だけ</li>
+                </ul>
+            </div>
+        </section>
+
+        <div class="navigation-buttons">
+            <a href="pom-basics.html" class="btn btn-primary">← POM基礎</a>
+            <a href="test-data.html" class="btn btn-secondary">テストデータ管理 →</a>
+        </div>
+    </main>
+
+    <script>
+        function copyCode(btn) {
+            const codeBlock = btn.parentElement;
+            const code = codeBlock.querySelector('code').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                btn.textContent = '✓ コピー完了';
+                setTimeout(() => { btn.textContent = 'コピー'; }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
