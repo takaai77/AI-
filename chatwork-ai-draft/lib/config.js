@@ -6,7 +6,7 @@
  * 管理者がここでデフォルトのエンドポイントURLを設定しておくことで、
  * 社員は個別にURLを入力する必要がなくなる。
  *
- * GCP Application Integration + Vertex AI 構成に対応。
+ * GCP Application Integration + Gemini Flash 構成に対応。
  */
 
 // eslint-disable-next-line no-var
@@ -29,7 +29,7 @@ var CW_CONFIG = (() => {
   /**
    * デフォルトのAPIキー
    * GCP API Gateway 用の制限付きAPIキー。
-   * Vertex AI のキーではない（Vertex AI のキーは GCP 内部で管理）。
+   * Gemini APIキーではない（Gemini APIキーは GCP 内部で管理）。
    * 空文字の場合は設定画面での入力が必要になる。
    *
    * 例: 'AIzaSy...'

@@ -2,7 +2,7 @@
  * extract-context.js
  * ─────────────────────────────────────────────
  * Chatwork画面のDOMから直近の会話文脈を抽出する。
- * 必要最小限のデータだけを取り出し、n8nへ送る形に整形する。
+ * 必要最小限のデータだけを取り出し、GCPへ送る形に整形する。
  */
 
 // eslint-disable-next-line no-var
@@ -65,7 +65,7 @@ var CW_EXTRACT = (() => {
   }
 
   /**
-   * n8nに送るペイロードを組み立てる
+   * GCPに送るペイロードを組み立てる
    * @param {object} params
    * @param {string} params.intent - ユーザーの意図（テキスト入力）
    * @param {string} [params.tone='neutral'] - トーン指定
@@ -93,7 +93,7 @@ var CW_EXTRACT = (() => {
       retryMode,
     };
 
-    // カスタムプロンプトがあればペイロードに追加（n8n側で活用）
+    // カスタムプロンプトがあればペイロードに追加（GCP側で活用）
     if (customPrompt) {
       payload.customPrompt = customPrompt;
     }

@@ -4,7 +4,7 @@
  * GCP Application Integration との通信を担当するモジュール。
  *
  * セキュリティ方針:
- *   - Vertex AI のAPIキーを拡張に埋め込まない
+ *   - Gemini APIキーを拡張に埋め込まない
  *   - 拡張が持つのは API Gateway 用の制限付きキーのみ
  *   - 通信先は GCP API Gateway のみ
  *   - タイムアウト・エラーハンドリングを実装
