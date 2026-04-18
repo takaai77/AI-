@@ -13,40 +13,40 @@
       <p class="options-subtitle">設定画面</p>
     </header>
 
-    <!-- Webhook設定 -->
+    <!-- エンドポイント設定 -->
     <section class="options-section">
-      <h2 class="options-section-title">Webhook設定</h2>
+      <h2 class="options-section-title">エンドポイント設定</h2>
       <p class="options-description">
-        n8n や中継サーバーの Webhook URL を設定してください。<br>
+        GCP API Gateway のエンドポイントURLを設定してください。<br>
         AI生成リクエストはこのURLに送信されます。
       </p>
 
       <div class="options-field">
-        <label for="webhookUrl" class="options-label">Webhook URL</label>
+        <label for="endpointUrl" class="options-label">エンドポイントURL</label>
         <input
           type="url"
-          id="webhookUrl"
+          id="endpointUrl"
           class="options-input"
-          placeholder="https://your-n8n-instance.example.com/webhook/xxxxx"
+          placeholder="https://your-api-gateway-xxxx.gateway.dev/draft"
         >
-        <p class="options-hint" id="webhookHint">
+        <p class="options-hint" id="endpointHint">
           https:// で始まるURLを入力してください。<br>
-          APIキーはここには入力しないでください（サーバー側で管理します）。
+          Vertex AI のAPIキーはここには入力しないでください（GCP内部で管理します）。
         </p>
       </div>
 
       <div class="options-field">
-        <label for="authToken" class="options-label">認証トークン（任意）</label>
+        <label for="apiKey" class="options-label">APIキー（任意）</label>
         <input
           type="password"
-          id="authToken"
+          id="apiKey"
           class="options-input"
-          placeholder="n8n側で設定したBearer Token"
+          placeholder="GCP API Gateway 用の制限付きAPIキー"
           autocomplete="off"
         >
         <p class="options-hint">
-          n8n の Header Auth で設定したトークンを入力してください。<br>
-          Authorization: Bearer ヘッダーとして送信されます。空欄の場合は認証なしで通信します。
+          GCP API Gateway で発行した制限付きAPIキーを入力してください。<br>
+          x-api-key ヘッダーとして送信されます。空欄の場合はデフォルト設定を使用します。
         </p>
       </div>
     </section>
@@ -90,7 +90,7 @@
           placeholder="例: 返信はです・ます調で統一してください。社名は「株式会社サンプル」です。"
         ></textarea>
         <p class="options-hint">
-          この内容は n8n 経由でAIに追加指示として送られます。<br>
+          この内容はAIに追加指示として送られます。<br>
           機密情報（パスワード、APIキー等）は絶対に書かないでください。
         </p>
       </div>
@@ -155,7 +155,7 @@
     <section class="options-section options-section--info">
       <h2 class="options-section-title">セキュリティについて</h2>
       <ul class="options-info-list">
-        <li>APIキーはこの拡張機能内に保存しません（サーバー側で管理）</li>
+        <li>Vertex AI のAPIキーはこの拡張機能内に保存しません（GCP内部で管理）</li>
         <li>送信データは直近の数件のメッセージのみです</li>
         <li>個人情報らしき文字列は送信前に自動マスクされます</li>
         <li>下書き履歴は永続的に保存しません</li>

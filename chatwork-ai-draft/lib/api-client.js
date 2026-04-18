@@ -1,13 +1,13 @@
 /**
  * api-client.js
  * ─────────────────────────────────────────────
- * n8n Webhook との通信を担当するモジュール。
+ * GCP Application Integration との通信を担当するモジュール。
  *
  * セキュリティ方針:
- *   - APIキーを拡張に埋め込まない
- *   - 通信先は n8n Webhook のみ（options画面で設定）
+ *   - Vertex AI のAPIキーを拡張に埋め込まない
+ *   - 拡張が持つのは API Gateway 用の制限付きキーのみ
+ *   - 通信先は GCP API Gateway のみ
  *   - タイムアウト・エラーハンドリングを実装
- *   - レスポンスの検証を行う
  *   - ログに会話本文を出力しない
  */
 
@@ -15,63 +15,64 @@
 var CW_API = (() => {
   'use strict';
 
-  // デフォルトタイムアウト（ミリ秒）- 速度重視で20秒に短縮
   const DEFAULT_TIMEOUT = 20000;
-
-  // 開発用ログフラグ（本番では false にする）
   const DEBUG_LOG = false;
 
   /**
-   * webhook URL を取得する（ユーザー設定 → デフォルト の優先順位）
-   * @returns {Promise<string>} webhook URL
+   * エンドポイントURLを取得する（ユーザー設定 → デフォルト の優先順位）
    */
-  async function getWebhookUrl() {
+  async function getEndpointUrl() {
     const settings = await CW_STORAGE.loadSettings();
-    const userUrl = settings.webhookUrl || '';
+
+    // 新しい設定キー (endpointUrl) を優先
+    const userUrl = settings.endpointUrl || settings.webhookUrl || '';
     if (userUrl) return userUrl;
 
-    // config.js のデフォルトにフォールバック
-    if (typeof CW_CONFIG !== 'undefined' && CW_CONFIG.DEFAULT_WEBHOOK_URL) {
-      return CW_CONFIG.DEFAULT_WEBHOOK_URL;
+    if (typeof CW_CONFIG !== 'undefined') {
+      if (CW_CONFIG.DEFAULT_ENDPOINT_URL) return CW_CONFIG.DEFAULT_ENDPOINT_URL;
+      // 旧設定との後方互換
+      if (CW_CONFIG.DEFAULT_WEBHOOK_URL) return CW_CONFIG.DEFAULT_WEBHOOK_URL;
     }
     return '';
   }
 
   /**
-   * 認証トークンを取得する（ユーザー設定 → デフォルト の優先順位）
-   * @returns {Promise<string>} Bearer token（空文字なら認証なし）
+   * APIキーまたは認証トークンを取得する（ユーザー設定 → デフォルト の優先順位）
    */
-  async function getAuthToken() {
+  async function getApiKey() {
     const settings = await CW_STORAGE.loadSettings();
-    const userToken = settings.authToken || '';
-    if (userToken) return userToken;
 
-    if (typeof CW_CONFIG !== 'undefined' && CW_CONFIG.DEFAULT_AUTH_TOKEN) {
-      return CW_CONFIG.DEFAULT_AUTH_TOKEN;
+    // 新しい設定キー (apiKey) を優先
+    const userKey = settings.apiKey || settings.authToken || '';
+    if (userKey) return userKey;
+
+    if (typeof CW_CONFIG !== 'undefined') {
+      if (CW_CONFIG.DEFAULT_API_KEY) return CW_CONFIG.DEFAULT_API_KEY;
+      // 旧設定との後方互換
+      if (CW_CONFIG.DEFAULT_AUTH_TOKEN) return CW_CONFIG.DEFAULT_AUTH_TOKEN;
     }
     return '';
   }
 
   /**
-   * n8n Webhook に下書き生成リクエストを送る
+   * 下書き生成リクエストを送る
    * @param {object} payload - CW_EXTRACT.buildPayload() の戻り値
    * @returns {Promise<object>} レスポンスオブジェクト
    */
   async function requestDraft(payload) {
-    const webhookUrl = await getWebhookUrl();
+    const endpointUrl = await getEndpointUrl();
 
-    if (!webhookUrl) {
+    if (!endpointUrl) {
       return {
         ok: false,
-        error: 'Webhook URLが設定されていません。拡張機能の設定画面でURLを入力してください。',
+        error: 'エンドポイントURLが設定されていません。拡張機能の設定画面でURLを入力してください。',
       };
     }
 
-    // URL の基本的なバリデーション
-    if (!isValidUrl(webhookUrl)) {
+    if (!isValidUrl(endpointUrl)) {
       return {
         ok: false,
-        error: 'Webhook URLの形式が正しくありません。https:// で始まるURLを設定してください。',
+        error: 'エンドポイントURLの形式が正しくありません。https:// で始まるURLを設定してください。',
       };
     }
 
@@ -87,13 +88,18 @@ var CW_API = (() => {
         'Content-Type': 'application/json',
       };
 
-      // 認証トークンがあれば Authorization ヘッダーを追加
-      const authToken = await getAuthToken();
-      if (authToken) {
-        headers['Authorization'] = 'Bearer ' + authToken;
+      const apiKey = await getApiKey();
+      if (apiKey) {
+        // GCP API Gateway: x-api-key ヘッダー
+        // Bearer Token (後方互換): Authorization ヘッダー
+        if (apiKey.startsWith('AIza')) {
+          headers['x-api-key'] = apiKey;
+        } else {
+          headers['Authorization'] = 'Bearer ' + apiKey;
+        }
       }
 
-      const response = await fetch(webhookUrl, {
+      const response = await fetch(endpointUrl, {
         method: 'POST',
         headers,
         body: JSON.stringify(payload),
@@ -111,7 +117,6 @@ var CW_API = (() => {
 
       const data = await response.json();
 
-      // レスポンスの基本検証
       if (!data || typeof data !== 'object') {
         return {
           ok: false,
@@ -119,7 +124,6 @@ var CW_API = (() => {
         };
       }
 
-      // 正常レスポンス
       if (data.ok && data.draft) {
         return {
           ok: true,
@@ -129,14 +133,12 @@ var CW_API = (() => {
         };
       }
 
-      // サーバー側エラー
       return {
         ok: false,
         error: data.error || 'AIからの応答を取得できませんでした。',
       };
 
     } catch (e) {
-      // タイムアウト
       if (e.name === 'AbortError') {
         return {
           ok: false,
@@ -144,15 +146,13 @@ var CW_API = (() => {
         };
       }
 
-      // ネットワークエラー
       if (e instanceof TypeError && e.message.includes('fetch')) {
         return {
           ok: false,
-          error: 'ネットワークエラー。Webhook URLが正しいか確認してください。',
+          error: 'ネットワークエラー。エンドポイントURLが正しいか確認してください。',
         };
       }
 
-      // JSON パースエラー
       if (e instanceof SyntaxError) {
         return {
           ok: false,
@@ -160,7 +160,6 @@ var CW_API = (() => {
         };
       }
 
-      // その他
       return {
         ok: false,
         error: '予期しないエラーが発生しました。',
@@ -168,11 +167,6 @@ var CW_API = (() => {
     }
   }
 
-  /**
-   * URL のバリデーション
-   * @param {string} url
-   * @returns {boolean}
-   */
   function isValidUrl(url) {
     try {
       const parsed = new URL(url);
@@ -184,8 +178,8 @@ var CW_API = (() => {
 
   return {
     DEFAULT_TIMEOUT,
-    getWebhookUrl,
-    getAuthToken,
+    getEndpointUrl,
+    getApiKey,
     requestDraft,
     isValidUrl,
   };

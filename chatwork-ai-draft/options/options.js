@@ -2,11 +2,11 @@
  * options.js
  * ─────────────────────────────────────────────
  * 設定画面のロジック。
- * Webhook URL、メッセージ件数、カスタムプロンプト、
+ * エンドポイントURL、APIキー、メッセージ件数、カスタムプロンプト、
  * テンプレートの管理（追加・編集・削除）を行う。
  *
  * 注意:
- *   - APIキーはここに保存しない
+ *   - Vertex AI のAPIキーはここに保存しない（GCP内部で管理）
  *   - カスタムプロンプトに機密情報を書かないよう案内する
  */
 
@@ -14,9 +14,9 @@
   'use strict';
 
   // ── DOM参照 ──
-  const webhookInput = document.getElementById('webhookUrl');
-  const authTokenInput = document.getElementById('authToken');
-  const webhookHint = document.getElementById('webhookHint');
+  const endpointInput = document.getElementById('endpointUrl');
+  const apiKeyInput = document.getElementById('apiKey');
+  const endpointHint = document.getElementById('endpointHint');
   const limitInput = document.getElementById('messageLimit');
   const customPromptInput = document.getElementById('customPrompt');
   const saveBtn = document.getElementById('saveBtn');
@@ -42,19 +42,23 @@
       const result = await chrome.storage.local.get(['cwAiSettings', STORAGE_KEY_PROMPT]);
       const settings = result.cwAiSettings || {};
 
-      if (settings.webhookUrl) webhookInput.value = settings.webhookUrl;
-      if (settings.authToken) authTokenInput.value = settings.authToken;
+      // 新しいキーを優先、旧キーにもフォールバック
+      if (settings.endpointUrl || settings.webhookUrl) {
+        endpointInput.value = settings.endpointUrl || settings.webhookUrl;
+      }
+      if (settings.apiKey || settings.authToken) {
+        apiKeyInput.value = settings.apiKey || settings.authToken;
+      }
       if (settings.messageLimit) limitInput.value = settings.messageLimit;
 
-      // デフォルトURL が config.js で設定されている場合のヒント表示
-      if (typeof CW_CONFIG !== 'undefined' && CW_CONFIG.DEFAULT_WEBHOOK_URL) {
-        webhookInput.placeholder = CW_CONFIG.DEFAULT_WEBHOOK_URL;
-        webhookHint.innerHTML =
-          'デフォルトURLが設定済みです。空欄のままでも動作します。<br>' +
-          '上書きしたい場合のみ入力してください。';
+      // デフォルトURLが config.js で設定されている場合のヒント表示
+      if (typeof CW_CONFIG !== 'undefined' && CW_CONFIG.DEFAULT_ENDPOINT_URL) {
+        endpointInput.placeholder = CW_CONFIG.DEFAULT_ENDPOINT_URL;
+        endpointHint.textContent =
+          'デフォルトURLが設定済みです。空欄のままでも動作します。上書きしたい場合のみ入力してください。';
       }
-      if (typeof CW_CONFIG !== 'undefined' && CW_CONFIG.DEFAULT_AUTH_TOKEN && !settings.authToken) {
-        authTokenInput.placeholder = '（デフォルトトークン設定済み）';
+      if (typeof CW_CONFIG !== 'undefined' && CW_CONFIG.DEFAULT_API_KEY && !(settings.apiKey || settings.authToken)) {
+        apiKeyInput.placeholder = '（デフォルトキー設定済み）';
       }
 
       // カスタムプロンプト
@@ -67,13 +71,13 @@
   }
 
   async function saveSettings() {
-    const webhookUrl = webhookInput.value.trim();
-    const authToken = authTokenInput.value.trim();
+    const endpointUrl = endpointInput.value.trim();
+    const apiKey = apiKeyInput.value.trim();
     const messageLimit = parseInt(limitInput.value, 10) || 5;
     const customPrompt = customPromptInput.value.trim();
 
     // バリデーション
-    if (webhookUrl && !isValidUrl(webhookUrl)) {
+    if (endpointUrl && !isValidUrl(endpointUrl)) {
       showStatus('URLの形式が正しくありません', true);
       return;
     }
@@ -84,10 +88,10 @@
 
     try {
       await chrome.storage.local.set({
-        cwAiSettings: { webhookUrl, authToken, messageLimit },
+        cwAiSettings: { endpointUrl, apiKey, messageLimit },
         [STORAGE_KEY_PROMPT]: customPrompt,
       });
-      showStatus('保存しました ✓', false);
+      showStatus('保存しました', false);
     } catch (e) {
       showStatus('保存に失敗しました', true);
     }
@@ -97,22 +101,16 @@
   // テンプレート管理
   // ─────────────────────────────────────────────
 
-  /**
-   * テンプレート一覧を描画する
-   */
   async function renderTemplates() {
-    // 子要素クリア
     while (templateListEl.firstChild) {
       templateListEl.removeChild(templateListEl.firstChild);
     }
 
-    // プリセット
     const presetHeader = document.createElement('h4');
     presetHeader.className = 'options-tpl-group-title';
     presetHeader.textContent = 'プリセットテンプレート（編集不可）';
     templateListEl.appendChild(presetHeader);
 
-    // ── プリセット一覧は定数から取得 ──
     const PRESETS = [
       { id: 'preset_thanks', name: 'お礼の返信', icon: '🙏', intent: '感謝の気持ちを込めて丁寧にお礼を伝えたい', tone: 'polite', category: '基本' },
       { id: 'preset_confirm', name: '確認・承知', icon: '✅', intent: '内容を確認したことを伝え、承知した旨を返信したい', tone: 'neutral', category: '基本' },
@@ -128,7 +126,6 @@
       templateListEl.appendChild(createTemplateRow(tpl, true));
     }
 
-    // ユーザー定義
     let userTemplates = [];
     try {
       const result = await chrome.storage.local.get(STORAGE_KEY_TEMPLATES);
@@ -147,16 +144,13 @@
     }
   }
 
-  /**
-   * テンプレート1行のDOM要素を作る
-   */
   function createTemplateRow(tpl, isPreset) {
     const row = document.createElement('div');
     row.className = 'options-tpl-row' + (isPreset ? ' options-tpl-row--preset' : '');
 
     const iconSpan = document.createElement('span');
     iconSpan.className = 'options-tpl-icon';
-    iconSpan.textContent = tpl.icon || '📌';
+    iconSpan.textContent = tpl.icon || '';
 
     const nameSpan = document.createElement('span');
     nameSpan.className = 'options-tpl-name';
@@ -191,13 +185,10 @@
     return row;
   }
 
-  /**
-   * テンプレート追加ハンドラ
-   */
   async function handleAddTemplate() {
     const name = tplNameInput.value.trim();
     const intent = tplIntentInput.value.trim();
-    const icon = tplIconInput.value.trim() || '📌';
+    const icon = tplIconInput.value.trim() || '';
     const category = tplCategoryInput.value.trim() || 'カスタム';
     const tone = tplToneSelect.value;
 
@@ -228,23 +219,19 @@
       templates.push(newTemplate);
       await chrome.storage.local.set({ [STORAGE_KEY_TEMPLATES]: templates });
 
-      // フォームクリア
       tplNameInput.value = '';
       tplIntentInput.value = '';
       tplIconInput.value = '';
       tplCategoryInput.value = '';
       tplToneSelect.value = 'neutral';
 
-      showStatus('テンプレートを追加しました ✓', false);
+      showStatus('テンプレートを追加しました', false);
       renderTemplates();
     } catch (e) {
       showStatus('テンプレートの追加に失敗しました', true);
     }
   }
 
-  /**
-   * テンプレート削除ハンドラ
-   */
   async function handleDeleteTemplate(id) {
     if (!confirm('このテンプレートを削除しますか？')) return;
 
